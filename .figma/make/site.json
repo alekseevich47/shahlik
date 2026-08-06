@@ -1,0 +1,10 @@
+{
+  "description": "This online store offers a seamless shopping experience for delicious shawarma, pizza, and more, featuring easy navigation, customizable orders, and an intuitive admin panel.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
