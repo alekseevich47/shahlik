@@ -1,0 +1,163 @@
+---
+description: Frontpad API кассы — правила интеграции заказов «Шашлыковский»
+globs: apps/shashlik-web/**/*.{ts,tsx},**/frontpad*,**/*api*
+alwaysApply: false
+---
+
+# Frontpad API (касса)
+
+Источник: `temp/API Frontpad.docx`. Канон для агента — этот файл.
+
+## База
+
+- Метод: **POST** (как form submit).
+- URL: `https://app.frontpad.ru/api/index.php?<method>`
+- Кодировка: UTF-8.
+- Ответ: JSON, `result: "success" | "error"`.
+
+## Подготовка (оператор Frontpad)
+
+1. Включить API в «Общие».
+2. Сохранить **секрет** (не в клиент, не в git).
+3. У товаров ИМ — уникальный **цифровой артикул** (только продаваемые онлайн).
+
+## Жёсткие лимиты и запреты
+
+| Лимит | Значение |
+|-------|----------|
+| Все методы | ≤ **30**/мин, ≤ **2**/сек |
+| `get_products` | ≤ **1**/час |
+
+- Запросы **только после действия клиента**. Автоперебор / поллинг запрещены → IP может быть заблокирован.
+- На форме заказа — **reCAPTCHA** (или аналог) / авторизация.
+- Секрет — только сервер/прокси; в браузерный бандл не класть.
+- `get_client` / `get_certificate` — без циклического перебора.
+- Стоп-лист (`get_stops`) проверять перед оформлением.
+- Маппинг корзины → `product[]` / `product_kol[]` / `product_mod[]` — один модуль (напр. `services/frontpad`).
+
+## Общие ошибки
+
+| `error` | Значение |
+|---------|----------|
+| `invalid_secret` | Неверный секрет |
+| `requests_limit` | Превышен лимит |
+| `api_off` | API выключен |
+| `invalid_plant` | Тариф без API |
+
+## Методы
+
+| Метод | URL | Назначение |
+|-------|-----|------------|
+| `new_order` | `…?new_order` | Отправка заказа |
+| `get_client` | `…?get_client` | Клиент по телефону |
+| `get_certificate` | `…?get_certificate` | Проверка сертификата |
+| `get_products` | `…?get_products` | Список товаров (с артикулом) |
+| `get_stops` | `…?get_stops` | Стоп-лист |
+
+---
+
+### `new_order`
+
+**Обязательные:** `secret`, `product[]`, `product_kol[]`.
+
+| Параметр | Описание |
+|----------|----------|
+| `product` | Массив артикулов |
+| `product_kol` | Массив количеств (индексы = `product`) |
+| `product_mod` | Модификаторы: значение = ключ родителя в `product` |
+| `product_price` | Цены (только если в Frontpad разрешено изменение цены) |
+| `score` | Баллы к оплате |
+| `sale` | Скидка % (1–100); либо `sale_amount` — не оба сразу |
+| `sale_amount` | Скидка суммой |
+| `card` | Карта клиента (до 16 цифр) |
+| `street` / `home` / `pod` / `et` / `apart` | Адрес (лимиты длины: 50 / 50 / 2 / 2 / 50) |
+| `phone` / `mail` / `name` / `descr` | Контакты / примечание (до 50 / 50 / 50 / 100) |
+| `pay` | Код оплаты из справочника «Варианты оплаты» |
+| `certificate` | Номер сертификата |
+| `person` | Кол-во персон (2 знака; автосписание к person через API не привязано) |
+| `tags[]` | Отметки заказа (коды API, ≤ 10) |
+| `hook_status[]` | Статусы для webhook (≤ 5) |
+| `hook_url` | URL webhook для этого заказа (иначе — из настроек API) |
+| `channel` / `affiliate` / `point` | Канал / филиал / точка (справочники) |
+| `datetime` | Предзаказ `YYYY-MM-DD HH:MM:SS`, макс. +30 дней |
+
+**Успех:** `order_id`, `order_number`.
+
+**Ошибки метода:** `cash_close`, `invalid_product_keys`, `invalid_certificate`.
+
+**Warnings** (заказ может пройти с `result: success`): `invalid_certificate`, `invalid_datetime` (`invalid_format` | `too_long_period`), `invalid_product_keys` (ключи → индексы в `product`), `invalid_tags`, `invalid_hook_status`.
+
+**Модификаторы (пример):** пицца `[0]`, сыр `[1]`, бекон `[2]`, сок `[3]`; `product_mod[1]=0`, `product_mod[2]=0`.
+
+---
+
+### Webhook `change_status`
+
+Активация: URL в настройках API → перезапуск программы → при `new_order` передать `hook_status[]`.
+
+POST JSON на ваш URL:
+
+```json
+{
+  "action": "change_status",
+  "order_id": 12345678,
+  "status": 3,
+  "datetime": "2020-08-21 12:03:00"
+}
+```
+
+---
+
+### `get_client`
+
+Обязательные: `secret`, `client_phone` (строгий поиск — одна маска телефона в кассе и на сайте).
+
+Успех: `name`, `street`, `home`, `pod`, `et`, `apart`, `mail`, `descr`, `card`, `sale`, `score`.
+
+Ошибка: `invalid_client_phone`.
+
+---
+
+### `get_certificate`
+
+Обязательные: `secret`, `certificate`.
+
+Успех — один из вариантов:
+
+- товар: `product_id`, `name`, `price`
+- скидка %: `sale`
+- скидка суммой: `amount`
+
+Ошибка: `invalid_certificate`.
+
+---
+
+### `get_products`
+
+Обязательный: `secret`. Только товары **с артикулом**.
+
+Успех: параллельные массивы `product_id`, `name`, `price`, `sale` (`1` = скидки допустимы; для UI корзины, при записи заказа Frontpad смотрит своё текущее значение).
+
+Ошибка: `invalid_products`.
+
+Не вызывать с клиента; кэшировать на сервере с учётом лимита 1/час.
+
+---
+
+### `get_stops`
+
+Обязательный: `secret`. Только товары с артикулом.
+
+Успех: те же поля, что у `get_products`.
+
+Пустой стоп-лист: `result: success` + `error`/`description`: `no_stops`.
+
+---
+
+## Правила для кода проекта
+
+- Пока бэкенда нет — «К оформлению» остаётся заглушкой; не звать Frontpad с секретом из React.
+- Когда появится прокси/сервер: секрет в env, клиент бьёт только в наш endpoint.
+- Артикул Frontpad ≠ внутренний `product.id` сайта — нужен явный маппинг.
+- Добавки = отдельные артикулы + `product_mod` на индекс родителя.
+- Не поллить `get_products` / статусы; статусы — только webhook.

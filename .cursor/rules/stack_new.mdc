@@ -1,0 +1,243 @@
+---
+description: Канон новой версии сайта «Шашлыковский» (apps/shashlik-web) — стек, слои, токены, домен, правила правок
+globs: apps/shashlik-web/**/*.{ts,tsx,css,html,json}
+alwaysApply: false
+---
+
+# Стек: Шашлыковский v2 (`apps/shashlik-web`)
+
+Это **канон новой версии** сайта. Старый монолит `src/App.tsx` и правило `stack.mdc` сюда **не** переносить: цвета, модели, UX и структура — только из этого файла и кода в `apps/shashlik-web`.
+
+Правки дизайна и витрины начинать здесь. Корневой `src/` не трогать, пока явно не попросили смержить.
+
+## Контекст
+
+- **Бренд**: «Шашлыковский» — шаурма, шашлык, пицца, комбо, гарниры, напитки, соусы. Доставка / самовывоз.
+- **Это дизайн-прототип на моках.** Касса Frontpad **не** подключена. Не изобретать API-слой, webhook, секреты и persist каталога без задачи.
+- **Dev**: `cd apps/shashlik-web && pnpm dev` → `http://localhost:5273`. Не путать с корневым Vite (порт 8443 / Figma Make).
+- **Пакетный менеджер**: pnpm. Скрипты: `dev`, `build` (`tsc -b && vite build`), `preview`, `typecheck`.
+- Alias `@` → `apps/shashlik-web/src` (`vite.config.ts`).
+- Только `.ts` / `.tsx`. Default export — у **страниц** (`HomePage`, `ProductPage`, `AdminPage`). Остальное — named export.
+
+## Стек
+
+| Слой | Что |
+|------|-----|
+| Runtime | React 19 + React DOM 19 |
+| Сборка | Vite 8, `@vitejs/plugin-react`, TypeScript (strict, `verbatimModuleSyntax`) |
+| Стили | Tailwind CSS v4 через `@tailwindcss/vite`. **Нет** `tailwind.config` / PostCSS. Тема — CSS-переменные в `src/styles/globals.css` + `@theme inline` |
+| UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
+| Роутер | `react-router-dom` v7, lazy-страницы в `src/app/router.tsx` |
+| Состояние | Zustand + persist **только корзина** (`shashlik:cart:v1`). Тема — React context + `localStorage` (`shashlik:theme`) |
+| Тосты | `sonner` |
+| Шрифт | Self-hosted **Nunito** 400–800 (`src/assets/fonts/nunito` + `src/styles/fonts.css`). Google Fonts / CDN **запрещены** |
+
+Не добавлять Redux, Mantine, отдельный UI-kit, i18n, бэкенд-клиент без явного запроса.
+
+## Слои (Feature-Sliced, упрощённый)
+
+Импорты **только вниз**: `app` → `pages` → `widgets` → `features` → `entities` → `shared`. `mocks` читают `entities`, их читают `features`/`pages`/`widgets`. Циклы между слоями запрещены.
+
+| Слой | Путь | Правило |
+|------|------|---------|
+| app | `src/app/` | Провайдеры, роутер, `App.tsx`. Без доменной логики каталога |
+| pages | `src/pages/*/` | Сборка экрана. Состояние экрана (категория, вкладка админки) живёт здесь |
+| widgets | `src/widgets/` | Крупные блоки витрины: сайдбар, баннер, мобильный chrome |
+| features | `src/features/` | Сценарии: корзина, поиск, переключатель темы |
+| entities | `src/entities/*/` | Типы + чистые функции + UI сущности (`ProductCard`) |
+| shared | `src/shared/` | Токены-утилиты, UI-примитивы, конфиг сайта, хуки |
+| mocks | `src/mocks/` | Единственный источник каталога/заказов **пока нет API** |
+
+Новый экран = новая папка в `pages/`, не раздувать `HomePage.tsx`. Новый примитив (кнопка/чип) = `shared/ui`, не копипастить классы. Новое бизнес-правило цены/корзины = `entities/product/lib` или `features/cart/model`, не JSX.
+
+## Структура
+
+```
+apps/shashlik-web/
+  index.html                 # anti-FOUC темы (localStorage + prefers-color-scheme)
+  vite.config.ts             # port 5273, alias @
+  public/
+    products/*.jpg           # фото витрины (из temp/фото, сжатые)
+    icons/*.png              # иконки категорий (temp/иконки)
+    logo/logo.png            # логотип без фона
+    pattern/back.png         # тайловый паттерн (опционально, утилита .bg-pattern)
+  src/
+    main.tsx                 # mount + globals.css
+    app/App.tsx              # ThemeProvider + TooltipProvider + Router + Toaster
+    app/router.tsx           # /, /product/:slug, /admin
+    app/providers/theme.tsx  # class .dark / .light на <html>
+    styles/globals.css       # ТОКЕНЫ — единственный источник цветов
+    styles/fonts.css
+    pages/home/              # витрина desktop/mobile
+    pages/product/           # PDP (выбор варианта/размера/соусов/добавок)
+    pages/admin/             # админка (моки, без persist каталога)
+    widgets/sidebar|hero|catalog|header|mobile|promo
+    features/cart|search|theme-toggle
+    entities/product|category|addon|banner|order
+    shared/ui|lib|config|hooks
+    mocks/products|categories|addons|banners|orders
+```
+
+## Маршруты
+
+| URL | Страница | Заметки |
+|-----|----------|---------|
+| `/` | `pages/home/HomePage` | Desktop ≥1024: сайдбар + сетка + (при ≥1280) sticky-корзина. Ниже — мобильный chrome |
+| `/product/:slug` | `pages/product/ProductPage` | Выбор мяса/размера/добавок. CTA `variant="product"` (лайм в dark) |
+| `/admin` | `pages/admin/AdminPage` | Прототип CRUD на моках, без записи в каталог |
+| `*` | redirect `/` | |
+
+Брейкпоинты: `useIsDesktop` = `min-width: 1024px`, `useIsWide` = `min-width: 1280px` (`shared/hooks/useMediaQuery.ts`).
+
+## Дизайн-система
+
+Источник правды — CSS-переменные в `src/styles/globals.css`. Компоненты используют **семантические** Tailwind-классы (`bg-surface`, `text-fg`, `bg-brand`, `border-line`, `bg-product-accent`), не сырые hex.
+
+Бренд-оранжевый логотипа: `#EF7F1A`. Красный логотипа: `#C30D0E`. В полупрозрачностях — `rgba(239,127,26,…)`.
+
+### Светлая (`:root`)
+
+| Токен | HEX | Роль |
+|-------|-----|------|
+| `--canvas` | `#fbf8f4` | фон страницы |
+| `--surface` | `#ffffff` | карточки, сайдбар, корзина |
+| `--surface-2` | `#fffbf8` | админ-панели, тёплая подложка |
+| `--surface-3` | `#f8f4ef` | неактивные чипы, inset |
+| `--fg` | `#17120e` | основной текст |
+| `--fg-muted` | `#948e86` | вторичный / состав |
+| `--line` | `#f0eae2` | бордеры |
+| `--brand` | `#ef7f1a` | CTA, активные табы, бейджи |
+| `--brand-soft` | `#fdf3e9` | «+ Добавить», активный nav |
+| `--success` | `#43a047` | скидка, «Активен» |
+| `--product-accent` | `#ef7f1a` | PDP CTA / выбранный чип (в light = бренд) |
+
+### Тёмная (`.dark`)
+
+| Токен | HEX | Роль |
+|-------|-----|------|
+| `--canvas` | `#0e0e0e` | фон |
+| `--surface` | `#171717` | карточки |
+| `--surface-2` | `#1c1c1c` | панели |
+| `--fg` | `#f4efe9` | текст |
+| `--product-accent` | `#8fab3d` | **лайм PDP** (макет `card_dark`) |
+| `--product-accent-soft` | `#1c2012` | выбранный вариант/размер в dark PDP |
+
+Скругления: `--r-xs` 8 → `--r-2xl` 24. Карточки витрины — `rounded-[var(--r-xl)]` + `shadow-card`. Панели (сайдбар, корзина, PDP) — `rounded-[var(--r-2xl)]`.
+
+Тема: класс `.dark` / `.light` на `<html>`. Anti-FOUC скрипт в `index.html`. Переключатель — `features/theme-toggle`. Не хардкодить `#fff` / `#000` в компонентах.
+
+Утилита `.bg-pattern` (тайл `/pattern/back.png`, 512×341) **есть**, но витрина сейчас на сплошном `bg-canvas` — не включать паттерн без запроса (ломает совпадение с макетом).
+
+## Домен
+
+Канон типов: `entities/*/model.ts`. Не плодить второй набор в страницах.
+
+### Category
+
+`id`: `shawarma | shashlik | pizza | combo | sides | drinks | sauces`. Поля: `name`, `icon` (PNG из `/icons` или `null` у соусов), `order`. Seed: `mocks/categories.ts`.
+
+### Product (карточка вкуса, не SKU)
+
+Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
+
+- `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`
+- `sizes[]`: `{ id, label, price, article? }` — **артикул кассы живёт на размере**
+- Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
+- `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
+- `tags`: `classic | spicy | cheese | bbq | sweet` — фильтры под баннером
+- `badge`: `hit | new | spicy`
+- `rating.overall` 0–10, `criteria[].value` 0–5 шаг ½. Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
+
+Не парсить мясо/размер из `name`. Не делать `groupId` + массив SKU как в старом `App.tsx`.
+
+### Addon
+
+`kind: 'extra' | 'sauce'`. Соусы и добавки на PDP — две колонки из `mocks/addons.ts` (`sauces` / `extras`). Апселл в корзине — только `extra`.
+
+### Cart
+
+Zustand `useCartStore` (`features/cart/model/store.ts`):
+
+- Строка: `{ id, productId, variantId?, sizeId, quantity, addons[] }`
+- Мерж: тот же product+variant+size **и обе стороны без добавок** → `quantity++`. С добавками — новая строка
+- `bumpAddon(addonId, delta)` — к **последней** товарной строке (или к явному `lineId`), не отдельной позицией
+- Persist: `localStorage` ключ `shashlik:cart:v1`
+
+Итоги — `useCartTotals()`:
+
+| Правило | Значение |
+|---------|----------|
+| Упаковка | `ORDER_RULES.packFee` = 24₽, если есть позиции |
+| Доставка | 149₽ при `mode=delivery` и сумма товаров < 800₽, иначе 0 |
+| Промо | код `BOSS10` → −10% от стоимости товаров |
+| Режим по умолчанию | `pickup` |
+
+Оформление заказа — тост-заглушка. Карта адреса — тост-заглушка.
+
+## Витрина (home)
+
+Desktop (`DesktopHome`, ≥1024):
+
+1. **Sidebar** — категории + промо `BOSS10` + ссылка «Войти» → `/admin`
+2. **HeroBanner** — карусель `mocks/banners.ts`, стрелки-хитзоны по краям, dots
+3. **TagFilters** — Все / Классика / Острая / Сырная / BBQ
+4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard`
+5. **CartPanel** sticky справа только при `useIsWide` (≥1280). Иначе иконка корзины → Sheet
+
+Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
+
+«Добавить» с карточки: `features/cart/lib/useAddProduct.ts`.
+
+## Страница товара (PDP)
+
+`pages/product/ProductPage.tsx` — две колонки: фото на всю высоту слева, конфигуратор справа.
+
+- Выбранные вариант/размер — `OptionCard` с `product-accent` (оранж light / лайм dark)
+- Соусы | Добавки — `AddonRow`: qty=0 → кнопка `+N₽`, иначе `Stepper`
+- Низ: `Stepper` количества + кнопка `variant="product"` «В корзину • сумма»
+- После добавления — `navigate('/')`
+
+## Админка
+
+Прототип UI по макету. **Не пишет** каталог (нет `localStorage` оверлея). Сохранить / удалить / дублировать / сброс кэша — тосты.
+
+Вкладки: Товары, Категории, Баннеры, Добавки, Заказы, Отзывы (`pages/admin/model.ts`). Товары → клик строки открывает `ProductEditor` (форма + превью + статистика из мока).
+
+Не подключать auth. Ссылка «На сайт» / логотип → `/`.
+
+## Имена блоков (для правок в чате)
+
+| Имя | Файл |
+|-----|------|
+| Sidebar | `widgets/sidebar/Sidebar.tsx` |
+| HeroBanner | `widgets/hero/HeroBanner.tsx` |
+| TagFilters | `widgets/catalog/TagFilters.tsx` |
+| ProductCard | `entities/product/ui/ProductCard.tsx` |
+| CartPanel | `features/cart/ui/CartPanel.tsx` |
+| Segmented (Самовывоз/Доставка) | `shared/ui/segmented.tsx` |
+| FloatingActions | `widgets/header/FloatingActions.tsx` |
+| MobileTabBar | `widgets/mobile/MobileTabBar.tsx` |
+| ProductPage / PDP | `pages/product/ProductPage.tsx` |
+| ProductEditor | `pages/admin/sections/ProductEditor.tsx` |
+
+## Правила кода
+
+- Цвета — только токены из `globals.css`. Новый цвет → сначала переменная + `@theme inline`, потом класс.
+- Кнопки — `shared/ui/button.tsx` (`brand | soft | outline | ghost | danger | product`). Не собирать CTA из произвольных `bg-orange-*`.
+- `cn()` из `shared/lib/cn.ts` для условных классов.
+- Цены — `formatPrice` (`340₽`). Оценки — `ScoreValue` / `scoreColor`, не статичный зелёный на все цифры.
+- Апостроф в строках — double quotes или escape.
+- Без `window.alert` / `confirm`. Без `console.log` в прод-путях.
+- `useCallback` / `useMemo` — не по умолчанию.
+- Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
+- Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
+- Frontpad: спецификация по-прежнему в `.cursor/rules/API.mdc`. В v2 клиент кассу не зовёт. Секрет не класть в этот пакет.
+- Коммиты / push — только по явной просьбе.
+
+## Чего не делать
+
+- Не возвращаться к монолиту `src/App.tsx` как к канону v2.
+- Не группировать товары через `groupId` + отдельные SKU-записи (модель v1).
+- Не ставить CTA витрины в чёрный `ink` из старого стека: здесь CTA брендовый оранжевый / soft, PDP — `product-accent`.
+- Не подключать Google Fonts, не менять Nunito без запроса.
+- Не поднимать второй dev-сервер на 8443 из этого пакета.
