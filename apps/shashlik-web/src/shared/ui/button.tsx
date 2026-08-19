@@ -12,7 +12,7 @@ const buttonVariants = cva(
         /** Главный CTA: сплошной оранжевый бренда. */
         brand:
           "bg-brand text-on-brand shadow-brand hover:bg-brand-hover active:bg-brand-press",
-        /** Мягкий оранжевый: «+ Добавить» на карточке товара. */
+        /** Мягкий оранжевый: «Добавить» на карточке товара. */
         soft: "bg-brand-soft text-brand hover:bg-brand-soft-hover",
         /** Нейтральная поверхность с обводкой. */
         outline:

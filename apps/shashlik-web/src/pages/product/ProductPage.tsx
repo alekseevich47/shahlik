@@ -1,6 +1,6 @@
-import { ArrowLeft, Drumstick, Ham, Heart, Leaf, Star } from "lucide-react"
+import { ArrowLeft, Drumstick, Ham, Heart, Leaf, Star, X } from "lucide-react"
 import { useMemo, useState } from "react"
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom"
+import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import type { MeatIcon } from "@/entities/product/model"
@@ -20,6 +20,7 @@ import { HintMark } from "@/shared/ui/tooltip"
 
 import { AddonRow } from "./ui/AddonRow"
 import { FreshStamp } from "./ui/FreshStamp"
+import { NutritionHint } from "./ui/NutritionHint"
 
 export default function ProductPage() {
   const { slug = "" } = useParams()
@@ -47,6 +48,7 @@ export default function ProductPage() {
 
   const size = findSize(product, sizeId)
   const variant = findVariant(product, variantId)
+  const goHome = () => navigate("/")
 
   const submit = () => {
     add({
@@ -59,7 +61,7 @@ export default function ProductPage() {
         .map(([addonId, qty]) => ({ addonId, quantity: qty })),
     })
     toast.success(`«${product.name}» в заказе`)
-    navigate("/")
+    goHome()
   }
 
   return (
@@ -74,13 +76,28 @@ export default function ProductPage() {
           />
           <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.35))] lg:hidden" />
 
-          <Link
-            to="/"
+          <button
+            type="button"
+            onClick={goHome}
             className="absolute top-4 left-4 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
           >
             <ArrowLeft size={16} strokeWidth={2.6} />
             Назад
-          </Link>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setLiked((v) => !v)}
+            aria-label={liked ? "Убрать из избранного" : "В избранное"}
+            aria-pressed={liked}
+            className={cn(
+              "absolute top-4 right-4 z-10 grid size-10 cursor-pointer place-items-center",
+              "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)] transition-colors duration-200",
+              liked ? "text-red" : "hover:text-red",
+            )}
+          >
+            <Heart size={22} strokeWidth={2.1} fill={liked ? "currentColor" : "none"} />
+          </button>
 
           <div className="absolute inset-x-4 bottom-4 flex flex-col gap-2.5">
             <RatingOverlay
@@ -107,8 +124,9 @@ export default function ProductPage() {
           <header className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-[30px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[36px]">
+                <h1 className="overflow-visible text-[30px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[36px]">
                   {product.name}
+                  <NutritionHint nutrition={product.nutrition} />
                 </h1>
                 {product.badge === "hit" ? (
                   <Badge variant="soft" size="lg">
@@ -125,15 +143,11 @@ export default function ProductPage() {
 
             <button
               type="button"
-              onClick={() => setLiked((v) => !v)}
-              aria-label={liked ? "Убрать из избранного" : "В избранное"}
-              aria-pressed={liked}
-              className={cn(
-                "grid size-10 shrink-0 cursor-pointer place-items-center rounded-[var(--r-md)] border border-line transition-colors",
-                liked ? "border-red/40 bg-red-soft text-red" : "text-fg-faint hover:text-red",
-              )}
+              onClick={goHome}
+              aria-label="Закрыть карточку"
+              className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-[var(--r-md)] border border-line text-fg-faint transition-colors duration-200 hover:text-red"
             >
-              <Heart size={18} strokeWidth={2.2} fill={liked ? "currentColor" : "none"} />
+              <X size={18} strokeWidth={2.2} />
             </button>
           </header>
 

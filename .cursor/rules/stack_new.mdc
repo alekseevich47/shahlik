@@ -1,5 +1,5 @@
 ---
-description: Канон новой версии сайта «Шашлыковский» (apps/shashlik-web) — стек, слои, токены, домен, правила правок
+description: Канон новой версии сайта «Шашлыковский» (apps/shashlik-web) — стек, слои, токены, прод (Nginx/PB), правила правок
 globs: apps/shashlik-web/**/*.{ts,tsx,css,html,json}
 alwaysApply: false
 ---
@@ -12,9 +12,10 @@ alwaysApply: false
 
 ## Контекст
 
-- **Бренд**: «Шашлыковский» — шаурма, шашлык, пицца, комбо, гарниры, напитки, соусы. Доставка / самовывоз.
-- **Это дизайн-прототип на моках.** Касса Frontpad **не** подключена. Не изобретать API-слой, webhook, секреты и persist каталога без задачи.
+- **Бренд**: «Шашлыковский» — шаурма, шашлык, пицца, комбо, гарниры, напитки, соусы. Получение: «Заберу сам» / «Надо привезти».
+- **Витрина пока на моках.** PocketBase на проде **стоит**, но клиент к нему **не** подключён. Касса Frontpad **не** подключена. Не изобретать API-слой, коллекции PB, webhook, секреты и persist каталога без задачи.
 - **Dev**: `cd apps/shashlik-web && pnpm dev` → `http://localhost:5273`. Не путать с корневым Vite (порт 8443 / Figma Make).
+- **Прод**: `https://shashlik.loomixx.ru` (см. раздел «Прод»).
 - **Пакетный менеджер**: pnpm. Скрипты: `dev`, `build` (`tsc -b && vite build`), `preview`, `typecheck`.
 - Alias `@` → `apps/shashlik-web/src` (`vite.config.ts`).
 - Только `.ts` / `.tsx`. Default export — у **страниц** (`HomePage`, `ProductPage`, `AdminPage`). Остальное — named export.
@@ -27,7 +28,7 @@ alwaysApply: false
 | Сборка | Vite 8, `@vitejs/plugin-react`, TypeScript (strict, `verbatimModuleSyntax`) |
 | Стили | Tailwind CSS v4 через `@tailwindcss/vite`. **Нет** `tailwind.config` / PostCSS. Тема — CSS-переменные в `src/styles/globals.css` + `@theme inline` |
 | UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
-| Роутер | `react-router-dom` v7, lazy-страницы в `src/app/router.tsx` |
+| Роутер | `react-router-dom` v7. Home/Product — eager (анимация карточки), Admin — lazy. `BrowserRouter` |
 | Состояние | Zustand + persist **только корзина** (`shashlik:cart:v1`). Тема — React context + `localStorage` (`shashlik:theme`) |
 | Тосты | `sonner` |
 | Шрифт | Self-hosted **Nunito** 400–800 (`src/assets/fonts/nunito` + `src/styles/fonts.css`). Google Fonts / CDN **запрещены** |
@@ -56,9 +57,9 @@ alwaysApply: false
 apps/shashlik-web/
   index.html                 # anti-FOUC темы (localStorage + prefers-color-scheme)
   vite.config.ts             # port 5273, alias @
-  public/
+    public/
     products/*.jpg           # фото витрины (из temp/фото, сжатые)
-    icons/*.png              # иконки категорий (temp/иконки)
+    icons/*.png              # иконки категорий + kcal.png (пищевая ценность)
     logo/logo.png            # логотип без фона
     pattern/back.png         # тайловый паттерн (опционально, утилита .bg-pattern)
   src/
@@ -71,9 +72,9 @@ apps/shashlik-web/
     pages/home/              # витрина desktop/mobile
     pages/product/           # PDP (выбор варианта/размера/соусов/добавок)
     pages/admin/             # админка (моки, без persist каталога)
-    widgets/sidebar|hero|catalog|header|mobile|promo
-    features/cart|search|theme-toggle
-    entities/product|category|addon|banner|order
+    widgets/sidebar|hero|catalog|header|mobile|promo  # header: FloatingActions + StickyBar
+    features/cart|search|theme-toggle  # cart: store + panel (колонка ≥1280) + CartToggle
+    entities/product|category|addon|banner|order  # category/ui: CategoryIcon
     shared/ui|lib|config|hooks
     mocks/products|categories|addons|banners|orders
 ```
@@ -82,10 +83,12 @@ apps/shashlik-web/
 
 | URL | Страница | Заметки |
 |-----|----------|---------|
-| `/` | `pages/home/HomePage` | Desktop ≥1024: сайдбар + сетка + (при ≥1280) sticky-корзина. Ниже — мобильный chrome |
+| `/` | `pages/home/HomePage` | Desktop ≥1024: сайдбар + сетка. При ≥1280 — sticky-корзина, скрывается кнопкой у баннера. Ниже — мобильный chrome |
 | `/product/:slug` | `pages/product/ProductPage` | Выбор мяса/размера/добавок. CTA `variant="product"` (лайм в dark) |
 | `/admin` | `pages/admin/AdminPage` | Прототип CRUD на моках, без записи в каталог |
 | `*` | redirect `/` | |
+
+`/admin` — React-прототип. Админка PocketBase — **`/_/`**, не путать.
 
 Брейкпоинты: `useIsDesktop` = `min-width: 1024px`, `useIsWide` = `min-width: 1280px` (`shared/hooks/useMediaQuery.ts`).
 
@@ -107,7 +110,7 @@ apps/shashlik-web/
 | `--fg-muted` | `#948e86` | вторичный / состав |
 | `--line` | `#f0eae2` | бордеры |
 | `--brand` | `#ef7f1a` | CTA, активные табы, бейджи |
-| `--brand-soft` | `#fdf3e9` | «+ Добавить», активный nav |
+| `--brand-soft` | `#fdf3e9` | «Добавить» на карточке, активный nav |
 | `--success` | `#43a047` | скидка, «Активен» |
 | `--product-accent` | `#ef7f1a` | PDP CTA / выбранный чип (в light = бренд) |
 
@@ -125,6 +128,8 @@ apps/shashlik-web/
 Скругления: `--r-xs` 8 → `--r-2xl` 24. Карточки витрины — `rounded-[var(--r-xl)]` + `shadow-card`. Панели (сайдбар, корзина, PDP) — `rounded-[var(--r-2xl)]`.
 
 Тема: класс `.dark` / `.light` на `<html>`. Anti-FOUC скрипт в `index.html`. Переключатель — `features/theme-toggle`. Не хардкодить `#fff` / `#000` в компонентах.
+
+Стекло плашки (`StickyBar`): `--glass-tint`, `--glass-shine`, `--glass-shadow`, `--glass-btn`, `--glass-btn-border`, `--glass-fg` (в `.dark` — `#ffffff`). Light: `--glass-btn` = `rgba(23,18,14,0.14)` — темнее тона стекла, иначе кнопки сливаются. Кнопки и выбранные чипы — `--glass-btn`, не `brand-soft`. PNG категорий на плашке: `.category-icon-glass` = `brightness(0)` (чёрные), в dark + `invert(1)` (белые). Компактная плашка (лупа/тема/корзина) — `width: max-content`, padding `6px 10px`, скругление `--r-md` как у лупы (раскрытая — `--r-2xl`); скрытые nav и теги `width: 0` (иначе строка тегов раздувает ширину слева). Раскрытая — `showAccount`: иконка `User` → `/admin` слева от лупы, тот же размер/тон.
 
 Утилита `.bg-pattern` (тайл `/pattern/back.png`, 512×341) **есть**, но витрина сейчас на сплошном `bg-canvas` — не включать паттерн без запроса (ломает совпадение с макетом).
 
@@ -146,13 +151,14 @@ apps/shashlik-web/
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
 - `tags`: `classic | spicy | cheese | bbq | sweet` — фильтры под баннером
 - `badge`: `hit | new | spicy`
+- `nutrition`: `{ kcal, fat, protein, carbs }` на 100 г. Дефолт по категории в `mocks/products.ts` (`NUTRITION_BY_CATEGORY`)
 - `rating.overall` 0–10, `criteria[].value` 0–5 шаг ½. Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
 
 Не парсить мясо/размер из `name`. Не делать `groupId` + массив SKU как в старом `App.tsx`.
 
 ### Addon
 
-`kind: 'extra' | 'sauce'`. Соусы и добавки на PDP — две колонки из `mocks/addons.ts` (`sauces` / `extras`). Апселл в корзине — только `extra`.
+`kind: 'extra' | 'sauce'`. Соусы и добавки на PDP — две колонки из `mocks/addons.ts` (`sauces` / `extras`). В корзине апселл-ленты нет.
 
 ### Cart
 
@@ -162,6 +168,7 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 - Мерж: тот же product+variant+size **и обе стороны без добавок** → `quantity++`. С добавками — новая строка
 - `bumpAddon(addonId, delta)` — к **последней** товарной строке (или к явному `lineId`), не отдельной позицией
 - Persist: `localStorage` ключ `shashlik:cart:v1`
+- Колонка витрины ≥1280: `useCartPanelStore` (`features/cart/model/panel.ts`), дефолт открыта, без persist. Пока кнопка открытия активна (`open`) — панель sticky на всю высоту вьюпорта и едет со скроллом; открытие не с верха страницы — тот же выезд справа налево
 
 Итоги — `useCartTotals()`:
 
@@ -170,7 +177,8 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 | Упаковка | `ORDER_RULES.packFee` = 24₽, если есть позиции |
 | Доставка | 149₽ при `mode=delivery` и сумма товаров < 800₽, иначе 0 |
 | Промо | код `BOSS10` → −10% от стоимости товаров |
-| Режим по умолчанию | `pickup` |
+| Режим по умолчанию | `pickup` («Заберу сам») |
+| Заголовок панели | «Мой заказ» |
 
 Оформление заказа — тост-заглушка. Карта адреса — тост-заглушка.
 
@@ -182,7 +190,7 @@ Desktop (`DesktopHome`, ≥1024):
 2. **HeroBanner** — карусель `mocks/banners.ts`, стрелки-хитзоны по краям, dots
 3. **TagFilters** — Все / Классика / Острая / Сырная / BBQ
 4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard`
-5. **CartPanel** sticky справа только при `useIsWide` (≥1280). Иначе иконка корзины → Sheet
+5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` + `backdrop-filter`, тон `--glass-tint`). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг и «Добавить» в dark — `text-fg` (белые, звезда тоже). «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Высота блока названия/состава фиксирована (`min-h-[2lh]` / `h-[3lh]`), рейтинг `truncate` + `shrink-0` — без скачка текста при смене ширины колонки.
 
 Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
 
@@ -192,6 +200,11 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 `pages/product/ProductPage.tsx` — две колонки: фото на всю высоту слева, конфигуратор справа.
 
+- Открытие/закрытие — `motion` + `AnimatePresence` в `app/router.tsx` (Home/Product грузятся сразу, не lazy). `viewTransition` у RR здесь не работает: нужен data-router, а стоит `BrowserRouter`. Уход маршрута — `position: absolute; inset: 0; overflow: hidden`, без scale (иначе рывок). Скроллбар: `scrollbar-gutter: stable` на `html`, чтобы исчезающая полоса Home не дёргала PDP вправо
+- Сердце избранного — **без рамки**, правый верхний угол фото; лайк заполняет только иконку
+- Крестик закрытия — правый верхний угол панели, рамка как у бывшего сердца, `text-fg-faint` → hover `text-red`
+- Справа от названия — иконка `/icons/kcal.png` (`NutritionHint`): размер `0.92lh` заголовка (чуть ниже кегля), mask + `bg-fg-muted` → hover `bg-brand`. Ховер → пищевая ценность на 100 г
+- Штамп `FreshStamp`: глифы равномерно по окружности (поворот каждого символа, не `textPath`). Текст «СДЕЛАНО С ЛЮБОВЬ • 100% СВЕЖИЕ ПРОДУКТЫ •». Кегль ≈ `дуг×1.72` при размере 112 (не 84×0.78 — иначе буквы нечитаемы). Колпак — `chef-hat-spin`: круиз → гауссов рывок → плавный выбег к той же угловой скорости (1080° / цикл, стык 0%/100% без ступеньки)
 - Выбранные вариант/размер — `OptionCard` с `product-accent` (оранж light / лайм dark)
 - Соусы | Добавки — `AddonRow`: qty=0 → кнопка `+N₽`, иначе `Stepper`
 - Низ: `Stepper` количества + кнопка `variant="product"` «В корзину • сумма»
@@ -212,12 +225,19 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 | Sidebar | `widgets/sidebar/Sidebar.tsx` |
 | HeroBanner | `widgets/hero/HeroBanner.tsx` |
 | TagFilters | `widgets/catalog/TagFilters.tsx` |
-| ProductCard | `entities/product/ui/ProductCard.tsx` |
+| ProductCard | `entities/product/ui/ProductCard.tsx` — «Добавить» по hover (`.product-card-add`: fade + 0fr→1fr, без translate). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | CartPanel | `features/cart/ui/CartPanel.tsx` |
-| Segmented (Самовывоз/Доставка) | `shared/ui/segmented.tsx` |
-| FloatingActions | `widgets/header/FloatingActions.tsx` |
+| Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |
+| FloatingActions | `widgets/header/FloatingActions.tsx` — `tone="glass"` на плашке; `showAccount` — `User` → `/admin` |
+| StickyBar | `widgets/header/StickyBar.tsx` — стекло, категории + теги по скроллу |
+| Glass | `shared/ui/glass.tsx` — `Glass` + `GlassDefs` (фильтр преломления) |
+| CartToggle | `features/cart/ui/CartToggle.tsx` — сумма заказа + «р.» слева от иконки, если `total > 0` |
+| CartDock | `features/cart/ui/CartDock.tsx` — sticky + translate-выезд |
+| Cart panel store | `features/cart/model/panel.ts` |
 | MobileTabBar | `widgets/mobile/MobileTabBar.tsx` |
 | ProductPage / PDP | `pages/product/ProductPage.tsx` |
+| FreshStamp | `pages/product/ui/FreshStamp.tsx` |
+| NutritionHint | `pages/product/ui/NutritionHint.tsx` |
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` |
 
 ## Правила кода
@@ -231,8 +251,34 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 - `useCallback` / `useMemo` — не по умолчанию.
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
-- Frontpad: спецификация по-прежнему в `.cursor/rules/API.mdc`. В v2 клиент кассу не зовёт. Секрет не класть в этот пакет.
+- Frontpad: спецификация в `.cursor/rules/API.mdc`. Клиент кассу не зовёт. Секрет — только env на сервере, не в git и не в бандл.
 - Коммиты / push — только по явной просьбе.
+
+## Прод
+
+Статика Vite (`pnpm build` → `apps/shashlik-web/dist`). Node в проде только для сборки.
+
+| Что | Значение |
+|---|---|
+| URL | **только** `https://shashlik.loomixx.ru`. Apex `loomixx.ru` / `www.loomixx.ru` — **другой** сайт, витрину туда не отдавать |
+| Код на сервере | `/var/www/shashlik` |
+| Nginx | `/etc/nginx/sites-available/shashlik`, SPA `try_files` → `index.html` |
+| TLS | Let’s Encrypt, `shashlik.loomixx.ru` |
+| VM | `192.168.0.51` (`sa@app`), мост с Proxmox `192.168.0.150` |
+| Вход с улицы | роутер: WAN **80→.51:80**, **443→.51:443** (не 8080/8443). SSH: WAN `10022` → `.51:22` |
+| PocketBase | systemd `pocketbase`, `/opt/pocketbase`, `--http=127.0.0.1:8090`, `--dir=/opt/pocketbase/pb_data` |
+| Прокси PB | Nginx `location /api/` и `/_/` → `127.0.0.1:8090` |
+
+Несколько сайтов на одном белом IP — один вход 80/443, дальше по `server_name`. Блок шашлыка **не** `default_server`. Неизвестный Host и `loomixx.ru` — отдельные server (заглушка / другой root), иначе Nginx отдаст шашлык на все домены. С роутера 80/443 на несколько VM не дублировать.
+
+Обновление витрины:
+
+```bash
+cd /var/www/shashlik && git pull
+cd apps/shashlik-web && pnpm install && pnpm build
+```
+
+Не слушать PB на `0.0.0.0`. Не класть `pb_data`, `.env`, секреты Frontpad в репозиторий. Хуки PB (`pb_hooks`) не заводить, пока нет задачи на API.
 
 ## Чего не делать
 
@@ -241,3 +287,6 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 - Не ставить CTA витрины в чёрный `ink` из старого стека: здесь CTA брендовый оранжевый / soft, PDP — `product-accent`.
 - Не подключать Google Fonts, не менять Nunito без запроса.
 - Не поднимать второй dev-сервер на 8443 из этого пакета.
+- Не звать PocketBase/Frontpad с клиента, пока нет явной задачи на интеграцию.
+- Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.
+- Не вешать витрину на `loomixx.ru`: канон — `shashlik.loomixx.ru`.

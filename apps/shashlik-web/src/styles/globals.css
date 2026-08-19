@@ -68,6 +68,17 @@
   --shadow-panel: 0 1px 3px rgba(23, 18, 14, 0.04), 0 24px 60px -32px rgba(23, 18, 14, 0.2);
   --shadow-pop: 0 12px 36px -10px rgba(23, 18, 14, 0.24);
   --shadow-brand: 0 8px 22px -10px rgba(239, 127, 26, 0.65);
+
+  /* Стекло плашки: тон поверх преломлённой подложки + внутренний блик */
+  --glass-tint: rgba(255, 255, 255, 0.44);
+  --glass-shine:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.85), inset -1px -1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  --glass-shadow:
+    0 3px 8px rgba(23, 18, 14, 0.05), 0 18px 44px -22px rgba(23, 18, 14, 0.38);
+  --glass-btn: rgba(23, 18, 14, 0.14);
+  --glass-btn-border: rgba(23, 18, 14, 0.2);
+  --glass-fg: var(--fg);
 }
 
 .dark {
@@ -115,6 +126,15 @@
   --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.5), 0 24px 60px -34px rgba(0, 0, 0, 0.85);
   --shadow-pop: 0 12px 36px -10px rgba(0, 0, 0, 0.75);
   --shadow-brand: 0 8px 22px -10px rgba(239, 127, 26, 0.45);
+
+  --glass-tint: rgba(28, 28, 28, 0.52);
+  --glass-shine:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.13), inset -1px -1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 3px 10px rgba(0, 0, 0, 0.42), 0 20px 50px -24px rgba(0, 0, 0, 0.8);
+  --glass-btn: rgba(255, 255, 255, 0.08);
+  --glass-btn-border: rgba(255, 255, 255, 0.13);
+  --glass-fg: #ffffff;
 }
 
 @theme inline {
@@ -156,6 +176,7 @@
   --color-product-accent-soft: var(--product-accent-soft);
   --color-product-accent-border: var(--product-accent-border);
   --color-on-product-accent: var(--on-product-accent);
+  --color-glass-fg: var(--glass-fg);
 
   --radius-xs: var(--r-xs);
   --radius-sm: var(--r-sm);
@@ -173,6 +194,116 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@property --nav-track {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --cart-track {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --catalog-gap {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16px;
+}
+
+@keyframes fresh-ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes chef-hat-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  8% {
+    transform: rotate(58deg);
+  }
+  16% {
+    transform: rotate(115deg);
+  }
+  24% {
+    transform: rotate(173deg);
+  }
+  30% {
+    transform: rotate(216deg);
+  }
+  34% {
+    transform: rotate(252deg);
+  }
+  37% {
+    transform: rotate(302deg);
+  }
+  40% {
+    transform: rotate(397deg);
+  }
+  42% {
+    transform: rotate(482deg);
+  }
+  44% {
+    transform: rotate(568deg);
+  }
+  47% {
+    transform: rotate(663deg);
+  }
+  50% {
+    transform: rotate(713deg);
+  }
+  54% {
+    transform: rotate(748deg);
+  }
+  58% {
+    transform: rotate(778deg);
+  }
+  64% {
+    transform: rotate(821deg);
+  }
+  74% {
+    transform: rotate(893deg);
+  }
+  86% {
+    transform: rotate(979deg);
+  }
+  100% {
+    transform: rotate(1080deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-chef-hat,
+  .animate-fresh-ring {
+    animation: none !important;
+  }
+
+  .home-desktop,
+  .cart-dock,
+  .nav-dock,
+  .sticky-bar-panel,
+  .sticky-bar-row,
+  .sticky-bar-nav,
+  .sticky-bar-tags,
+  .sticky-bar-fade {
+    transition: none !important;
+  }
+
+  .nutrition-hint-glyph {
+    transition: background-color 0.15s ease !important;
+    transform: none !important;
+  }
+
+  .cart-toggle-sum,
+  .product-card-add,
+  .product-card-add button {
+    transition: none !important;
+  }
+}
+
 @layer base {
   * {
     border-color: var(--line);
@@ -180,6 +311,7 @@
 
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -247,5 +379,315 @@
       #000 calc(100% - 16px),
       transparent 100%
     );
+  }
+
+  .animate-fresh-ring {
+    animation: fresh-ring-spin 28s linear infinite;
+  }
+
+  .animate-chef-hat {
+    animation: chef-hat-spin 6s linear infinite;
+  }
+
+  /* PDP: иконка kcal наследует кегль заголовка, чуть ниже 1lh */
+  .nutrition-hint {
+    appearance: none;
+    font-size: inherit;
+    line-height: inherit;
+    width: 0.92lh;
+    height: 0.92lh;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    vertical-align: -0.1em;
+  }
+  .nutrition-hint-glyph {
+    display: block;
+    width: 100%;
+    height: 100%;
+    mask: url("/icons/kcal.png") center / contain no-repeat;
+    -webkit-mask: url("/icons/kcal.png") center / contain no-repeat;
+    transition:
+      background-color 0.2s var(--ease-out-soft),
+      transform 0.2s var(--ease-out-soft);
+  }
+
+  /* Кнопка корзины: сумма выезжает 0fr → 1fr слева от иконки */
+  .cart-toggle-sum {
+    display: grid;
+    grid-template-columns: 0fr;
+    min-width: 0;
+    transition: grid-template-columns 0.42s var(--ease-out-soft);
+  }
+  .cart-toggle-sum[data-open="1"] {
+    grid-template-columns: 1fr;
+  }
+
+  /* Карточка витрины: «Добавить» схлапывается 0fr → 1fr, без сдвига */
+  .product-card-add {
+    display: grid;
+    grid-template-columns: 0fr;
+    min-width: 0;
+    transition: grid-template-columns 0.42s var(--ease-out-soft);
+  }
+  .product-card-add > * {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .product-card-add button {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s var(--ease-out-soft);
+  }
+  .group:hover .product-card-add,
+  .group:focus-within .product-card-add {
+    grid-template-columns: 1fr;
+  }
+  .group:hover .product-card-add button,
+  .group:focus-within .product-card-add button {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  @media (hover: none) {
+    .product-card-add {
+      grid-template-columns: 1fr;
+    }
+    .product-card-add button {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  /* Витрина desktop: треки сайдбара/корзины и gap сетки — регистрированные длины,
+     spring-ease. overflow-x: clip режет съезд колонок, но не создаёт scrollport,
+     поэтому sticky остаётся живым (у `hidden` этого свойства нет). */
+  .home-desktop {
+    display: grid;
+    grid-template-columns:
+      minmax(0, var(--nav-track))
+      minmax(0, 1fr)
+      minmax(0, var(--cart-track));
+    overflow-x: clip;
+    --nav-track: 184px;
+    --cart-track: 360px;
+    --catalog-gap: 16px;
+    transition:
+      --nav-track 0.55s var(--ease-out-soft),
+      --cart-track 0.55s var(--ease-out-soft),
+      --catalog-gap 0.55s var(--ease-out-soft);
+  }
+  .home-desktop[data-nav="hidden"] {
+    --nav-track: 0px;
+  }
+  .home-desktop[data-cart="closed"] {
+    --cart-track: 0px;
+    --catalog-gap: 28px;
+  }
+  .home-desktop[data-cart="sheet"] {
+    --cart-track: 0px;
+    --catalog-gap: 16px;
+  }
+  .home-desktop[data-ready="0"] {
+    transition: none;
+  }
+
+  /* Выезд панели: translate на sticky-боксе, поэтому открытие на любой глубине скролла
+     идёт справа налево в вьюпорте, высота всегда 100dvh − паддинг. */
+  .cart-dock {
+    translate: 100% 0;
+    transition: translate 0.55s var(--ease-out-soft);
+  }
+  .home-desktop[data-cart="open"] .cart-dock {
+    translate: 0;
+  }
+  .home-desktop[data-ready="0"] .cart-dock {
+    transition: none;
+  }
+
+  /* Съезд сайдбара — зеркало корзины: translate на внутреннем слое, трек
+     схлопывается быстрее ухода панели, поэтому наложения на сетку нет. */
+  .nav-dock {
+    transition:
+      translate 0.55s var(--ease-out-soft),
+      opacity 0.4s var(--ease-out-soft);
+  }
+  .home-desktop[data-nav="hidden"] .nav-dock {
+    translate: -100% 0;
+    opacity: 0;
+  }
+  .home-desktop[data-ready="0"] .nav-dock {
+    transition: none;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Стекло: преломлённая подложка → тон → внутренний блик → контент.
+   * ---------------------------------------------------------------- */
+  .glass {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--r-2xl);
+    box-shadow: var(--glass-shadow);
+  }
+  .glass-refract,
+  .glass-tint,
+  .glass-shine {
+    position: absolute;
+    pointer-events: none;
+  }
+  /* Вылет за границы: кайма, съеденная дисплейсментом, уходит под overflow. */
+  .glass-refract {
+    inset: -28px;
+    z-index: 0;
+    backdrop-filter: blur(7px) saturate(165%);
+    -webkit-backdrop-filter: blur(7px) saturate(165%);
+  }
+  /* Преломление по карте шума. Гейт — Houdini paint (Chromium): в Safari и
+     Firefox SVG-фильтр поверх backdrop-filter гасит подложку целиком. */
+  @supports (background: paint(id)) {
+    .glass-refract {
+      filter: url("#glass-refraction");
+    }
+  }
+  .glass-tint {
+    inset: 0;
+    z-index: 1;
+    background: var(--glass-tint);
+  }
+  .glass-shine {
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    box-shadow: var(--glass-shine);
+  }
+  .glass-content {
+    position: relative;
+    z-index: 3;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Плашка витрины. Высота обёртки 0 — плашка не занимает поток и едет
+   * со скроллом от --bar-top. Ширина: fit-content ↔ 100% через min-width,
+   * категории 0fr→1fr, строка тегов 0fr→1fr по высоте.
+   * ---------------------------------------------------------------- */
+  .sticky-bar {
+    --bar-top: 20px;
+    position: sticky;
+    top: var(--bar-top);
+    z-index: 30;
+    height: 0;
+  }
+  .sticky-bar-panel {
+    width: max-content;
+    min-width: 0%;
+    margin-left: auto;
+    border-radius: var(--r-md);
+    opacity: 0;
+    translate: 0 -14px;
+    visibility: hidden;
+    transition:
+      opacity 0.34s var(--ease-out-soft),
+      translate 0.46s var(--ease-out-soft),
+      min-width 0.55s var(--ease-out-soft),
+      border-radius 0.55s var(--ease-out-soft),
+      visibility 0s linear 0.46s;
+  }
+  .sticky-bar[data-visible="1"] .sticky-bar-panel {
+    opacity: 1;
+    translate: 0 0;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  .sticky-bar[data-expanded="1"] .sticky-bar-panel {
+    min-width: 100%;
+    border-radius: var(--r-2xl);
+  }
+
+  /* Лупа/тема/корзина всегда у правого края плашки: при закрытой корзине —
+     у правого края широкой колонки, при открытии едут влево вместе с
+     --cart-track (main сжимается тем же 0.55s). */
+  .sticky-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 6px 10px;
+    transition:
+      gap 0.55s var(--ease-out-soft),
+      padding 0.55s var(--ease-out-soft);
+  }
+  .sticky-bar[data-expanded="1"] .sticky-bar-row {
+    gap: 8px;
+    padding: 8px;
+  }
+  .sticky-bar-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .sticky-bar-nav {
+    display: grid;
+    flex: 0 0 0;
+    width: 0;
+    overflow: hidden;
+    grid-template-columns: 0fr;
+    min-width: 0;
+    pointer-events: none;
+    transition: grid-template-columns 0.55s var(--ease-out-soft);
+  }
+  .sticky-bar-nav > * {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .sticky-bar[data-expanded="1"] .sticky-bar-nav {
+    flex: 1 1 0;
+    width: auto;
+    pointer-events: auto;
+    grid-template-columns: 1fr;
+  }
+
+  /* PNG категорий на стекле: light — чёрный глиф, dark — белый. */
+  .category-icon-glass {
+    filter: brightness(0);
+  }
+  .dark .category-icon-glass {
+    filter: brightness(0) invert(1);
+  }
+
+  .sticky-bar-tags {
+    display: grid;
+    grid-template-rows: 0fr;
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: grid-template-rows 0.55s var(--ease-out-soft);
+  }
+  .sticky-bar-tags > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .sticky-bar[data-expanded="1"] .sticky-bar-tags {
+    grid-template-rows: 1fr;
+    width: 100%;
+    pointer-events: auto;
+  }
+
+  /* Контент раскрытия проявляется вдогонку, чтобы не мелькать в узкой щели */
+  .sticky-bar-fade {
+    opacity: 0;
+    transition: opacity 0.28s var(--ease-out-soft);
+  }
+  .sticky-bar[data-expanded="1"] .sticky-bar-fade {
+    opacity: 1;
+    transition-delay: 0.14s;
+  }
+
+  .home-desktop[data-ready="0"] .sticky-bar-panel,
+  .home-desktop[data-ready="0"] .sticky-bar-row,
+  .home-desktop[data-ready="0"] .sticky-bar-nav,
+  .home-desktop[data-ready="0"] .sticky-bar-tags,
+  .home-desktop[data-ready="0"] .sticky-bar-fade {
+    transition: none;
   }
 }

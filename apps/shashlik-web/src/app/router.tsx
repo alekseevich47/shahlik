@@ -1,20 +1,47 @@
 import { lazy, Suspense } from "react"
-import { Navigate, Route, Routes } from "react-router-dom"
+import { AnimatePresence, motion } from "motion/react"
+import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 
-const HomePage = lazy(() => import("@/pages/home/HomePage"))
-const ProductPage = lazy(() => import("@/pages/product/ProductPage"))
+import HomePage from "@/pages/home/HomePage"
+import ProductPage from "@/pages/product/ProductPage"
+
 const AdminPage = lazy(() => import("@/pages/admin/AdminPage"))
 
+const EASE = [0.22, 1, 0.36, 1] as const
+
+/** Клип уходящего маршрута, чтобы высокий Home не держал скроллбар до unmount. */
+const EXIT_ABS = {
+  position: "absolute" as const,
+  inset: 0,
+  overflow: "hidden",
+}
+
 export function AppRoutes() {
+  const location = useLocation()
+  const isProduct = location.pathname.startsWith("/product/")
+
   return (
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/product/:slug" element={<ProductPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <div className="relative min-h-dvh">
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={location.pathname}
+          className="min-h-dvh w-full overflow-x-clip"
+          initial={isProduct ? { opacity: 0, y: 28 } : { opacity: 0 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={isProduct ? { opacity: 0, y: 16, ...EXIT_ABS } : { opacity: 0, ...EXIT_ABS }}
+          transition={{ duration: isProduct ? 0.36 : 0.2, ease: EASE }}
+        >
+          <Suspense fallback={<RouteFallback />}>
+            <Routes location={location}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/product/:slug" element={<ProductPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   )
 }
 

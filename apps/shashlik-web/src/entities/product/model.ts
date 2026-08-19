@@ -35,6 +35,14 @@ export type ProductRating = {
 
 export type ProductBadge = "hit" | "new" | "spicy"
 
+/** Пищевая ценность на 100 г. */
+export type ProductNutrition = {
+  kcal: number
+  fat: number
+  protein: number
+  carbs: number
+}
+
 /** Тег ленты фильтров под баннером. */
 export type ProductTag = "classic" | "spicy" | "cheese" | "bbq" | "sweet"
 
@@ -50,6 +58,7 @@ export type Product = {
   composition: string
   image: string
   badge?: ProductBadge
+  nutrition: ProductNutrition
   tags: ProductTag[]
   variants: ProductVariant[]
   sizes: ProductSize[]

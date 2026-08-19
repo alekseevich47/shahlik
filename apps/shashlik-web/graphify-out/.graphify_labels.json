@@ -1,0 +1,15 @@
+{
+  "0": "HomePage.tsx",
+  "1": "dependencies",
+  "2": "selectors.ts",
+  "3": "ProductPage.tsx",
+  "4": "cn",
+  "5": "CatalogTables.tsx",
+  "6": "devDependencies",
+  "7": "compilerOptions",
+  "8": "MobileHeader.tsx",
+  "9": "formatPrice",
+  "10": "ADMIN_BANNER_ICON",
+  "11": "vite-env.d.ts",
+  "12": "vite.config.ts"
+}

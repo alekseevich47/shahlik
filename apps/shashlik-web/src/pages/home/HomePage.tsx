@@ -73,7 +73,7 @@ export default function HomePage() {
 
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
         <SheetContent side="right" className="p-0">
-          <SheetTitle className="sr-only">Ваш заказ</SheetTitle>
+          <SheetTitle className="sr-only">Мой заказ</SheetTitle>
           <CartPanel className="rounded-none border-0 shadow-none" />
         </SheetContent>
       </Sheet>

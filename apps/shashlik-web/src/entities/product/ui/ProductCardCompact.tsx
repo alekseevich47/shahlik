@@ -28,7 +28,10 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
         className,
       )}
     >
-      <Link to={`/product/${product.slug}`} className="relative block aspect-[4/3] bg-surface-3">
+      <Link
+        to={`/product/${product.slug}`}
+        className="relative block aspect-[4/3] bg-surface-3"
+      >
         <img
           src={product.image}
           alt={product.name}

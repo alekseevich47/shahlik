@@ -19,16 +19,6 @@
   "17": "Brand Color Palette",
   "18": "Vite Figma Plugins",
   "19": "analyze-routes Script",
-  "20": "deploy Script",
-  "21": "deploy-preview Script",
-  "22": "dev Script",
-  "23": "format Script",
-  "24": "install Script",
-  "25": "langserver Script",
-  "26": "Vite Env Types",
-  "28": "sort",
-  "29": "App",
-  "30": "formatSizePrices",
-  "31": "sort",
-  "32": "clampHalf"
+  "20": "FloatingActions.tsx",
+  "21": "product/model.ts"
 }

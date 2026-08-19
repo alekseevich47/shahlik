@@ -2,6 +2,7 @@ import type { CategoryId } from "@/entities/category/model"
 import type {
   Product,
   ProductBadge,
+  ProductNutrition,
   ProductSize,
   ProductTag,
   ProductVariant,
@@ -36,10 +37,21 @@ type Spec = {
   image: string
   badge?: ProductBadge
   tags?: ProductTag[]
+  nutrition?: ProductNutrition
   overall: number
   votes: number
   criteria: [number, number, number]
   articles?: [string, string, string, string]
+}
+
+const NUTRITION_BY_CATEGORY: Record<CategoryId, ProductNutrition> = {
+  shawarma: { kcal: 246, fat: 12, protein: 14, carbs: 22 },
+  shashlik: { kcal: 198, fat: 11, protein: 23, carbs: 3 },
+  pizza: { kcal: 266, fat: 10, protein: 11, carbs: 33 },
+  combo: { kcal: 228, fat: 11, protein: 13, carbs: 24 },
+  sides: { kcal: 176, fat: 8, protein: 4, carbs: 23 },
+  drinks: { kcal: 42, fat: 0, protein: 0, carbs: 10.6 },
+  sauces: { kcal: 182, fat: 16, protein: 1.5, carbs: 8 },
 }
 
 let orderSeq = 0
@@ -82,6 +94,7 @@ function product(
     composition: spec.composition,
     image: spec.image,
     badge: spec.badge,
+    nutrition: spec.nutrition ?? NUTRITION_BY_CATEGORY[spec.categoryId],
     tags: spec.tags ?? [],
     variants: spec.variants,
     sizes: spec.sizes,

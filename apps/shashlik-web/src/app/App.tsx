@@ -1,6 +1,8 @@
+import { MotionConfig } from "motion/react"
 import { BrowserRouter } from "react-router-dom"
 import { Toaster } from "sonner"
 
+import { GlassDefs } from "@/shared/ui/glass"
 import { TooltipProvider } from "@/shared/ui/tooltip"
 
 import { ThemeProvider } from "./providers/theme"
@@ -10,11 +12,14 @@ import { ScrollToTop } from "./ScrollToTop"
 export default function App() {
   return (
     <ThemeProvider>
+      <GlassDefs />
       <TooltipProvider delayDuration={200}>
-        <BrowserRouter>
-          <ScrollToTop />
-          <AppRoutes />
-        </BrowserRouter>
+        <MotionConfig reducedMotion="user">
+          <BrowserRouter>
+            <ScrollToTop />
+            <AppRoutes />
+          </BrowserRouter>
+        </MotionConfig>
         <Toaster
           position="bottom-right"
           toastOptions={{

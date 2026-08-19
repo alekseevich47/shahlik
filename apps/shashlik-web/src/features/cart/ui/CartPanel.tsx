@@ -11,11 +11,10 @@ import { Button } from "@/shared/ui/button"
 import { Segmented } from "@/shared/ui/segmented"
 
 import { CartLineRow } from "./CartLineRow"
-import { UpsellStrip } from "./UpsellStrip"
 
 const MODE_OPTIONS = [
-  { value: "pickup", label: "Самовывоз" },
-  { value: "delivery", label: "Доставка" },
+  { value: "pickup", label: "Заберу сам" },
+  { value: "delivery", label: "Надо привезти" },
 ] as const
 
 export function CartPanel({ className }: { className?: string }) {
@@ -39,7 +38,7 @@ export function CartPanel({ className }: { className?: string }) {
     >
       <div className="flex flex-col gap-3 p-4 pb-3">
         <h2 className="text-[20px] leading-none font-extrabold tracking-[-0.01em] text-fg">
-          Ваш заказ
+          Мой заказ
         </h2>
         <Segmented
           value={mode}
@@ -81,9 +80,6 @@ export function CartPanel({ className }: { className?: string }) {
                 <CartLineRow key={line.line.id} line={line} />
               ))}
             </ul>
-            <div className="pt-3">
-              <UpsellStrip />
-            </div>
           </>
         )}
       </div>
