@@ -1,6 +1,7 @@
 import { ChevronRight, Gift } from "lucide-react"
 
-import { ORDER_RULES } from "@/shared/config/site"
+import { useSettings } from "@/entities/settings/api"
+import { settingsFallback } from "@/entities/settings/model"
 import { cn } from "@/shared/lib/cn"
 
 export function PromoBanner({
@@ -10,6 +11,9 @@ export function PromoBanner({
   className?: string
   onClick?: () => void
 }) {
+  const { data: settings = settingsFallback() } = useSettings()
+  const subtitle = settings.promoSubtitle.replace(/^на /, "на ")
+
   return (
     <button
       type="button"
@@ -22,12 +26,12 @@ export function PromoBanner({
       <Gift size={20} className="shrink-0 text-brand" strokeWidth={2.2} />
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-extrabold text-fg">
-          {ORDER_RULES.promo.title} {ORDER_RULES.promo.subtitle.replace(/^на /, "на ")}
+          {settings.promoTitle} {subtitle}
         </span>
         <span className="block text-[12px] text-fg-muted">
           промокод{" "}
           <span className="font-extrabold tracking-[0.05em] text-brand">
-            {ORDER_RULES.promo.code}
+            {settings.promoCode}
           </span>
         </span>
       </span>

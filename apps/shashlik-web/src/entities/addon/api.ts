@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { adminCountKeys } from "@/shared/api/counts"
+import { collectionMutations } from "@/shared/api/crud"
+import { imageUrl, toFormData } from "@/shared/api/files"
 import { pb } from "@/shared/api/pb"
 
 import type { Addon, AddonKind } from "./model"
@@ -20,7 +23,7 @@ function mapAddon(record: AddonRecord): Addon {
     name: record.name,
     weight: record.weight,
     price: record.price,
-    image: pb.files.getUrl(record, record.image),
+    image: imageUrl(record, "image"),
     kind: record.kind,
     article: record.article,
   }
@@ -39,7 +42,7 @@ export async function fetchAddons(): Promise<Addon[]> {
 
 export async function fetchAddonsByKind(kind: AddonKind): Promise<Addon[]> {
   const records = await pb.collection("addons").getFullList<AddonRecord>({
-    filter: `kind = "${kind}"`,
+    filter: pb.filter("kind = {:kind}", { kind }),
   })
   return records.map(mapAddon)
 }
@@ -83,4 +86,80 @@ export function useSauces() {
     queryKey: addonKeys.kind("sauce"),
     queryFn: fetchSauces,
   })
+}
+
+export type CreateAddonInput = {
+  name: string
+  weight: string
+  price: number
+  kind: AddonKind
+  article?: string
+  image: File
+}
+
+export type UpdateAddonInput = {
+  name?: string
+  weight?: string
+  price?: number
+  kind?: AddonKind
+  article?: string
+  /** Новый файл; `null` — удалить (поле в схеме required — обычно не используем). */
+  image?: File | null
+}
+
+const addonMutations = collectionMutations<
+  AddonRecord,
+  Addon,
+  Record<string, unknown>,
+  Record<string, unknown>
+>({
+  collection: "addons",
+  map: mapAddon,
+  keys: {
+    all: [addonKeys.all, addonKeys.kind("extra"), addonKeys.kind("sauce"), adminCountKeys.all],
+    detail: addonKeys.detail,
+  },
+})
+
+function createBody(input: CreateAddonInput): Record<string, unknown> {
+  return toFormData({
+    name: input.name,
+    weight: input.weight,
+    price: input.price,
+    kind: input.kind,
+    article: input.article,
+    image: input.image,
+  }) as unknown as Record<string, unknown>
+}
+
+function updateBody(input: UpdateAddonInput): Record<string, unknown> {
+  return toFormData({
+    name: input.name,
+    weight: input.weight,
+    price: input.price,
+    kind: input.kind,
+    article: input.article,
+    image: input.image,
+  }) as unknown as Record<string, unknown>
+}
+
+export function useCreateAddon() {
+  const mutation = addonMutations.useCreate()
+  return {
+    ...mutation,
+    mutateAsync: (input: CreateAddonInput) => mutation.mutateAsync(createBody(input)),
+  }
+}
+
+export function useUpdateAddon() {
+  const mutation = addonMutations.useUpdate()
+  return {
+    ...mutation,
+    mutateAsync: (args: { id: string; data: UpdateAddonInput }) =>
+      mutation.mutateAsync({ id: args.id, data: updateBody(args.data) }),
+  }
+}
+
+export function useDeleteAddon() {
+  return addonMutations.useRemove()
 }

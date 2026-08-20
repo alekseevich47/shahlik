@@ -1,4 +1,5 @@
 import {
+  Contact,
   Image,
   LayoutDashboard,
   ListOrdered,
@@ -12,24 +13,41 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
-export type AdminTabId =
+export type AdminSectionId =
+  | "dashboard"
   | "products"
+  | "addons"
   | "categories"
   | "banners"
-  | "addons"
   | "orders"
   | "reviews"
+  | "customers"
+  | "staff"
+  | "coupons"
+  | "settings"
 
-export const ADMIN_NAV: ReadonlyArray<{ id: string; label: string; icon: LucideIcon; tab?: AdminTabId }> = [
-  { id: "dashboard", label: "Главная", icon: LayoutDashboard },
-  { id: "products", label: "Товары", icon: Package, tab: "products" },
-  { id: "categories", label: "Категории", icon: PlusSquare, tab: "categories" },
-  { id: "addons", label: "Добавки", icon: ListOrdered, tab: "addons" },
-  { id: "orders", label: "Заказы", icon: Star, tab: "orders" },
-  { id: "reviews", label: "Отзывы", icon: MessageSquare, tab: "reviews" },
-  { id: "users", label: "Пользователи", icon: Users },
-  { id: "coupons", label: "Купоны", icon: TicketPercent },
-  { id: "settings", label: "Настройки", icon: Settings },
+export type AdminRole = "admin" | "manager"
+
+export type AdminNavItem = {
+  id: AdminSectionId
+  path: string
+  label: string
+  icon: LucideIcon
+  /** Минимальная роль для пункта меню. */
+  role: AdminRole
+}
+
+/** Порядок пунктов левого меню — единый источник для сайдбара. */
+export const ADMIN_NAV: ReadonlyArray<AdminNavItem> = [
+  { id: "dashboard", path: "dashboard", label: "Главная", icon: LayoutDashboard, role: "manager" },
+  { id: "products", path: "products", label: "Товары", icon: Package, role: "manager" },
+  { id: "addons", path: "addons", label: "Добавки", icon: ListOrdered, role: "manager" },
+  { id: "categories", path: "categories", label: "Категории", icon: PlusSquare, role: "manager" },
+  { id: "banners", path: "banners", label: "Баннеры", icon: Image, role: "manager" },
+  { id: "orders", path: "orders", label: "Заказы", icon: Star, role: "manager" },
+  { id: "reviews", path: "reviews", label: "Отзывы", icon: MessageSquare, role: "manager" },
+  { id: "customers", path: "customers", label: "Клиенты", icon: Contact, role: "manager" },
+  { id: "coupons", path: "coupons", label: "Купоны", icon: TicketPercent, role: "admin" },
+  { id: "staff", path: "staff", label: "Сотрудники", icon: Users, role: "admin" },
+  { id: "settings", path: "settings", label: "Настройки", icon: Settings, role: "admin" },
 ]
-
-export const ADMIN_BANNER_ICON = Image

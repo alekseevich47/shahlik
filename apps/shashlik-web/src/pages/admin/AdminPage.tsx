@@ -1,90 +1,130 @@
-import { useState } from "react"
+import { LazyMotion } from "motion/react"
+import type { ReactNode } from "react"
+import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom"
 
-import { useAddons } from "@/entities/addon/api"
-import { useBanners } from "@/entities/banner/api"
-import { useCategories } from "@/entities/category/api"
-import { useOrders, useReviews } from "@/entities/order/api"
-import { useProducts } from "@/entities/product/api"
-import type { Product } from "@/entities/product/model"
-
-import type { AdminTabId } from "./model"
+import { useAdminProducts } from "@/entities/product/api"
+import type { AdminSectionId } from "./model"
 import { ADMIN_NAV } from "./model"
 import { ProductEditor } from "./sections/ProductEditor"
-import {
-  AddonsTable,
-  BannersTable,
-  CategoriesTable,
-  OrdersTable,
-  ProductsTable,
-  ReviewsTable,
-} from "./sections/CatalogTables"
+import { AddonsSection } from "./sections/addons/AddonsSection"
+import { BannersSection } from "./sections/banners/BannersSection"
+import { CategoriesSection } from "./sections/categories/CategoriesSection"
+import { CouponsSection } from "./sections/coupons/CouponsSection"
+import { CustomersSection } from "./sections/customers/CustomersSection"
+import { DashboardSection } from "./sections/dashboard/DashboardSection"
+import { OrdersSection } from "./sections/orders/OrdersSection"
+import { ProductsSection } from "./sections/products/ProductsSection"
+import { ReviewsSection } from "./sections/reviews/ReviewsSection"
+import { SettingsSection } from "./sections/settings/SettingsSection"
+import { StaffSection } from "./sections/staff/StaffSection"
 import { AdminSidebar } from "./ui/AdminSidebar"
-import { AdminTabs } from "./ui/AdminTabs"
 import { AdminTopbar } from "./ui/AdminTopbar"
+import { can, useAdminAuth } from "@/shared/api/auth"
+import { useAdminCounts } from "@/shared/api/counts"
+
+const loadDomMax = () => import("@/app/motion-features-max").then((mod) => mod.default)
 
 export default function AdminPage() {
-  const { data: products = [] } = useProducts()
-  const { data: categories = [] } = useCategories()
-  const { data: banners = [] } = useBanners()
-  const { data: addons = [] } = useAddons()
-  const { data: orders = [] } = useOrders()
-  const { data: reviews = [] } = useReviews()
+  const { role } = useAdminAuth()
+  const { data: countsData } = useAdminCounts()
 
-  const [nav, setNav] = useState("products")
-  const [tab, setTab] = useState<AdminTabId>("products")
-  const [editing, setEditing] = useState<Product | null>(null)
-
-  const counts: Record<AdminTabId, number> = {
-    products: products.length,
-    categories: categories.length,
-    banners: banners.length,
-    addons: addons.length,
-    orders: orders.length,
-    reviews: reviews.length,
-  }
-
-  const selectNav = (id: string) => {
-    setNav(id)
-    const target = ADMIN_NAV.find((item) => item.id === id)?.tab
-    if (target) {
-      setTab(target)
-      setEditing(null)
-    }
-  }
-
-  const selectTab = (next: AdminTabId) => {
-    setTab(next)
-    setEditing(null)
-    const target = ADMIN_NAV.find((item) => item.tab === next)
-    if (target) setNav(target.id)
+  const counts: Partial<Record<AdminSectionId, number>> = {
+    products: countsData?.products,
+    addons: countsData?.addons,
+    categories: countsData?.categories,
+    banners: countsData?.banners,
+    orders: countsData?.orders,
+    reviews: countsData?.reviews,
   }
 
   return (
-    <div className="flex min-h-dvh bg-canvas">
-      <AdminSidebar active={nav} onSelect={selectNav} />
+    <LazyMotion features={loadDomMax} strict>
+      <div className="flex min-h-dvh bg-canvas">
+        <AdminSidebar role={role ?? "manager"} counts={counts} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AdminTopbar />
 
-        <div className="border-b border-line bg-surface-2 px-4 py-3">
-          <AdminTabs value={tab} onChange={selectTab} counts={counts} />
+          <main className="flex-1 p-4">
+            <Routes>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardSection />} />
+              <Route path="products" element={<ProductsSection />} />
+              <Route path="products/:id" element={<ProductEditorRoute />} />
+              <Route path="addons" element={<AddonsSection />} />
+              <Route path="categories" element={<CategoriesSection />} />
+              <Route path="banners" element={<BannersSection />} />
+              <Route path="orders" element={<OrdersSection />} />
+              <Route path="reviews" element={<ReviewsSection />} />
+              <Route
+                path="customers"
+                element={
+                  <GuardedSection id="customers">
+                    <CustomersSection />
+                  </GuardedSection>
+                }
+              />
+              <Route
+                path="coupons"
+                element={
+                  <GuardedSection id="coupons">
+                    <CouponsSection />
+                  </GuardedSection>
+                }
+              />
+              <Route
+                path="staff"
+                element={
+                  <GuardedSection id="staff">
+                    <StaffSection />
+                  </GuardedSection>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <GuardedSection id="settings">
+                    <SettingsSection />
+                  </GuardedSection>
+                }
+              />
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
+            </Routes>
+          </main>
         </div>
-
-        <main className="flex-1 p-4">
-          {tab === "products" ? (
-            editing ? (
-              <ProductEditor product={editing} onBack={() => setEditing(null)} />
-            ) : (
-              <ProductsTable onOpen={setEditing} />
-            )
-          ) : null}
-          {tab === "categories" ? <CategoriesTable /> : null}
-          {tab === "banners" ? <BannersTable /> : null}
-          {tab === "addons" ? <AddonsTable /> : null}
-          {tab === "orders" ? <OrdersTable /> : null}
-          {tab === "reviews" ? <ReviewsTable /> : null}
-        </main>
       </div>
+    </LazyMotion>
+  )
+}
+
+function GuardedSection({
+  id,
+  children,
+}: {
+  id: AdminSectionId
+  children?: ReactNode
+}) {
+  if (!can(id, "view")) return <Navigate to="/admin/dashboard" replace />
+  return <>{children ?? <SectionStub id={id} />}</>
+}
+
+function ProductEditorRoute() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { data: products = [], isPending } = useAdminProducts()
+  const product = products.find((item) => item.id === id)
+
+  if (isPending) return null
+  if (!product) return <Navigate to="/admin/products" replace />
+
+  return <ProductEditor product={product} onBack={() => navigate("/admin/products")} />
+}
+
+function SectionStub({ id }: { id: AdminSectionId }) {
+  const label = ADMIN_NAV.find((item) => item.id === id)?.label ?? id
+  return (
+    <div className="rounded-[var(--r-md)] border border-dashed border-line bg-surface px-5 py-8 text-[13px] text-fg-muted">
+      {label}
     </div>
   )
 }

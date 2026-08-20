@@ -1,7 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 
+import { collectionMutations } from "@/shared/api/crud"
 import { pb } from "@/shared/api/pb"
-import { queryClient } from "@/shared/api/query-client"
 
 import type { CategoryTag } from "./model"
 
@@ -64,41 +64,20 @@ export type TagInput = {
   order: number
 }
 
-async function createTag(data: TagInput): Promise<CategoryTag> {
-  const record = await pb.collection("product_tags").create<TagRecord>(data)
-  return mapTag(record)
-}
-
-async function updateTag(id: string, data: Partial<TagInput>): Promise<CategoryTag> {
-  const record = await pb.collection("product_tags").update<TagRecord>(id, data)
-  return mapTag(record)
-}
-
-async function deleteTag(id: string): Promise<void> {
-  await pb.collection("product_tags").delete(id)
-}
-
-function invalidateTags() {
-  void queryClient.invalidateQueries({ queryKey: tagKeys.all })
-}
+const tagMutations = collectionMutations<TagRecord, CategoryTag, TagInput>({
+  collection: "product_tags",
+  map: mapTag,
+  keys: { all: tagKeys.all },
+})
 
 export function useCreateTag() {
-  return useMutation({
-    mutationFn: createTag,
-    onSuccess: invalidateTags,
-  })
+  return tagMutations.useCreate()
 }
 
 export function useUpdateTag() {
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<TagInput> }) => updateTag(id, data),
-    onSuccess: invalidateTags,
-  })
+  return tagMutations.useUpdate()
 }
 
 export function useDeleteTag() {
-  return useMutation({
-    mutationFn: deleteTag,
-    onSuccess: invalidateTags,
-  })
+  return tagMutations.useRemove()
 }

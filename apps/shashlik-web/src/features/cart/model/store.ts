@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+import type { AppliedCoupon } from "@/entities/coupon/model"
 import type { DeliveryMode } from "@/entities/order/model"
 
 export type CartAddon = { addonId: string; quantity: number }
@@ -23,7 +24,7 @@ type CartState = {
   address: string
   customer: string
   phone: string
-  promo: string | null
+  appliedCoupon: AppliedCoupon | null
   add: (payload: AddPayload) => void
   setQuantity: (lineId: string, quantity: number) => void
   remove: (lineId: string) => void
@@ -34,7 +35,7 @@ type CartState = {
   setAddress: (address: string) => void
   setCustomer: (customer: string) => void
   setPhone: (phone: string) => void
-  applyPromo: (code: string | null) => void
+  applyCoupon: (coupon: AppliedCoupon | null) => void
 }
 
 const uid = () => `ci-${Math.random().toString(36).slice(2, 9)}`
@@ -54,7 +55,7 @@ export const useCartStore = create<CartState>()(
       address: "",
       customer: "",
       phone: "",
-      promo: null,
+      appliedCoupon: null,
 
       add: (payload) =>
         set((state) => {
@@ -87,7 +88,7 @@ export const useCartStore = create<CartState>()(
       remove: (lineId) =>
         set((state) => ({ items: state.items.filter((item) => item.id !== lineId) })),
 
-      clear: () => set({ items: [], promo: null }),
+      clear: () => set({ items: [], appliedCoupon: null }),
 
       bumpAddon: (addonId, delta, lineId) =>
         set((state) => {
@@ -116,8 +117,8 @@ export const useCartStore = create<CartState>()(
       setAddress: (address) => set({ address }),
       setCustomer: (customer) => set({ customer }),
       setPhone: (phone) => set({ phone }),
-      applyPromo: (promo) => set({ promo }),
+      applyCoupon: (appliedCoupon) => set({ appliedCoupon }),
     }),
-    { name: "shashlik:cart:v1" },
+    { name: "shashlik:cart:v2" },
   ),
 )

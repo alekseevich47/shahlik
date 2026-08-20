@@ -2,12 +2,15 @@ import { ChevronRight, MapPin, ShoppingBag, TicketPercent, X, Zap } from "lucide
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { checkPromo } from "@/entities/coupon/api"
+import { formatCouponValue } from "@/entities/coupon/model"
 import { subscribeOrderStatus, useCreateOrder } from "@/entities/order/api"
 import { ORDER_STATUS_LABEL } from "@/entities/order/model"
-import { findSize } from "@/entities/product/lib"
+import { articleFor } from "@/entities/product/lib"
+import { useSettings } from "@/entities/settings/api"
+import { settingsFallback } from "@/entities/settings/model"
 import { useCartTotals } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
-import { ORDER_RULES } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 import { Button } from "@/shared/ui/button"
@@ -22,8 +25,19 @@ const MODE_OPTIONS = [
 ] as const
 
 export function CartPanel({ className }: { className?: string }) {
-  const { lines, count, goods, packFee, deliveryFee, discount, total, freeDeliveryLeft } =
-    useCartTotals()
+  const {
+    lines,
+    count,
+    goods,
+    packFee,
+    deliveryFee,
+    discount,
+    total,
+    freeDeliveryLeft,
+    minOrder,
+    acceptingOrders,
+    stopMessage,
+  } = useCartTotals()
   const mode = useCartStore((s) => s.mode)
   const setMode = useCartStore((s) => s.setMode)
   const address = useCartStore((s) => s.address)
@@ -31,15 +45,53 @@ export function CartPanel({ className }: { className?: string }) {
   const setCustomer = useCartStore((s) => s.setCustomer)
   const phone = useCartStore((s) => s.phone)
   const setPhone = useCartStore((s) => s.setPhone)
-  const promo = useCartStore((s) => s.promo)
-  const applyPromo = useCartStore((s) => s.applyPromo)
+  const appliedCoupon = useCartStore((s) => s.appliedCoupon)
+  const applyCoupon = useCartStore((s) => s.applyCoupon)
   const clearCart = useCartStore((s) => s.clear)
   const createOrder = useCreateOrder()
+  const { data: settings = settingsFallback() } = useSettings()
   const [promoOpen, setPromoOpen] = useState(false)
+  const [promoInput, setPromoInput] = useState("")
+  const [promoBusy, setPromoBusy] = useState(false)
 
   const empty = lines.length === 0
+  const belowMinOrder = minOrder > 0 && goods < minOrder
+  const checkoutBlocked = !acceptingOrders || belowMinOrder
+
+  async function submitPromo() {
+    const code = promoInput.trim().toUpperCase()
+    if (!code) {
+      toast.error("Введите промокод")
+      return
+    }
+    if (empty) {
+      toast.error("Добавьте товары в корзину")
+      return
+    }
+    setPromoBusy(true)
+    try {
+      const result = await checkPromo(code, goods)
+      if (!result.ok) {
+        toast.error(result.message || "Промокод не подходит")
+        return
+      }
+      applyCoupon({ code, kind: result.kind, value: result.value })
+      setPromoInput("")
+      toast.success(`Промокод ${code} применён`)
+    } finally {
+      setPromoBusy(false)
+    }
+  }
 
   function checkout() {
+    if (!acceptingOrders) {
+      toast.error(stopMessage || "Сейчас заказы не принимаем")
+      return
+    }
+    if (belowMinOrder) {
+      toast.error(`Минимальная сумма заказа ${formatPrice(minOrder)}`)
+      return
+    }
     const name = customer.trim()
     const tel = phone.trim()
     if (!name || !tel) {
@@ -54,12 +106,12 @@ export function CartPanel({ className }: { className?: string }) {
         address: address.trim() || undefined,
         positions: count,
         total,
-        promo,
+        promo: appliedCoupon?.code ?? null,
         lines: lines.map((line) => ({
           productId: line.product.id,
           variantId: line.line.variantId,
           sizeId: line.line.sizeId,
-          article: findSize(line.product, line.line.sizeId).article,
+          article: articleFor(line.product, line.line.sizeId, line.line.variantId),
           quantity: line.line.quantity,
           name: line.product.name,
           variantLabel: line.variantLabel,
@@ -129,7 +181,8 @@ export function CartPanel({ className }: { className?: string }) {
               address ? "text-fg" : "text-fg-faint",
             )}
           >
-            {address || (mode === "delivery" ? "Укажите адрес" : "Заберу сам — ул. Ленина, 123")}
+            {address ||
+              (mode === "delivery" ? "Укажите адрес" : `Заберу сам — ${settings.address}`)}
           </span>
           <ChevronRight size={15} className="shrink-0 text-fg-faint" strokeWidth={2.4} />
         </button>
@@ -192,39 +245,50 @@ export function CartPanel({ className }: { className?: string }) {
           </button>
           {promoOpen ? (
             <div className="border-t border-line p-2">
-              {promo ? (
+              {appliedCoupon ? (
                 <div className="flex items-center justify-between gap-2 rounded-[var(--r-xs)] bg-brand-soft px-2.5 py-1.5">
                   <span className="text-[12px] font-extrabold tracking-[0.05em] text-brand">
-                    {promo}
+                    {appliedCoupon.code}
                   </span>
                   <span className="text-[12px] font-extrabold text-success">
-                    −{ORDER_RULES.promo.percent}%
+                    −{formatCouponValue(appliedCoupon.kind, appliedCoupon.value)}
                   </span>
                   <button
                     type="button"
                     aria-label="Убрать промокод"
-                    onClick={() => applyPromo(null)}
+                    onClick={() => applyCoupon(null)}
                     className="grid size-5 cursor-pointer place-items-center rounded-[var(--r-xs)] text-fg-faint hover:text-red"
                   >
                     <X size={12} strokeWidth={3} />
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    applyPromo(ORDER_RULES.promo.code)
-                    toast.success(`Промокод ${ORDER_RULES.promo.code} применён`)
+                <form
+                  className="flex gap-1.5"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    void submitPromo()
                   }}
-                  className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-[var(--r-xs)] px-2.5 py-1.5 text-left transition-colors hover:bg-surface-3"
                 >
-                  <span className="text-[12px] font-bold text-fg-soft">
-                    Применить {ORDER_RULES.promo.code}
-                  </span>
-                  <span className="text-[12px] font-extrabold text-brand">
-                    −{ORDER_RULES.promo.percent}%
-                  </span>
-                </button>
+                  <Input
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                    placeholder="Промокод"
+                    maxLength={32}
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="h-9 flex-1 text-[12.5px]"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="soft"
+                    disabled={promoBusy}
+                    className="shrink-0"
+                  >
+                    ОК
+                  </Button>
+                </form>
               )}
             </div>
           ) : null}
@@ -249,6 +313,14 @@ export function CartPanel({ className }: { className?: string }) {
               До бесплатной доставки {formatPrice(freeDeliveryLeft)}
             </p>
           ) : null}
+          {belowMinOrder && !empty ? (
+            <p className="text-[11px] text-fg-muted">
+              Мин. заказ {formatPrice(minOrder)} — ещё {formatPrice(minOrder - goods)}
+            </p>
+          ) : null}
+          {!acceptingOrders ? (
+            <p className="text-[12px] font-bold text-red">{stopMessage}</p>
+          ) : null}
         </div>
 
         <div className="flex items-end justify-between gap-3">
@@ -260,7 +332,7 @@ export function CartPanel({ className }: { className?: string }) {
           </span>
           <Button
             size="lg"
-            disabled={empty || createOrder.isPending}
+            disabled={empty || checkoutBlocked || createOrder.isPending}
             onClick={checkout}
             className="flex-1"
           >

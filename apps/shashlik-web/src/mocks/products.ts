@@ -1,4 +1,4 @@
-import type { CategoryId } from "@/entities/category/model"
+import type { CategoryId, KnownCategoryId } from "@/entities/category/model"
 import type {
   Product,
   ProductBadge,
@@ -44,7 +44,7 @@ type Spec = {
   articles?: [string, string, string, string]
 }
 
-const NUTRITION_BY_CATEGORY: Record<CategoryId, ProductNutrition> = {
+const NUTRITION_BY_CATEGORY: Record<KnownCategoryId, ProductNutrition> = {
   shawarma: { kcal: 246, fat: 12, protein: 14, carbs: 22 },
   shashlik: { kcal: 198, fat: 11, protein: 23, carbs: 3 },
   pizza: { kcal: 266, fat: 10, protein: 11, carbs: 33 },
@@ -94,7 +94,8 @@ function product(
     composition: spec.composition,
     image: spec.image,
     badge: spec.badge,
-    nutrition: spec.nutrition ?? NUTRITION_BY_CATEGORY[spec.categoryId],
+    nutrition:
+      spec.nutrition ?? NUTRITION_BY_CATEGORY[spec.categoryId as KnownCategoryId],
     tags: spec.tags ?? [],
     variants: spec.variants,
     sizes: spec.sizes,

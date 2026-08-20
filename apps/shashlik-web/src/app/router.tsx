@@ -25,13 +25,14 @@ const EXIT_ABS = {
 export function AppRoutes() {
   const location = useLocation()
   const isProduct = location.pathname.startsWith("/product/")
+  const routeKey = location.pathname.startsWith("/admin") ? "/admin" : location.pathname
 
   return (
     <LazyMotion features={loadMotionFeatures} strict>
       <div className="relative min-h-dvh">
         <AnimatePresence initial={false}>
           <m.div
-            key={location.pathname}
+            key={routeKey}
             className="min-h-dvh w-full overflow-x-clip"
             initial={isProduct ? { opacity: 0, y: 28 } : { opacity: 0 }}
             animate={{ opacity: 1, y: 0 }}
@@ -42,7 +43,7 @@ export function AppRoutes() {
               <Routes location={location}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/product/:slug" element={<ProductPage />} />
-                <Route path="/admin" element={<AdminGate />} />
+                <Route path="/admin/*" element={<AdminGate />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
@@ -54,8 +55,8 @@ export function AppRoutes() {
 }
 
 function AdminGate() {
-  const { isAdmin } = useAdminAuth()
-  return isAdmin ? <AdminPage /> : <AdminLogin />
+  const { user } = useAdminAuth()
+  return user ? <AdminPage /> : <AdminLogin />
 }
 
 function RouteFallback() {

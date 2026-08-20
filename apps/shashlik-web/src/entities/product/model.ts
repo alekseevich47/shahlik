@@ -10,12 +10,15 @@ export type ProductVariant = {
   priceDelta: number
 }
 
-/** Размер / порция. Артикул кассы живёт здесь: в заказ уходит именно он. */
+/** Размер / порция. SKU кассы = пара «вариант × размер». */
 export type ProductSize = {
   id: string
   label: string
   price: number
+  /** Дефолтный артикул размера (если нет переопределения по варианту). */
   article?: string
+  /** Переопределение артикула для варианта мяса: «Курица M» ≠ «Свинина M». */
+  articleByVariant?: Record<string, string>
 }
 
 export type RatingCriterion = {

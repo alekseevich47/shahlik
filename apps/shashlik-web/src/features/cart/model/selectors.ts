@@ -1,10 +1,12 @@
 import { addonKeys, useAddons } from "@/entities/addon/api"
 import type { Addon } from "@/entities/addon/model"
+import { calcCouponDiscount } from "@/entities/coupon/model"
 import { productKeys, useProducts } from "@/entities/product/api"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
 import type { Product } from "@/entities/product/model"
+import { useSettings } from "@/entities/settings/api"
+import { settingsFallback } from "@/entities/settings/model"
 import { queryClient } from "@/shared/api/query-client"
-import { ORDER_RULES } from "@/shared/config/site"
 
 import type { CartItem } from "./store"
 import { useCartStore } from "./store"
@@ -83,25 +85,28 @@ export type CartTotals = {
   freeDeliveryLeft: number
   discount: number
   total: number
+  minOrder: number
+  acceptingOrders: boolean
+  stopMessage: string
 }
 
 export function useCartTotals(): CartTotals {
   const items = useCartStore((s) => s.items)
   const mode = useCartStore((s) => s.mode)
-  const promo = useCartStore((s) => s.promo)
+  const appliedCoupon = useCartStore((s) => s.appliedCoupon)
   useProducts()
   useAddons()
+  const { data: settings = settingsFallback() } = useSettings()
 
   const lines = items.map(resolveLine).filter((l): l is ResolvedLine => l !== null)
   const count = lines.reduce((sum, l) => sum + l.line.quantity, 0)
   const goods = lines.reduce((sum, l) => sum + l.total, 0)
 
-  const packFee = lines.length ? ORDER_RULES.packFee : 0
-  const freeDeliveryLeft = Math.max(ORDER_RULES.freeDeliveryFrom - goods, 0)
+  const packFee = lines.length ? settings.packFee : 0
+  const freeDeliveryLeft = Math.max(settings.freeDeliveryFrom - goods, 0)
   const deliveryFee =
-    mode === "delivery" && lines.length && freeDeliveryLeft > 0 ? ORDER_RULES.deliveryFee : 0
-  const discount =
-    promo === ORDER_RULES.promo.code ? Math.round((goods * ORDER_RULES.promo.percent) / 100) : 0
+    mode === "delivery" && lines.length && freeDeliveryLeft > 0 ? settings.deliveryFee : 0
+  const discount = calcCouponDiscount(goods, appliedCoupon)
 
   return {
     lines,
@@ -112,5 +117,8 @@ export function useCartTotals(): CartTotals {
     freeDeliveryLeft,
     discount,
     total: Math.max(goods + packFee + deliveryFee - discount, 0),
+    minOrder: settings.minOrder,
+    acceptingOrders: settings.acceptingOrders,
+    stopMessage: settings.stopMessage,
   }
 }

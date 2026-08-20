@@ -1,10 +1,13 @@
 import { MapPin } from "lucide-react"
 import { toast } from "sonner"
 
-import { SITE } from "@/shared/config/site"
+import { useSettings } from "@/entities/settings/api"
+import { settingsFallback } from "@/entities/settings/model"
 import { cn } from "@/shared/lib/cn"
 
 export function AddressBar({ className }: { className?: string }) {
+  const { data: settings = settingsFallback() } = useSettings()
+
   return (
     <div
       className={cn(
@@ -14,9 +17,9 @@ export function AddressBar({ className }: { className?: string }) {
     >
       <MapPin size={17} className="shrink-0 text-brand" strokeWidth={2.3} />
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="block truncate text-[13px] font-bold text-fg">{SITE.address}</span>
+        <span className="block truncate text-[13px] font-bold text-fg">{settings.address}</span>
         <span className="block truncate text-[11px] text-fg-muted">
-          Доставка {SITE.deliveryFrom}
+          Доставка {settings.deliveryFrom}
         </span>
       </span>
       <button

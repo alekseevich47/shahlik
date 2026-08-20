@@ -1,3 +1,4 @@
+/** Fallback, если PB `settings#main` недоступен. Живые значения — `useSettings()`. */
 export const SITE = {
   name: "Шашлыковский",
   brandLogo: "/logo/logo.png",
@@ -7,7 +8,7 @@ export const SITE = {
   deliveryFrom: "сегодня с 11:30",
 } as const
 
-/** Экономика заказа (моки; при интеграции переедет на сервер). */
+/** Fallback экономики заказа; витрина/корзина берут цифры из `useSettings()`. */
 export const ORDER_RULES = {
   packFee: 24,
   deliveryFee: 149,

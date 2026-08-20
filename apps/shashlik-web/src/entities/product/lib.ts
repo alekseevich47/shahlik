@@ -24,6 +24,48 @@ export function findSize(product: Product, id?: string): ProductSize {
   return product.sizes.find((s) => s.id === id) ?? product.sizes[0]
 }
 
+/** Артикул кассы для пары размер × вариант. */
+export function articleFor(
+  product: Product,
+  sizeId: string,
+  variantId?: string,
+): string | undefined {
+  const size = findSize(product, sizeId)
+  if (variantId) {
+    const override = size.articleByVariant?.[variantId]?.trim()
+    if (override) return override
+  }
+  const fallback = size.article?.trim()
+  return fallback || undefined
+}
+
+export type SkuCell = {
+  variantId: string | null
+  sizeId: string
+  price: number
+  article: string
+}
+
+/** Матрица SKU: каждая пара вариант × размер. */
+export function skuMatrix(product: Product): SkuCell[] {
+  const variants = product.variants.length
+    ? product.variants.map((v) => v as ProductVariant | null)
+    : [null]
+  return variants.flatMap((variant) =>
+    product.sizes.map((size) => ({
+      variantId: variant?.id ?? null,
+      sizeId: size.id,
+      price: priceOf(size, variant ?? undefined),
+      article: articleFor(product, size.id, variant?.id) ?? "",
+    })),
+  )
+}
+
+/** Есть ли хотя бы одна ячейка без артикула. */
+export function hasMissingArticle(product: Product): boolean {
+  return skuMatrix(product).some((cell) => !cell.article.trim())
+}
+
 /** Подпись строки корзины: «Арабская • Курица • L». */
 export function cartLineTitle(product: Product, variantId?: string, sizeId?: string): string {
   const variant = findVariant(product, variantId)

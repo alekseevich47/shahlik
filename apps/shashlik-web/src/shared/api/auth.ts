@@ -3,19 +3,78 @@ import { ClientResponseError, type RecordModel } from "pocketbase"
 
 import { pb } from "./pb"
 
+export type StaffRole = "admin" | "manager"
+
+export type StaffAction = "view" | "create" | "update" | "delete"
+
+export type StaffSection =
+  | "dashboard"
+  | "products"
+  | "addons"
+  | "categories"
+  | "banners"
+  | "orders"
+  | "reviews"
+  | "customers"
+  | "staff"
+  | "coupons"
+  | "settings"
+
 export type AdminAuth = {
   user: RecordModel | null
+  role: StaffRole | null
   isAdmin: boolean
+  isManager: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
 }
 
-function isAdminRecord(record: RecordModel | null): boolean {
-  return Boolean(record && record.role === "admin")
+/** Разделы, доступные менеджеру на просмотр (остальные — только admin). */
+const MANAGER_VIEW: ReadonlySet<StaffSection> = new Set([
+  "dashboard",
+  "products",
+  "addons",
+  "categories",
+  "banners",
+  "orders",
+  "reviews",
+  "customers",
+])
+
+/** Update, который менеджер может делать по правилам PB. */
+const MANAGER_UPDATE: ReadonlySet<StaffSection> = new Set([
+  "orders",
+  "reviews",
+  "customers",
+])
+
+function staffRole(record: RecordModel | null): StaffRole | null {
+  if (!record) return null
+  if (record.role === "admin" || record.role === "manager") return record.role
+  return null
+}
+
+function isStaffRecord(record: RecordModel | null): boolean {
+  return staffRole(record) !== null
 }
 
 function readUser(): RecordModel | null {
   return pb.authStore.isValid ? pb.authStore.record : null
+}
+
+/** Права текущего пользователя по разделу и действию. */
+export function can(section: StaffSection, action: StaffAction): boolean {
+  const role = staffRole(readUser())
+  if (!role) return false
+  if (role === "admin") return true
+
+  if (action === "view") return MANAGER_VIEW.has(section)
+  if (action === "update") return MANAGER_UPDATE.has(section)
+  return false
+}
+
+export function isManager(record: RecordModel | null = readUser()): boolean {
+  return staffRole(record) === "manager"
 }
 
 export function useAdminAuth(): AdminAuth {
@@ -24,7 +83,7 @@ export function useAdminAuth(): AdminAuth {
   useEffect(() => {
     const unsubscribe = pb.authStore.onChange(() => {
       const next = readUser()
-      if (next && !isAdminRecord(next)) {
+      if (next && !isStaffRecord(next)) {
         pb.authStore.clear()
         setUser(null)
         return
@@ -43,7 +102,7 @@ export function useAdminAuth(): AdminAuth {
 
   async function login(email: string, password: string) {
     const auth = await pb.collection("users").authWithPassword(email, password)
-    if (!isAdminRecord(auth.record)) {
+    if (!isStaffRecord(auth.record)) {
       pb.authStore.clear()
       throw new Error("Нет доступа к админке")
     }
@@ -53,7 +112,16 @@ export function useAdminAuth(): AdminAuth {
     pb.authStore.clear()
   }
 
-  return { user, isAdmin: isAdminRecord(user), login, logout }
+  const role = staffRole(user)
+
+  return {
+    user,
+    role,
+    isAdmin: role === "admin",
+    isManager: role === "manager",
+    login,
+    logout,
+  }
 }
 
 export function authErrorMessage(err: unknown): string {

@@ -1,70 +1,239 @@
 import {
   ArrowLeft,
   Copy,
+  Drumstick,
   ExternalLink,
   GripVertical,
+  Ham,
   Lightbulb,
   Monitor,
-  MoreVertical,
   Plus,
   Smartphone,
-  Upload,
+  Trash2,
   X,
 } from "lucide-react"
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
-import type { CategoryId } from "@/entities/category/model"
 import { useCategories } from "@/entities/category/api"
-import { useDeleteProduct, useUpdateProduct } from "@/entities/product/api"
-import { minPrice, priceOf } from "@/entities/product/lib"
-import type { Product } from "@/entities/product/model"
+import { ARTICLE_PATTERN, articleConflictMessage } from "@/entities/product/lib/articles"
+import { minPrice, skuMatrix } from "@/entities/product/lib"
+import type {
+  MeatIcon,
+  Product,
+  ProductBadge,
+  ProductNutrition,
+  ProductSize,
+  ProductVariant,
+} from "@/entities/product/model"
+import { useAddons } from "@/entities/addon/api"
+import {
+  useAdminProducts,
+  useDeleteProduct,
+  useDuplicateProduct,
+  useUpdateProduct,
+} from "@/entities/product/api"
 import { useCategoryTags } from "@/entities/tag/api"
+import { ArticleMatrix } from "@/pages/admin/sections/products/ArticleMatrix"
+import { slugFromName } from "@/pages/admin/sections/products/ProductCreateForm"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Chip } from "@/shared/ui/chip"
+import { useConfirm } from "@/shared/ui/confirm-dialog"
 import { Field, Input, Textarea } from "@/shared/ui/input"
+import { ImageField, IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
 import { scoreColor } from "@/shared/ui/rating"
+import { Select } from "@/shared/ui/select"
+import { Switch } from "@/shared/ui/switch"
 
 type Props = {
   product: Product
   onBack: () => void
 }
 
+const BADGE_OPTIONS: Array<{ value: "" | ProductBadge; label: string }> = [
+  { value: "", label: "Без бейджа" },
+  { value: "hit", label: "Хит" },
+  { value: "new", label: "Новинка" },
+  { value: "spicy", label: "Острое" },
+]
+
+const MEAT_OPTIONS: Array<{ value: MeatIcon; label: string }> = [
+  { value: "chicken", label: "Курица" },
+  { value: "pork", label: "Свинина" },
+  { value: null, label: "Без иконки" },
+]
+
+function newId(prefix: string) {
+  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`
+}
+
 export function ProductEditor({ product, onBack }: Props) {
+  const navigate = useNavigate()
   const { data: categories = [] } = useCategories()
+  const { data: products = [] } = useAdminProducts()
+  const { data: addons = [] } = useAddons()
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
-  const busy = updateProduct.isPending || deleteProduct.isPending
+  const duplicateProduct = useDuplicateProduct()
+  const { confirm, dialog } = useConfirm()
+  const busy =
+    updateProduct.isPending || deleteProduct.isPending || duplicateProduct.isPending
 
   const [name, setName] = useState(product.name)
+  const [slug, setSlug] = useState(product.slug)
+  const [slugTouched, setSlugTouched] = useState(true)
   const [categoryId, setCategoryId] = useState<string>(product.categoryId)
+  const [tagline, setTagline] = useState(product.tagline)
   const [composition, setComposition] = useState(product.composition)
+  const [emoji, setEmoji] = useState(product.emoji ?? "")
+  const [badge, setBadge] = useState<"" | ProductBadge>(product.badge ?? "")
+  const [nutrition, setNutrition] = useState<ProductNutrition>(product.nutrition)
   const [tags, setTags] = useState<string[]>(product.tags)
-  const { data: categoryTags, isPending: categoryTagsPending } = useCategoryTags(categoryId)
+  const [variants, setVariants] = useState<ProductVariant[]>(product.variants)
+  const [sizes, setSizes] = useState<ProductSize[]>(product.sizes)
+  const [active, setActive] = useState(product.active)
+  const [image, setImage] = useState<File | null>(null)
   const [criteria, setCriteria] = useState(product.rating.criteria)
-  const [ingredients, setIngredients] = useState(() =>
-    product.composition
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-  )
   const [preview, setPreview] = useState<"desktop" | "mobile">("desktop")
+  const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null)
+
+  const { data: categoryTags, isPending: categoryTagsPending } = useCategoryTags(categoryId)
+
+  useEffect(() => {
+    if (!image) {
+      setPreviewObjectUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(image)
+    setPreviewObjectUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [image])
+
+  useEffect(() => {
+    setName(product.name)
+    setSlug(product.slug)
+    setSlugTouched(true)
+    setCategoryId(product.categoryId)
+    setTagline(product.tagline)
+    setComposition(product.composition)
+    setEmoji(product.emoji ?? "")
+    setBadge(product.badge ?? "")
+    setNutrition(product.nutrition)
+    setTags(product.tags)
+    setVariants(product.variants)
+    setSizes(product.sizes)
+    setActive(product.active)
+    setImage(null)
+    setCriteria(product.rating.criteria)
+  }, [product])
+
+  const draftProduct: Product = {
+    ...product,
+    name,
+    slug,
+    categoryId,
+    tagline,
+    composition,
+    emoji: emoji || undefined,
+    badge: badge || undefined,
+    nutrition,
+    tags,
+    variants,
+    sizes,
+    active,
+  }
+
+  const validateArticles = (): string | null => {
+    for (const cell of skuMatrix(draftProduct)) {
+      const article = cell.article.trim()
+      if (!article) continue
+      if (!ARTICLE_PATTERN.test(article)) {
+        return `Артикул «${article}» — только цифры`
+      }
+      const conflict = articleConflictMessage(article, products, addons, {
+        productId: product.id,
+        sizeId: cell.sizeId,
+        variantId: cell.variantId,
+      })
+      if (conflict) return conflict
+    }
+    // uniqueness inside draft
+    const seen = new Map<string, string>()
+    for (const cell of skuMatrix(draftProduct)) {
+      const article = cell.article.trim()
+      if (!article) continue
+      const key = `${cell.variantId ?? ""}:${cell.sizeId}`
+      const prev = seen.get(article)
+      if (prev && prev !== key) {
+        return `Артикул ${article} повторяется внутри товара`
+      }
+      seen.set(article, key)
+    }
+    return null
+  }
 
   const save = async () => {
+    if (!name.trim()) {
+      toast.error("Укажите название")
+      return
+    }
+    if (!slug.trim() || !/^[a-z0-9-]+$/.test(slug.trim())) {
+      toast.error("Slug: латиница, цифры и дефис")
+      return
+    }
+    if (!tagline.trim()) {
+      toast.error("Укажите tagline")
+      return
+    }
+    if (!composition.trim()) {
+      toast.error("Укажите состав")
+      return
+    }
+    if (!sizes.length) {
+      toast.error("Нужен хотя бы один размер")
+      return
+    }
+    const articleError = validateArticles()
+    if (articleError) {
+      toast.error(articleError)
+      return
+    }
+
     try {
+      const variantIds = new Set(variants.map((v) => v.id))
+      const cleanedSizes = sizes.map((size) => {
+        if (!size.articleByVariant) return size
+        const next = Object.fromEntries(
+          Object.entries(size.articleByVariant).filter(([id]) => variantIds.has(id)),
+        )
+        return {
+          ...size,
+          articleByVariant: Object.keys(next).length ? next : undefined,
+        }
+      })
+
       await updateProduct.mutateAsync({
         id: product.id,
         data: {
-          name,
-          categoryId: categoryId as CategoryId,
-          composition,
+          name: name.trim(),
+          slug: slug.trim(),
+          categoryId,
+          tagline: tagline.trim(),
+          composition: composition.trim(),
+          emoji: emoji.trim(),
+          badge,
+          nutrition,
           tags,
+          variants,
+          sizes: cleanedSizes,
+          active,
           rating: { ...product.rating, criteria },
+          ...(image ? { image } : {}),
         },
       })
       toast.success("Изменения сохранены")
@@ -74,6 +243,14 @@ export function ProductEditor({ product, onBack }: Props) {
   }
 
   const remove = async () => {
+    const ok = await confirm({
+      title: `Удалить «${product.name}»?`,
+      description: "Товар исчезнет с витрины и из админки.",
+      confirmLabel: "Удалить",
+      cancelLabel: "Отмена",
+      danger: true,
+    })
+    if (!ok) return
     try {
       await deleteProduct.mutateAsync(product.id)
       toast.success("Товар удалён")
@@ -82,6 +259,29 @@ export function ProductEditor({ product, onBack }: Props) {
       toast.error(err instanceof Error ? err.message : "Не удалось удалить")
     }
   }
+
+  const duplicate = async () => {
+    try {
+      const copy = await duplicateProduct.mutateAsync(product.id)
+      toast.success("Копия создана")
+      navigate(`/admin/products/${copy.id}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось дублировать")
+    }
+  }
+
+  const addVariant = () => {
+    setVariants((list) => [
+      ...list,
+      { id: newId("v"), label: "Новый", icon: "chicken", priceDelta: 0 },
+    ])
+  }
+
+  const addSize = () => {
+    setSizes((list) => [...list, { id: newId("s"), label: "M", price: 0 }])
+  }
+
+  const previewImage = previewObjectUrl ?? product.image
 
   return (
     <div className="flex flex-col gap-4">
@@ -93,63 +293,102 @@ export function ProductEditor({ product, onBack }: Props) {
         <ArrowLeft size={14} strokeWidth={2.6} />К списку товаров
       </button>
 
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h2 className="text-[24px] leading-none font-extrabold tracking-[-0.01em] text-fg">
-            {product.name}
-          </h2>
-          <Badge variant="success" size="lg">
-            {product.active ? "Активен" : "Скрыт"}
-          </Badge>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="text-[24px] leading-none font-extrabold tracking-[-0.01em] text-fg">
+              {name || product.name}
+            </h2>
+            <Badge variant={active ? "success" : "outline"} size="lg">
+              {active ? "Активен" : "Скрыт"}
+            </Badge>
+          </div>
+          <p className="mt-1.5 text-[11.5px] text-fg-muted">
+            Создан: {formatDate(product.createdAt)} · Изменён: {formatDate(product.updatedAt)}
+          </p>
         </div>
-        <p className="mt-1.5 text-[11.5px] text-fg-muted">
-          ID: {product.sizes[0]?.article ?? "—"} • Создан: {formatDate(product.createdAt)} •
-          Изменён: {formatDate(product.updatedAt)}
-        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-bold text-fg-muted">На витрине</span>
+          <Switch checked={active} onCheckedChange={setActive} disabled={busy} />
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-4">
           <AdminCard bodyClassName="grid gap-4 sm:grid-cols-[200px_minmax(0,1fr)]">
-            <div className="flex flex-col gap-2">
-              <div className="aspect-[4/3] overflow-hidden rounded-[var(--r-md)] border border-line bg-surface-3">
-                <img src={product.image} alt="" className="size-full object-cover" />
-              </div>
-              <Button
-                variant="soft"
-                size="sm"
-                block
-                onClick={() => toast("Загрузка фото — заглушка прототипа")}
-              >
-                <Upload size={14} strokeWidth={2.5} />
-                Загрузить фото
-              </Button>
-              <p className="text-[10px] leading-[1.4] text-fg-faint">
-                PNG, JPG до 5МБ. Рекомендуем 1200×800px
-              </p>
-            </div>
+            <Field label="Фото">
+              <ImageField
+                previewUrl={product.image || null}
+                value={image}
+                onChange={setImage}
+                maxBytes={IMAGE_MAX_BYTES.product}
+                disabled={busy}
+              />
+            </Field>
 
             <div className="flex flex-col gap-3">
               <Field label="Название">
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </Field>
-
-              <Field label="Категория">
-                <select
-                  value={categoryId}
+                <Input
+                  value={name}
                   onChange={(e) => {
                     const next = e.target.value
-                    setCategoryId(next)
+                    setName(next)
+                    if (!slugTouched) setSlug(slugFromName(next))
+                  }}
+                  disabled={busy}
+                />
+              </Field>
+
+              <Field label="Slug">
+                <Input
+                  value={slug}
+                  onChange={(e) => {
+                    setSlugTouched(true)
+                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+                  }}
+                  disabled={busy}
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Эмодзи">
+                  <Input
+                    value={emoji}
+                    onChange={(e) => setEmoji(e.target.value.slice(0, 10))}
+                    disabled={busy}
+                    placeholder="🔥"
+                  />
+                </Field>
+                <Field label="Бейдж">
+                  <Select
+                    value={badge}
+                    onChange={(e) => setBadge(e.target.value as "" | ProductBadge)}
+                    disabled={busy}
+                  >
+                    {BADGE_OPTIONS.map((opt) => (
+                      <option key={opt.value || "none"} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+
+              <Field label="Категория">
+                <Select
+                  value={categoryId}
+                  onChange={(e) => {
+                    setCategoryId(e.target.value)
                     setTags([])
                   }}
-                  className="h-11 w-full cursor-pointer rounded-[var(--r-md)] border border-line bg-surface px-3.5 text-[14px] font-semibold text-fg outline-none focus:border-brand-border"
+                  disabled={busy}
                 >
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
 
               <Field label="Теги фильтра">
@@ -182,15 +421,215 @@ export function ProductEditor({ product, onBack }: Props) {
                 )}
               </Field>
 
-              <Field label="Краткое описание" hint={`${composition.length}/200`}>
+              <Field label="Tagline" hint={`${tagline.length}/500`}>
                 <Textarea
-                  rows={4}
-                  maxLength={200}
+                  rows={2}
+                  maxLength={500}
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  disabled={busy}
+                />
+              </Field>
+
+              <Field label="Состав" hint={`${composition.length}/1000`}>
+                <Textarea
+                  rows={3}
+                  maxLength={1000}
                   value={composition}
                   onChange={(e) => setComposition(e.target.value)}
+                  disabled={busy}
                 />
               </Field>
             </div>
+          </AdminCard>
+
+          <AdminCard title="Пищевая ценность (на 100 г)">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {(
+                [
+                  ["kcal", "Ккал"],
+                  ["protein", "Белки"],
+                  ["fat", "Жиры"],
+                  ["carbs", "Углеводы"],
+                ] as const
+              ).map(([key, label]) => (
+                <Field key={key} label={label}>
+                  <Input
+                    value={String(nutrition[key])}
+                    inputMode="decimal"
+                    disabled={busy}
+                    onChange={(e) => {
+                      const n = Number(e.target.value.replace(",", "."))
+                      setNutrition((prev) => ({
+                        ...prev,
+                        [key]: Number.isFinite(n) ? n : 0,
+                      }))
+                    }}
+                  />
+                </Field>
+              ))}
+            </div>
+          </AdminCard>
+
+          <AdminCard
+            title="Варианты мяса"
+            action={
+              <button
+                type="button"
+                aria-label="Добавить вариант"
+                onClick={addVariant}
+                disabled={busy}
+                className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+              >
+                <Plus size={15} strokeWidth={3} />
+              </button>
+            }
+            bodyClassName="flex flex-col gap-2 p-3"
+          >
+            {!variants.length ? (
+              <p className="px-1 py-2 text-[12.5px] text-fg-muted">
+                Без вариантов — один SKU на размер. Добавьте «Курица / Свинина», если нужно.
+              </p>
+            ) : (
+              variants.map((variant, index) => (
+                <div
+                  key={variant.id}
+                  className="grid gap-2 rounded-[var(--r-md)] border border-line bg-surface p-2.5 sm:grid-cols-[1fr_120px_100px_auto]"
+                >
+                  <Field label="Название">
+                    <Input
+                      value={variant.label}
+                      disabled={busy}
+                      onChange={(e) =>
+                        setVariants((list) =>
+                          list.map((v, i) =>
+                            i === index ? { ...v, label: e.target.value } : v,
+                          ),
+                        )
+                      }
+                    />
+                  </Field>
+                  <Field label="Иконка">
+                    <Select
+                      value={variant.icon ?? ""}
+                      disabled={busy}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                        const icon = (raw === "" ? null : raw) as MeatIcon
+                        setVariants((list) =>
+                          list.map((v, i) => (i === index ? { ...v, icon } : v)),
+                        )
+                      }}
+                    >
+                      {MEAT_OPTIONS.map((opt) => (
+                        <option key={String(opt.value)} value={opt.value ?? ""}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field label="Δ цена">
+                    <Input
+                      value={String(variant.priceDelta)}
+                      inputMode="numeric"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const n = Number(e.target.value.replace(/[^\d-]/g, ""))
+                        setVariants((list) =>
+                          list.map((v, i) =>
+                            i === index
+                              ? { ...v, priceDelta: Number.isFinite(n) ? n : 0 }
+                              : v,
+                          ),
+                        )
+                      }}
+                    />
+                  </Field>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                    aria-label="Удалить вариант"
+                    disabled={busy}
+                    onClick={() => setVariants((list) => list.filter((_, i) => i !== index))}
+                  >
+                    <Trash2 size={14} strokeWidth={2.3} />
+                  </Button>
+                </div>
+              ))
+            )}
+          </AdminCard>
+
+          <AdminCard
+            title="Размеры"
+            action={
+              <button
+                type="button"
+                aria-label="Добавить размер"
+                onClick={addSize}
+                disabled={busy}
+                className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+              >
+                <Plus size={15} strokeWidth={3} />
+              </button>
+            }
+            bodyClassName="flex flex-col gap-2 p-3"
+          >
+            {sizes.map((size, index) => (
+              <div
+                key={size.id}
+                className="grid gap-2 rounded-[var(--r-md)] border border-line bg-surface p-2.5 sm:grid-cols-[1fr_120px_auto]"
+              >
+                <Field label="Название">
+                  <Input
+                    value={size.label}
+                    disabled={busy}
+                    onChange={(e) =>
+                      setSizes((list) =>
+                        list.map((s, i) => (i === index ? { ...s, label: e.target.value } : s)),
+                      )
+                    }
+                  />
+                </Field>
+                <Field label="Цена, ₽">
+                  <Input
+                    value={String(size.price)}
+                    inputMode="decimal"
+                    disabled={busy}
+                    onChange={(e) => {
+                      const n = Number(e.target.value.replace(",", "."))
+                      setSizes((list) =>
+                        list.map((s, i) =>
+                          i === index ? { ...s, price: Number.isFinite(n) ? n : 0 } : s,
+                        ),
+                      )
+                    }}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                  aria-label="Удалить размер"
+                  disabled={busy || sizes.length <= 1}
+                  onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+                >
+                  <Trash2 size={14} strokeWidth={2.3} />
+                </Button>
+              </div>
+            ))}
+          </AdminCard>
+
+          <AdminCard title="Матрица артикулов (вариант × размер)">
+            <ArticleMatrix
+              productId={product.id}
+              variants={variants}
+              sizes={sizes}
+              onChange={setSizes}
+              disabled={busy}
+            />
           </AdminCard>
 
           <AdminCard title="Критерии оценки">
@@ -251,79 +690,36 @@ export function ProductEditor({ product, onBack }: Props) {
               Добавить критерий
             </button>
           </AdminCard>
-
-          <AdminCard title="Состав (ингредиенты)">
-            <div className="flex flex-wrap gap-1.5">
-              {ingredients.map((item) => (
-                <span
-                  key={item}
-                  className="inline-flex h-7 items-center gap-1.5 rounded-[var(--r-xs)] bg-surface-3 px-2.5 text-[11.5px] font-semibold text-fg-soft"
-                >
-                  {item}
-                  <button
-                    type="button"
-                    aria-label={`Убрать ${item}`}
-                    onClick={() => setIngredients((list) => list.filter((i) => i !== item))}
-                    className="cursor-pointer text-fg-faint transition-colors hover:text-red"
-                  >
-                    <X size={11} strokeWidth={3} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </AdminCard>
         </div>
 
         <div className="flex flex-col gap-4">
-          <AdminCard
-            title="Варианты товара"
-            action={
-              <button
-                type="button"
-                aria-label="Добавить вариант"
-                onClick={() => toast("Новый вариант — заглушка прототипа")}
-                className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover"
-              >
-                <Plus size={15} strokeWidth={3} />
-              </button>
-            }
-            bodyClassName="flex flex-col gap-2 p-3"
-          >
-            {(product.variants.length ? product.variants : [null]).flatMap((variant) =>
-              product.sizes.map((size) => (
+          <AdminCard title="SKU" bodyClassName="flex flex-col gap-2 p-3">
+            {skuMatrix(draftProduct).map((cell) => {
+              const variant = variants.find((v) => v.id === cell.variantId)
+              const size = sizes.find((s) => s.id === cell.sizeId)
+              return (
                 <div
-                  key={`${variant?.id ?? "base"}-${size.id}`}
+                  key={`${cell.variantId ?? "base"}-${cell.sizeId}`}
                   className="flex items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface px-2.5 py-2"
                 >
-                  <GripVertical
-                    size={14}
-                    className="shrink-0 cursor-grab text-fg-faint"
-                    strokeWidth={2.2}
-                  />
+                  <MeatIconGlyph icon={variant?.icon ?? null} />
                   <span className="min-w-0 flex-1 leading-tight">
                     <span className="flex items-baseline gap-2">
                       <span className="truncate text-[12px] font-bold text-fg">
-                        {variant?.label ?? product.name}
+                        {variant?.label ?? name}
                       </span>
-                      <span className="text-[11px] text-fg-muted">{size.label}</span>
+                      <span className="text-[11px] text-fg-muted">{size?.label}</span>
                     </span>
                     <span className="block text-[10px] text-fg-faint">
-                      арт. {size.article ?? "—"}
+                      арт. {cell.article || "—"}
                     </span>
                   </span>
                   <span className="shrink-0 text-[12.5px] font-extrabold text-fg tabular-nums">
-                    {formatPrice(priceOf(size, variant ?? undefined))}
+                    {formatPrice(cell.price)}
                   </span>
-                  <button
-                    type="button"
-                    aria-label="Действия с вариантом"
-                    className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-[var(--r-xs)] text-fg-faint hover:bg-surface-3 hover:text-fg"
-                  >
-                    <MoreVertical size={14} strokeWidth={2.4} />
-                  </button>
                 </div>
-              )),
-            )}
+              )
+            })}
           </AdminCard>
 
           <AdminCard
@@ -354,23 +750,28 @@ export function ProductEditor({ product, onBack }: Props) {
               )}
             >
               <div className="relative aspect-[16/10] bg-surface-3">
-                <img src={product.image} alt="" className="size-full object-cover" />
-                {product.badge === "hit" ? (
+                {previewImage ? (
+                  <img src={previewImage} alt="" className="size-full object-cover" />
+                ) : null}
+                {badge === "hit" ? (
                   <Badge variant="brand" size="sm" className="absolute top-2 right-2">
                     Хит продаж
                   </Badge>
                 ) : null}
               </div>
               <div className="flex flex-col gap-1.5 p-3">
-                <p className="text-[14px] leading-tight font-extrabold text-fg">{name}</p>
+                <p className="text-[14px] leading-tight font-extrabold text-fg">
+                  {emoji ? `${emoji} ` : ""}
+                  {name}
+                </p>
                 <p className="line-clamp-2 text-[10.5px] leading-[1.45] text-fg-muted">
-                  {composition}
+                  {tagline || composition}
                 </p>
                 <p className="text-[11px] font-extrabold text-brand tabular-nums">
                   ★ {product.rating.overall}/10 ({product.rating.votes})
                 </p>
                 <p className="text-[13px] font-extrabold text-fg tabular-nums">
-                  от {formatPrice(minPrice(product))}
+                  от {formatPrice(sizes.length ? minPrice(draftProduct) : 0)}
                 </p>
                 <Button size="sm" block className="mt-1">
                   В корзину
@@ -404,13 +805,14 @@ export function ProductEditor({ product, onBack }: Props) {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <AdminCard bodyClassName="flex gap-2.5 p-4">
           <Lightbulb size={16} className="mt-0.5 shrink-0 text-gold" strokeWidth={2.2} />
           <span>
             <span className="block text-[12.5px] font-extrabold text-fg">Подсказка</span>
             <span className="mt-0.5 block text-[11px] leading-[1.5] text-fg-muted">
-              Используйте качественные фото и подробное описание — это увеличивает продажи
+              Для шаурмы с мясом заполните артикул в каждой ячейке матрицы — иначе «Курица M» и
+              «Свинина M» уйдут в кассу одним SKU.
             </span>
           </span>
         </AdminCard>
@@ -418,7 +820,7 @@ export function ProductEditor({ product, onBack }: Props) {
         <AdminCard bodyClassName="flex flex-col gap-2 p-4">
           <span className="text-[12.5px] font-extrabold text-fg">Быстрые действия</span>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => toast.success("Товар продублирован")}>
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => void duplicate()}>
               <Copy size={13} strokeWidth={2.4} />
               Дублировать товар
             </Button>
@@ -429,27 +831,20 @@ export function ProductEditor({ product, onBack }: Props) {
               </Link>
             </Button>
           </div>
-        </AdminCard>
-
-        <AdminCard bodyClassName="flex flex-col gap-2 p-4">
-          <span className="text-[12.5px] font-extrabold text-fg">Последние изменения</span>
-          <div className="flex items-start gap-2.5">
-            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-extrabold text-brand">
-              А
-            </span>
-            <span className="leading-tight">
-              <span className="block text-[11.5px] font-bold text-fg">
-                Алексей · {formatDate(product.updatedAt)} в 15:30
-              </span>
-              <span className="block text-[11px] text-fg-muted">
-                Обновлено фото и состав товара
-              </span>
-            </span>
-          </div>
+          <p className="text-[11px] text-fg-muted">
+            Последнее изменение: {formatDate(product.updatedAt)}
+          </p>
         </AdminCard>
       </div>
+      {dialog}
     </div>
   )
+}
+
+function MeatIconGlyph({ icon }: { icon: MeatIcon }) {
+  if (icon === "chicken") return <Drumstick size={14} className="shrink-0 text-fg-faint" />
+  if (icon === "pork") return <Ham size={14} className="shrink-0 text-fg-faint" />
+  return <span className="size-3.5 shrink-0" />
 }
 
 function PreviewToggle({

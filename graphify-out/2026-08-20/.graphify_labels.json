@@ -12,7 +12,7 @@
   "10": "Frontpad API",
   "11": "Logo Variant B",
   "12": "Logo Transparent",
-  "13": "Logo Emblem",
+  "13": "3. Зона кода — шаги",
   "14": "Logo Black Variant",
   "15": "Brand Typography",
   "16": "Brand Logo Core",
@@ -21,8 +21,14 @@
   "19": "analyze-routes Script",
   "20": "FloatingActions.tsx",
   "21": "product/api.ts",
-  "22": "DesktopHome.tsx",
+  "22": "ProductEditor.tsx",
   "23": "gen-glass-noise.mjs",
-  "24": "pb.ts",
-  "25": "FloatingActions.tsx"
+  "24": "cn",
+  "25": "HomePage.tsx",
+  "26": "category/api.ts",
+  "27": "cn.ts",
+  "28": "StickyBar.tsx",
+  "29": "order/model.ts",
+  "30": "FloatingActions.tsx",
+  "31": "useCategories"
 }

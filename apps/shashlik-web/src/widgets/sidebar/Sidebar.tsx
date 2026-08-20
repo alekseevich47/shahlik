@@ -3,7 +3,9 @@ import { NavLink, useNavigate } from "react-router-dom"
 
 import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
-import { ORDER_RULES, SITE } from "@/shared/config/site"
+import { useSettings } from "@/entities/settings/api"
+import { settingsFallback } from "@/entities/settings/model"
+import { SITE } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { NAV_RAIL_GAP, NAV_RAIL_WIDTH } from "@/widgets/sidebar/rail"
 
@@ -22,6 +24,7 @@ type SidebarProps = {
 export function Sidebar({ activeCategory, onSelectCategory, collapsed, className }: SidebarProps) {
   const navigate = useNavigate()
   const { data: categories = [] } = useCategories()
+  const { data: settings = settingsFallback() } = useSettings()
 
   return (
     <aside
@@ -74,14 +77,14 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
             <div className="mb-1 flex items-center gap-1.5">
               <Gift size={14} className="text-brand" strokeWidth={2.6} />
               <span className="text-[12px] leading-none font-extrabold text-brand">
-                {ORDER_RULES.promo.title}
+                {settings.promoTitle}
               </span>
             </div>
             <p className="text-[10.5px] leading-[1.45] text-fg-muted">
-              {ORDER_RULES.promo.subtitle}
+              {settings.promoSubtitle}
             </p>
             <div className="mt-2 grid h-7 place-items-center rounded-[var(--r-xs)] bg-surface text-[11px] font-extrabold tracking-[0.06em] text-brand">
-              {ORDER_RULES.promo.code}
+              {settings.promoCode}
             </div>
           </div>
 

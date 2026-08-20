@@ -77,7 +77,7 @@ apps/shashlik-web/
     styles/fonts.css
     pages/home/              # витрина desktop/mobile
     pages/product/           # PDP (выбор варианта/размера/соусов/добавок)
-    pages/admin/             # админка (моки, без persist каталога)
+    pages/admin/             # админка: sections/<раздел>/ + ui/ (каркас, таблицы), роуты /admin/*
     widgets/sidebar|hero|catalog|header|mobile|promo  # header: FloatingActions + StickyBar
     features/cart|search|theme-toggle  # cart: store + panel (колонка ≥1280) + CartToggle
     entities/product|category|addon|banner|order|tag  # category/ui: CategoryIcon; tag: фильтры витрины
@@ -91,8 +91,10 @@ apps/shashlik-web/
 |-----|----------|---------|
 | `/` | `pages/home/HomePage` | Desktop ≥1024: сайдбар + сетка. При ≥1280 — sticky-корзина, скрывается кнопкой у баннера. Ниже — мобильный chrome |
 | `/product/:slug` | `pages/product/ProductPage` | Выбор мяса/размера/добавок. CTA `variant="product"` (лайм в dark) |
-| `/admin` | `pages/admin/AdminPage` | Прототип CRUD на моках, без записи в каталог |
+| `/admin/*` | `pages/admin/AdminPage` | PB CRUD + auth (`admin` / `manager`); вложенные роуты разделов, навигация только через `AdminSidebar` |
 | `*` | redirect `/` | |
+
+Ключ `AnimatePresence` в `router.tsx` — не `location.pathname`, а группа маршрута: все `/admin/*` схлопываются в один ключ, иначе переход между разделами админки перемонтирует её целиком.
 
 `/admin` — React-прототип. Админка PocketBase — **`/_/`**, не путать.
 
@@ -154,7 +156,7 @@ apps/shashlik-web/
 Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
 
 - `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`
-- `sizes[]`: `{ id, label, price, article? }` — **артикул кассы живёт на размере**
+- `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул
 - Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
 - `tags`: slug[] из `product_tags` своей категории (не глобальный enum)
@@ -220,9 +222,21 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 ## Админка
 
-CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role=admin`), гейт на `/admin` в `router.tsx`. Дублировать / сброс кэша — пока тосты (не задача этой интеграции).
+План доработки до рабочего состояния — **`Tasks/TASK_ADMIN.md`** (шаги, зона БД, карта файлов). Схема коллекций — `Tasks/TASK_DB.md` + `Tasks/schema.json`.
 
-Вкладки: Товары, Категории, Баннеры, Добавки, Заказы, Отзывы (`pages/admin/model.ts`). Категории — карточка + теги фильтров (`CategoryTagsEditor`). Товары → клик строки открывает `ProductEditor` (форма + превью + статистика; теги — мультивыбор из тегов категории).
+CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role`: `admin` | `manager`), гейт на `/admin/*` в `router.tsx`.
+
+Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет.
+
+Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов вариант × размер + статистика).
+
+Layout-анимации (`layoutId`, перестановка строк) требуют `domMax` — включать **вложенным** `LazyMotion` внутри админского чанка (`app/motion-features-max.ts`). Витрина остаётся на `domAnimation`, где layout-фич нет.
+
+Живые данные (заказы) — `subscribe("*")` + инвалидация react-query (`shared/api/realtime.ts`), не поллинг. Мутации — фабрика `shared/api/crud.ts`, файлы — `shared/api/files.ts` (`toFormData`, `pb.files.getURL`, `thumb` в таблицах).
+
+Действия с кассой из админки — **только запись в `frontpad_jobs`**; сам Frontpad зовёт `pb_hooks`. Статус в кассе по API не меняется: наш `status` — зеркало, ручная правка помечается `statusSource="manual"`.
+
+Экономика заказа, контакты и промо-текст — коллекция `settings` (`entities/settings/api.ts`); `ORDER_RULES` / `SITE` в `shared/config/site.ts` остаются fallback-константами. Купоны — коллекция `coupons`, наружу не читается: проверка кода через хук-роут `POST /api/promo/check`.
 
 Ссылка «На сайт» / логотип → `/`.
 
@@ -247,6 +261,8 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` |
 | NutritionHint | `pages/product/ui/NutritionHint.tsx` |
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` |
+| AdminSidebar | `pages/admin/ui/AdminSidebar.tsx` — меню + счётчики + layout pill |
+| ADMIN_NAV | `pages/admin/model.ts` — порядок пунктов, `AdminSectionId`, минимальная роль |
 
 ## Производительность
 
@@ -317,7 +333,9 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 - Дорогие эффекты (SVG-фильтры, `backdrop-filter`, `will-change`) включать точечно и гасить на кадрах анимации, а не вешать глобально.
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
-- Frontpad: спецификация в `.cursor/rules/API.mdc`. Клиент кассу не зовёт. Секрет — только env на сервере, не в git и не в бандл.
+- Frontpad: спецификация в `.cursor/rules/API.mdc`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
+- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`.
+- Клиентские суммы заказа недостоверны: деньги пересчитывает хук `onRecordCreateRequest("orders")`.
 - Коммиты / push — только по явной просьбе.
 
 ## Прод
@@ -357,6 +375,9 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не вешать `will-change` постоянно и не анимировать `width` / `height` / `gap` вне `data-animating`.
 - Не считать dev-сборку доказательством: прод-CSS проходит через Lightning CSS и отличается.
 - Не звать Frontpad с клиента и не хранить его секрет в `src/*` — только `pb_hooks` (см. `Tasks/TASK_DB.md`).
-- Не поллить статус заказа — только `pb.collection().subscribe`.
+- Не поллить статус заказа и джобы кассы — только `pb.collection().subscribe`.
+- Не менять статус заказа в кассе из админки: API кассы этого не умеет, наш `status` — зеркало.
+- Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
+- Не включать `domMax` на витрине и не оставлять кнопок-заглушек (`toast("…заглушка")`) в админке.
 - Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.
 - Не вешать витрину на `loomixx.ru`: канон — `shashlik.loomixx.ru`.

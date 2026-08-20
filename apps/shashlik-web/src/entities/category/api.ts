@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { adminCountKeys } from "@/shared/api/counts"
+import { collectionMutations } from "@/shared/api/crud"
 import { pb } from "@/shared/api/pb"
 
-import type { Category, CategoryId } from "./model"
+import type { Category } from "./model"
 
 type CategoryRecord = {
   id: string
@@ -13,7 +15,7 @@ type CategoryRecord = {
 
 function mapCategory(record: CategoryRecord): Category {
   return {
-    id: record.id as CategoryId,
+    id: record.id,
     name: record.name,
     icon: record.icon || null,
     order: record.order,
@@ -54,4 +56,44 @@ export function useCategory(id: string) {
     queryFn: () => fetchCategoryById(id),
     enabled: Boolean(id),
   })
+}
+
+export type CreateCategoryInput = {
+  /** Код категории — PB не генерирует id для этой коллекции. */
+  id: string
+  name: string
+  icon: string
+  order: number
+}
+
+export type UpdateCategoryInput = {
+  name?: string
+  icon?: string
+  order?: number
+}
+
+const categoryMutations = collectionMutations<
+  CategoryRecord,
+  Category,
+  CreateCategoryInput,
+  UpdateCategoryInput
+>({
+  collection: "categories",
+  map: mapCategory,
+  keys: {
+    all: [categoryKeys.all, adminCountKeys.all],
+    detail: categoryKeys.detail,
+  },
+})
+
+export function useCreateCategory() {
+  return categoryMutations.useCreate()
+}
+
+export function useUpdateCategory() {
+  return categoryMutations.useUpdate()
+}
+
+export function useDeleteCategory() {
+  return categoryMutations.useRemove()
 }

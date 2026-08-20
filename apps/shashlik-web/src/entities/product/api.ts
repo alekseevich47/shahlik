@@ -1,17 +1,21 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 
 import type { CategoryId } from "@/entities/category/model"
+import { adminCountKeys } from "@/shared/api/counts"
+import { collectionMutations } from "@/shared/api/crud"
+import { imageUrl, toFormData } from "@/shared/api/files"
 import { pb } from "@/shared/api/pb"
 import { queryClient } from "@/shared/api/query-client"
 
-import type {
-  Product,
-  ProductBadge,
-  ProductNutrition,
-  ProductRating,
-  ProductSize,
-  ProductTag,
-  ProductVariant,
+import {
+  DEFAULT_CRITERIA,
+  type Product,
+  type ProductBadge,
+  type ProductNutrition,
+  type ProductRating,
+  type ProductSize,
+  type ProductTag,
+  type ProductVariant,
 } from "./model"
 
 type ProductRecord = {
@@ -50,12 +54,12 @@ function mapProduct(record: ProductRecord): Product {
     emoji: record.emoji || undefined,
     tagline: record.tagline,
     composition: record.composition,
-    image: pb.files.getUrl(record, record.image),
+    image: imageUrl(record, "image"),
     badge: record.badge,
     nutrition: record.nutrition,
     tags: mapTagSlugs(record.tags),
-    variants: record.variants,
-    sizes: record.sizes,
+    variants: record.variants ?? [],
+    sizes: record.sizes ?? [],
     rating: record.rating,
     order: record.order,
     active: record.active,
@@ -72,7 +76,23 @@ export const productKeys = {
   category: (categoryId: string) => ["products", "category", categoryId] as const,
 }
 
+export const adminProductKeys = {
+  all: ["admin", "products"] as const,
+}
+
+export const frontpadStockKeys = {
+  all: ["frontpad_stock"] as const,
+}
+
 export async function fetchProducts(): Promise<Product[]> {
+  const records = await pb.collection("products").getFullList<ProductRecord>({
+    filter: "active = true",
+    sort: "order",
+  })
+  return records.map(mapProduct)
+}
+
+export async function fetchAdminProducts(): Promise<Product[]> {
   const records = await pb.collection("products").getFullList<ProductRecord>({
     sort: "order",
   })
@@ -92,7 +112,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   try {
     const record = await pb
       .collection("products")
-      .getFirstListItem<ProductRecord>(`slug = "${slug}"`)
+      .getFirstListItem<ProductRecord>(pb.filter("slug = {:slug}", { slug }))
     return mapProduct(record)
   } catch {
     return null
@@ -101,7 +121,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
 
 export async function fetchProductsByCategory(categoryId: string): Promise<Product[]> {
   const records = await pb.collection("products").getFullList<ProductRecord>({
-    filter: `categoryId = "${categoryId}"`,
+    filter: pb.filter("categoryId = {:categoryId} && active = true", { categoryId }),
     sort: "order",
   })
   return records.map(mapProduct)
@@ -111,6 +131,13 @@ export function useProducts() {
   return useQuery({
     queryKey: productKeys.all,
     queryFn: fetchProducts,
+  })
+}
+
+export function useAdminProducts() {
+  return useQuery({
+    queryKey: adminProductKeys.all,
+    queryFn: fetchAdminProducts,
   })
 }
 
@@ -138,40 +165,234 @@ export function useProductsByCategory(categoryId: string) {
   })
 }
 
+export function useFrontpadStockArticles() {
+  return useQuery({
+    queryKey: frontpadStockKeys.all,
+    queryFn: async () => {
+      const { fetchFrontpadArticleSet } = await import("./lib/articles")
+      return fetchFrontpadArticleSet()
+    },
+    staleTime: 60_000,
+  })
+}
+
+export type CreateProductInput = {
+  name: string
+  slug: string
+  categoryId: CategoryId
+  tagline: string
+  composition: string
+  emoji?: string
+  badge?: ProductBadge | ""
+  nutrition: ProductNutrition
+  tags?: ProductTag[]
+  variants: ProductVariant[]
+  sizes: ProductSize[]
+  order: number
+  active: boolean
+  image: File
+}
+
 export type UpdateProductInput = {
   name?: string
+  slug?: string
   categoryId?: CategoryId
+  tagline?: string
   composition?: string
-  rating?: ProductRating
+  emoji?: string
+  badge?: ProductBadge | ""
+  nutrition?: ProductNutrition
   tags?: ProductTag[]
+  variants?: ProductVariant[]
+  sizes?: ProductSize[]
+  rating?: ProductRating
+  order?: number
+  active?: boolean
+  /** Новый файл; `null` — удалить (поле required — обычно не используем). */
+  image?: File | null
+}
+
+const EMPTY_STATS: Product["stats"] = {
+  views: 0,
+  addedToCart: 0,
+  orders: 0,
+  revenue: 0,
+}
+
+function defaultRating(): ProductRating {
+  return {
+    overall: 0,
+    votes: 0,
+    criteria: DEFAULT_CRITERIA.map((c) => ({ ...c, value: 0 })),
+  }
+}
+
+const productMutations = collectionMutations<
+  ProductRecord,
+  Product,
+  Record<string, unknown>,
+  Record<string, unknown>
+>({
+  collection: "products",
+  map: mapProduct,
+  keys: {
+    all: [productKeys.all, adminProductKeys.all, adminCountKeys.all],
+    detail: productKeys.detail,
+  },
+})
+
+function createBody(input: CreateProductInput): Record<string, unknown> {
+  return toFormData({
+    name: input.name,
+    slug: input.slug,
+    categoryId: input.categoryId,
+    tagline: input.tagline,
+    composition: input.composition,
+    emoji: input.emoji,
+    badge: input.badge || null,
+    nutrition: input.nutrition,
+    tags: input.tags ?? [],
+    variants: input.variants,
+    sizes: input.sizes,
+    rating: defaultRating(),
+    order: input.order,
+    active: input.active,
+    stats: EMPTY_STATS,
+    image: input.image,
+  }) as unknown as Record<string, unknown>
+}
+
+function updateBody(input: UpdateProductInput): Record<string, unknown> {
+  return toFormData({
+    name: input.name,
+    slug: input.slug,
+    categoryId: input.categoryId,
+    tagline: input.tagline,
+    composition: input.composition,
+    emoji: input.emoji,
+    badge: input.badge === "" ? null : input.badge,
+    nutrition: input.nutrition,
+    tags: input.tags,
+    variants: input.variants,
+    sizes: input.sizes,
+    rating: input.rating,
+    order: input.order,
+    active: input.active,
+    image: input.image,
+  }) as unknown as Record<string, unknown>
+}
+
+export async function createProduct(input: CreateProductInput): Promise<Product> {
+  return productMutations.create(createBody(input))
 }
 
 export async function updateProduct(id: string, data: UpdateProductInput): Promise<Product> {
-  const record = await pb.collection("products").update<ProductRecord>(id, data)
-  return mapProduct(record)
+  return productMutations.update(id, updateBody(data))
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await pb.collection("products").delete(id)
+  return productMutations.remove(id)
+}
+
+async function fileFromProductImage(product: Product): Promise<File> {
+  const res = await fetch(product.image)
+  if (!res.ok) throw new Error("Не удалось скопировать фото")
+  const blob = await res.blob()
+  const ext = blob.type.split("/")[1] || "jpg"
+  return new File([blob], `${product.slug}-copy.${ext}`, { type: blob.type || "image/jpeg" })
+}
+
+export async function duplicateProduct(id: string): Promise<Product> {
+  const source = await fetchProductById(id)
+  if (!source) throw new Error("Товар не найден")
+
+  const image = await fileFromProductImage(source)
+  const slugBase = `${source.slug}-copy`.slice(0, 190)
+  let slug = slugBase
+  let n = 2
+  while (await fetchProductBySlug(slug)) {
+    slug = `${slugBase}-${n}`
+    n += 1
+  }
+
+  return createProduct({
+    name: `${source.name} (копия)`,
+    slug,
+    categoryId: source.categoryId,
+    tagline: source.tagline,
+    composition: source.composition,
+    emoji: source.emoji,
+    badge: source.badge,
+    nutrition: source.nutrition,
+    tags: source.tags,
+    variants: source.variants,
+    sizes: source.sizes,
+    order: source.order + 1,
+    active: false,
+    image,
+  })
+}
+
+export function useCreateProduct() {
+  const mutation = productMutations.useCreate()
+  return {
+    ...mutation,
+    mutateAsync: (input: CreateProductInput) => mutation.mutateAsync(createBody(input)),
+  }
 }
 
 export function useUpdateProduct() {
+  const mutation = productMutations.useUpdate()
+  return {
+    ...mutation,
+    mutateAsync: (args: { id: string; data: UpdateProductInput }) =>
+      mutation.mutateAsync({ id: args.id, data: updateBody(args.data) }),
+  }
+}
+
+export function useDeleteProduct() {
+  return productMutations.useRemove()
+}
+
+export function useDuplicateProduct() {
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateProductInput }) => updateProduct(id, data),
+    mutationFn: (id: string) => duplicateProduct(id),
     onSuccess: (product) => {
       void queryClient.invalidateQueries({ queryKey: productKeys.all })
+      void queryClient.invalidateQueries({ queryKey: adminProductKeys.all })
+      void queryClient.invalidateQueries({ queryKey: adminCountKeys.all })
       queryClient.setQueryData(productKeys.detail(product.id), product)
-      queryClient.setQueryData(productKeys.slug(product.slug), product)
     },
   })
 }
 
-export function useDeleteProduct() {
+export function useToggleProductActive() {
   return useMutation({
-    mutationFn: (id: string) => deleteProduct(id),
-    onSuccess: (_ok, id) => {
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      updateProduct(id, { active }),
+    onMutate: async ({ id, active }) => {
+      await queryClient.cancelQueries({ queryKey: adminProductKeys.all })
+      const prev = queryClient.getQueryData<Product[]>(adminProductKeys.all)
+      if (prev) {
+        queryClient.setQueryData(
+          adminProductKeys.all,
+          prev.map((p) => (p.id === id ? { ...p, active } : p)),
+        )
+      }
+      const detail = queryClient.getQueryData<Product>(productKeys.detail(id))
+      if (detail) {
+        queryClient.setQueryData(productKeys.detail(id), { ...detail, active })
+      }
+      return { prev, detail }
+    },
+    onError: (_err, { id }, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(adminProductKeys.all, ctx.prev)
+      if (ctx?.detail) queryClient.setQueryData(productKeys.detail(id), ctx.detail)
+    },
+    onSettled: (_data, _err, { id }) => {
       void queryClient.invalidateQueries({ queryKey: productKeys.all })
-      queryClient.removeQueries({ queryKey: productKeys.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: adminProductKeys.all })
+      void queryClient.invalidateQueries({ queryKey: productKeys.detail(id) })
     },
   })
 }
