@@ -720,8 +720,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/api/pb.ts": {
-    "mtime": 1787194618.094423,
-    "ast_hash": "1daf9e983775ee63a0f65ef8c135a493",
+    "mtime": 1787205534.2238853,
+    "ast_hash": "3fbd54391016809f2cea403a9512b53b",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/api/query-client.ts": {
