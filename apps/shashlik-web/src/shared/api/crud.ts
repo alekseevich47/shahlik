@@ -50,6 +50,9 @@ function syncDetail(keys: MutationKeys, entity: { id: string }) {
 /** Человекочитаемое сообщение из `ClientResponseError.response.data` по полям. */
 export function pbErrorMessage(err: unknown, fallback = "Не удалось сохранить"): string {
   if (err instanceof ClientResponseError) {
+    if (err.status === 413) {
+      return "Файл слишком большой для сервера. Выберите фото поменьше или подождите сжатие."
+    }
     const data = err.response?.data
     if (data && typeof data === "object") {
       const parts: string[] = []

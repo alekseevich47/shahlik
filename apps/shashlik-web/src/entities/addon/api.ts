@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { adminCountKeys } from "@/shared/api/counts"
 import { collectionMutations } from "@/shared/api/crud"
-import { imageUrl, toFormData } from "@/shared/api/files"
+import { imageUrl, toUploadFormData } from "@/shared/api/files"
 import { pb } from "@/shared/api/pb"
 
 import type { Addon, AddonKind } from "./model"
@@ -121,33 +121,41 @@ const addonMutations = collectionMutations<
   },
 })
 
-function createBody(input: CreateAddonInput): Record<string, unknown> {
-  return toFormData({
-    name: input.name,
-    weight: input.weight,
-    price: input.price,
-    kind: input.kind,
-    article: input.article,
-    image: input.image,
-  }) as unknown as Record<string, unknown>
+const ADDON_MAX_BYTES = 2_097_152
+
+async function createBody(input: CreateAddonInput): Promise<Record<string, unknown>> {
+  return (await toUploadFormData(
+    {
+      name: input.name,
+      weight: input.weight,
+      price: input.price,
+      kind: input.kind,
+      article: input.article,
+      image: input.image,
+    },
+    { maxBytes: ADDON_MAX_BYTES },
+  )) as unknown as Record<string, unknown>
 }
 
-function updateBody(input: UpdateAddonInput): Record<string, unknown> {
-  return toFormData({
-    name: input.name,
-    weight: input.weight,
-    price: input.price,
-    kind: input.kind,
-    article: input.article,
-    image: input.image,
-  }) as unknown as Record<string, unknown>
+async function updateBody(input: UpdateAddonInput): Promise<Record<string, unknown>> {
+  return (await toUploadFormData(
+    {
+      name: input.name,
+      weight: input.weight,
+      price: input.price,
+      kind: input.kind,
+      article: input.article,
+      image: input.image,
+    },
+    { maxBytes: ADDON_MAX_BYTES },
+  )) as unknown as Record<string, unknown>
 }
 
 export function useCreateAddon() {
   const mutation = addonMutations.useCreate()
   return {
     ...mutation,
-    mutateAsync: (input: CreateAddonInput) => mutation.mutateAsync(createBody(input)),
+    mutateAsync: async (input: CreateAddonInput) => mutation.mutateAsync(await createBody(input)),
   }
 }
 
@@ -155,8 +163,8 @@ export function useUpdateAddon() {
   const mutation = addonMutations.useUpdate()
   return {
     ...mutation,
-    mutateAsync: (args: { id: string; data: UpdateAddonInput }) =>
-      mutation.mutateAsync({ id: args.id, data: updateBody(args.data) }),
+    mutateAsync: async (args: { id: string; data: UpdateAddonInput }) =>
+      mutation.mutateAsync({ id: args.id, data: await updateBody(args.data) }),
   }
 }
 

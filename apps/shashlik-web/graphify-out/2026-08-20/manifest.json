@@ -139,11 +139,6 @@
     "ast_hash": "b8e28ad7fed4581d054148b978503b02",
     "semantic_hash": ""
   },
-  "src/pages/admin/sections/CatalogTables.tsx": {
-    "mtime": 1787233087.4766605,
-    "ast_hash": "e73f8b37190d64057eda7ea8568f7315",
-    "semantic_hash": ""
-  },
   "src/pages/admin/sections/ProductEditor.tsx": {
     "mtime": 1787232267.7488413,
     "ast_hash": "cd7f94375115732a1d48db8d3c442a9b",
@@ -160,8 +155,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/ui/AdminTopbar.tsx": {
-    "mtime": 1787199675.5318556,
-    "ast_hash": "02cf82be745625bfe5c4594cecb5e3c8",
+    "mtime": 1787236475.3200338,
+    "ast_hash": "03794b125ce37eb87a908d7af9f9174d",
     "semantic_hash": ""
   },
   "src/pages/admin/ui/DataTable.tsx": {
@@ -720,8 +715,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/sections/orders/OrdersSection.tsx": {
-    "mtime": 1787235000.8067067,
-    "ast_hash": "3a1943eb6d8eeb505331384e8f875ed4",
+    "mtime": 1787236479.1220086,
+    "ast_hash": "d32e7bc240782d1a7cbb0a184fe396bc",
     "semantic_hash": ""
   },
   "src/pages/admin/sections/reviews/ReviewsSection.tsx": {

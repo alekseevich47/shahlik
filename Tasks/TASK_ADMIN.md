@@ -44,6 +44,8 @@
 
 | Коллекция | Что сделать | Зачем |
 |---|---|---|
+| `categories`, `product_tags`, `products`, `banners` | number `order`: снять **Nonzero/Required** (`required: false`) | иначе `order: 0` → `validation_required`; админка шлёт 1-based, но 0 всё равно нужен при сиде/reorder |
+| `addons` | number `price`: Nonzero off, `min: 0` | цена 0₽ для бесплатных соусов |
 | `products` | `categoryId`: **select → relation** на `categories` (maxSelect 1, required, cascadeDelete **false**) | иначе новая категория из админки требует ручной правки схемы. Для кода семантика не меняется: single relation отдаёт тот же id-строку |
 | `products` | file `image`: добавить `thumbs: ["100x100", "600x400"]` | превью в таблицах не тянет 5 МБ |
 | `addons`, `banners` | file `image`: `thumbs: ["100x100"]` | то же |

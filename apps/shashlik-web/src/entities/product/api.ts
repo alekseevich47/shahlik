@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import type { CategoryId } from "@/entities/category/model"
 import { adminCountKeys } from "@/shared/api/counts"
 import { collectionMutations } from "@/shared/api/crud"
-import { imageUrl, toFormData } from "@/shared/api/files"
+import { imageUrl, toUploadFormData } from "@/shared/api/files"
 import { pb } from "@/shared/api/pb"
 import { queryClient } from "@/shared/api/query-client"
 
@@ -241,53 +241,61 @@ const productMutations = collectionMutations<
   },
 })
 
-function createBody(input: CreateProductInput): Record<string, unknown> {
-  return toFormData({
-    name: input.name,
-    slug: input.slug,
-    categoryId: input.categoryId,
-    tagline: input.tagline,
-    composition: input.composition,
-    emoji: input.emoji,
-    badge: input.badge || null,
-    nutrition: input.nutrition,
-    tags: input.tags ?? [],
-    variants: input.variants,
-    sizes: input.sizes,
-    rating: defaultRating(),
-    order: input.order,
-    active: input.active,
-    stats: EMPTY_STATS,
-    image: input.image,
-  }) as unknown as Record<string, unknown>
+const PRODUCT_MAX_BYTES = 5_242_880
+
+async function createBody(input: CreateProductInput): Promise<Record<string, unknown>> {
+  return (await toUploadFormData(
+    {
+      name: input.name,
+      slug: input.slug,
+      categoryId: input.categoryId,
+      tagline: input.tagline,
+      composition: input.composition,
+      emoji: input.emoji,
+      badge: input.badge || null,
+      nutrition: input.nutrition,
+      tags: input.tags ?? [],
+      variants: input.variants,
+      sizes: input.sizes,
+      rating: defaultRating(),
+      order: input.order,
+      active: input.active,
+      stats: EMPTY_STATS,
+      image: input.image,
+    },
+    { maxBytes: PRODUCT_MAX_BYTES },
+  )) as unknown as Record<string, unknown>
 }
 
-function updateBody(input: UpdateProductInput): Record<string, unknown> {
-  return toFormData({
-    name: input.name,
-    slug: input.slug,
-    categoryId: input.categoryId,
-    tagline: input.tagline,
-    composition: input.composition,
-    emoji: input.emoji,
-    badge: input.badge === "" ? null : input.badge,
-    nutrition: input.nutrition,
-    tags: input.tags,
-    variants: input.variants,
-    sizes: input.sizes,
-    rating: input.rating,
-    order: input.order,
-    active: input.active,
-    image: input.image,
-  }) as unknown as Record<string, unknown>
+async function updateBody(input: UpdateProductInput): Promise<Record<string, unknown>> {
+  return (await toUploadFormData(
+    {
+      name: input.name,
+      slug: input.slug,
+      categoryId: input.categoryId,
+      tagline: input.tagline,
+      composition: input.composition,
+      emoji: input.emoji,
+      badge: input.badge === "" ? null : input.badge,
+      nutrition: input.nutrition,
+      tags: input.tags,
+      variants: input.variants,
+      sizes: input.sizes,
+      rating: input.rating,
+      order: input.order,
+      active: input.active,
+      image: input.image,
+    },
+    { maxBytes: PRODUCT_MAX_BYTES },
+  )) as unknown as Record<string, unknown>
 }
 
 export async function createProduct(input: CreateProductInput): Promise<Product> {
-  return productMutations.create(createBody(input))
+  return productMutations.create(await createBody(input))
 }
 
 export async function updateProduct(id: string, data: UpdateProductInput): Promise<Product> {
-  return productMutations.update(id, updateBody(data))
+  return productMutations.update(id, await updateBody(data))
 }
 
 export async function deleteProduct(id: string): Promise<void> {
@@ -337,7 +345,8 @@ export function useCreateProduct() {
   const mutation = productMutations.useCreate()
   return {
     ...mutation,
-    mutateAsync: (input: CreateProductInput) => mutation.mutateAsync(createBody(input)),
+    mutateAsync: async (input: CreateProductInput) =>
+      mutation.mutateAsync(await createBody(input)),
   }
 }
 
@@ -345,8 +354,8 @@ export function useUpdateProduct() {
   const mutation = productMutations.useUpdate()
   return {
     ...mutation,
-    mutateAsync: (args: { id: string; data: UpdateProductInput }) =>
-      mutation.mutateAsync({ id: args.id, data: updateBody(args.data) }),
+    mutateAsync: async (args: { id: string; data: UpdateProductInput }) =>
+      mutation.mutateAsync({ id: args.id, data: await updateBody(args.data) }),
   }
 }
 

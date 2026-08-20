@@ -147,7 +147,7 @@ apps/shashlik-web/
 
 ### Category
 
-`id`: `shawarma | shashlik | pizza | combo | sides | drinks | sauces`. Поля: `name`, `icon` (PNG из `/icons` или `null` у соусов), `order`. Seed: `mocks/categories.ts`.
+`id`: `shawarma | shashlik | pizza | combo | sides | drinks | sauces`. Поля: `name`, `icon` (PNG из `/icons` или `null` у соусов), `order` (1-based в админке; в PB у number `required` = nonzero). Seed: `mocks/categories.ts`.
 
 Фильтры под баннером — коллекция `product_tags` (`entities/tag`): `{ slug, name, emoji, order }` + relation `categoryId`. Набор свой у каждой категории (шаурма ≠ пицца). Чип «Все» синтетический, в PB не хранится. Seed: `mocks/tags.ts`. CRUD — вкладка «Категории» в `/admin`.
 
@@ -224,7 +224,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 План доработки до рабочего состояния — **`Tasks/TASK_ADMIN.md`** (шаги, зона БД, карта файлов). Схема коллекций — `Tasks/TASK_DB.md` + `Tasks/schema.json`.
 
-CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role`: `admin` | `manager`), гейт на `/admin/*` в `router.tsx`.
+CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role`: `admin` | `manager`), гейт на `/admin/*` в `router.tsx`. Сессия — один `AdminAuthProvider` (`shared/api/auth.tsx`): общий `authRefresh` с `requestKey`, отмена запроса **не** чистит `authStore` (иначе логин ↔ админка мерцают).
 
 Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет.
 
@@ -232,7 +232,9 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 
 Layout-анимации (`layoutId`, перестановка строк) требуют `domMax` — включать **вложенным** `LazyMotion` внутри админского чанка (`app/motion-features-max.ts`). Витрина остаётся на `domAnimation`, где layout-фич нет.
 
-Живые данные (заказы) — `subscribe("*")` + инвалидация react-query (`shared/api/realtime.ts`), не поллинг. Мутации — фабрика `shared/api/crud.ts`, файлы — `shared/api/files.ts` (`toFormData`, `pb.files.getURL`, `thumb` в таблицах).
+Живые данные (заказы) — `subscribe("*")` + инвалидация react-query (`shared/api/realtime.ts`), не поллинг. Мутации — фабрика `shared/api/crud.ts`, файлы — `shared/api/files.ts` (`toFormData`, `toUploadFormData` + `compressImage` до ~900 КБ под nginx, `pb.files.getURL`, `thumb` в таблицах).
+
+**Числа и `order`:** в PocketBase `required` у number = **nonzero** (значение `0` → `validation_required`). Порядок в админке — **1-based** (`index + 1`, `nextOrder = max + 1`). В схеме `order`/`price` с допустимым нулём — `required: false` (+ `min` при необходимости). После правки `Tasks/schema.json` снять Nonzero в `/_/` на проде.
 
 Действия с кассой из админки — **только запись в `frontpad_jobs`**; сам Frontpad зовёт `pb_hooks`. Статус в кассе по API не меняется: наш `status` — зеркало, ручная правка помечается `statusSource="manual"`.
 
@@ -334,7 +336,9 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
 - Frontpad: спецификация в `.cursor/rules/API.mdc`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
-- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`.
+- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`.
+- Number `required` в PB ≠ «обязательно заполнить»: это **nonzero**. Для `order`/`price` с нулём — `required: false` в схеме; в UI порядок 1-based.
+- Не плодить несколько независимых `useAdminAuth` с локальным `authRefresh().catch(clear)` — только `AdminAuthProvider`.
 - Клиентские суммы заказа недостоверны: деньги пересчитывает хук `onRecordCreateRequest("orders")`.
 - Коммиты / push — только по явной просьбе.
 
@@ -352,6 +356,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | Вход с улицы | роутер: WAN **80→.51:80**, **443→.51:443** (не 8080/8443). SSH: WAN `10022` → `.51:22` |
 | PocketBase | systemd `pocketbase`, `/opt/pocketbase`, `--http=127.0.0.1:8090`, `--dir=/opt/pocketbase/pb_data` |
 | Прокси PB | Nginx `location /api/` и `/_/` → `127.0.0.1:8090` |
+| Upload | В server-блоке шашлыка: `client_max_body_size 10m;` (дефолт nginx 1m даёт **413** на баннеры ~1.7 МБ). Клиент дополнительно жмёт через `compressImage` ≈900 КБ |
 
 Несколько сайтов на одном белом IP — один вход 80/443, дальше по `server_name`. Блок шашлыка **не** `default_server`. Неизвестный Host и `loomixx.ru` — отдельные server (заглушка / другой root), иначе Nginx отдаст шашлык на все домены. С роутера 80/443 на несколько VM не дублировать.
 

@@ -37,7 +37,7 @@ export function CategoryTagsEditor({ categoryId }: { categoryId: string }) {
         name,
         slug,
         emoji: draft.emoji.trim(),
-        order: tags.length,
+        order: tags.reduce((max, t) => Math.max(max, t.order), 0) + 1,
       })
       setDraft(EMPTY)
     } catch (err) {

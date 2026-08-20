@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { ClientResponseError, type RecordModel } from "pocketbase"
 
 import { pb } from "./pb"
@@ -25,6 +25,8 @@ export type AdminAuth = {
   role: StaffRole | null
   isAdmin: boolean
   isManager: boolean
+  /** false пока идёт первичная проверка токена */
+  ready: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
 }
@@ -62,6 +64,37 @@ function readUser(): RecordModel | null {
   return pb.authStore.isValid ? pb.authStore.record : null
 }
 
+function isAbortError(err: unknown): boolean {
+  if (err instanceof ClientResponseError) {
+    const abort = (err as ClientResponseError & { isAbort?: boolean }).isAbort
+    if (abort || err.status === 0) return true
+  }
+  if (err instanceof DOMException && err.name === "AbortError") return true
+  return false
+}
+
+/** Один refresh на всё приложение — параллельные хуки не сбивают сессию. */
+let refreshInflight: Promise<void> | null = null
+
+function refreshAuth(): Promise<void> {
+  if (!pb.authStore.isValid) return Promise.resolve()
+  if (refreshInflight) return refreshInflight
+
+  refreshInflight = pb
+    .collection("users")
+    .authRefresh({ requestKey: "admin-auth-refresh" })
+    .then(() => undefined)
+    .catch((err: unknown) => {
+      if (isAbortError(err)) return
+      pb.authStore.clear()
+    })
+    .finally(() => {
+      refreshInflight = null
+    })
+
+  return refreshInflight
+}
+
 /** Права текущего пользователя по разделу и действию. */
 export function can(section: StaffSection, action: StaffAction): boolean {
   const role = staffRole(readUser())
@@ -77,8 +110,11 @@ export function isManager(record: RecordModel | null = readUser()): boolean {
   return staffRole(record) === "manager"
 }
 
-export function useAdminAuth(): AdminAuth {
+const AdminAuthContext = createContext<AdminAuth | null>(null)
+
+export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<RecordModel | null>(readUser)
+  const [ready, setReady] = useState(() => !pb.authStore.isValid)
 
   useEffect(() => {
     const unsubscribe = pb.authStore.onChange(() => {
@@ -91,17 +127,24 @@ export function useAdminAuth(): AdminAuth {
       setUser(next)
     })
 
-    if (pb.authStore.isValid) {
-      pb.collection("users")
-        .authRefresh()
-        .catch(() => pb.authStore.clear())
-    }
+    let cancelled = false
+    void (async () => {
+      if (pb.authStore.isValid) {
+        await refreshAuth()
+      }
+      if (!cancelled) setReady(true)
+    })()
 
-    return unsubscribe
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
   }, [])
 
   async function login(email: string, password: string) {
-    const auth = await pb.collection("users").authWithPassword(email, password)
+    const auth = await pb.collection("users").authWithPassword(email, password, {
+      requestKey: "admin-auth-login",
+    })
     if (!isStaffRecord(auth.record)) {
       pb.authStore.clear()
       throw new Error("Нет доступа к админке")
@@ -114,14 +157,25 @@ export function useAdminAuth(): AdminAuth {
 
   const role = staffRole(user)
 
-  return {
+  const value: AdminAuth = {
     user,
     role,
     isAdmin: role === "admin",
     isManager: role === "manager",
+    ready,
     login,
     logout,
   }
+
+  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>
+}
+
+export function useAdminAuth(): AdminAuth {
+  const ctx = useContext(AdminAuthContext)
+  if (!ctx) {
+    throw new Error("useAdminAuth вне AdminAuthProvider")
+  }
+  return ctx
 }
 
 export function authErrorMessage(err: unknown): string {

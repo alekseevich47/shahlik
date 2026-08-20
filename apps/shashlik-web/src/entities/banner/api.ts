@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { adminCountKeys } from "@/shared/api/counts"
 import { collectionMutations } from "@/shared/api/crud"
-import { imageUrl, toFormData } from "@/shared/api/files"
+import { imageUrl, toFormData, toUploadFormData } from "@/shared/api/files"
 import { pb } from "@/shared/api/pb"
 
 import type { Banner } from "./model"
@@ -98,16 +98,21 @@ const bannerMutations = collectionMutations<
   },
 })
 
+const BANNER_MAX_BYTES = 5_242_880
+
 /** FormData: `note: null` → JSON null (toFormData иначе шлёт "" как удаление файла). */
-function bannerFormData(data: {
+async function bannerFormData(data: {
   title?: string
   subtitle?: string
   order?: number
   note?: BannerNote | null
   image?: File | null
-}): FormData {
-  const { note, ...rest } = data
-  const form = toFormData(rest)
+}): Promise<FormData> {
+  const { note, image, ...rest } = data
+  const form =
+    image instanceof File
+      ? await toUploadFormData({ ...rest, image }, { maxBytes: BANNER_MAX_BYTES })
+      : toFormData({ ...rest, image })
   if (note !== undefined) {
     form.set("note", note === null ? "null" : JSON.stringify(note))
   }
@@ -118,15 +123,15 @@ export function useCreateBanner() {
   const mutation = bannerMutations.useCreate()
   return {
     ...mutation,
-    mutateAsync: (input: CreateBannerInput) =>
+    mutateAsync: async (input: CreateBannerInput) =>
       mutation.mutateAsync(
-        bannerFormData({
+        (await bannerFormData({
           title: input.title,
           subtitle: input.subtitle,
           order: input.order,
           note: input.note,
           image: input.image,
-        }) as unknown as Record<string, unknown>,
+        })) as unknown as Record<string, unknown>,
       ),
   }
 }
@@ -135,7 +140,7 @@ export function useUpdateBanner() {
   const mutation = bannerMutations.useUpdate()
   return {
     ...mutation,
-    mutateAsync: (args: { id: string; data: UpdateBannerInput }) => {
+    mutateAsync: async (args: { id: string; data: UpdateBannerInput }) => {
       const { note, image, ...rest } = args.data
       const payload: {
         title?: string
@@ -150,7 +155,7 @@ export function useUpdateBanner() {
       if (image !== undefined || note !== undefined) {
         return mutation.mutateAsync({
           id: args.id,
-          data: bannerFormData(payload) as unknown as Record<string, unknown>,
+          data: (await bannerFormData(payload)) as unknown as Record<string, unknown>,
         })
       }
 

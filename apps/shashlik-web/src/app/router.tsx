@@ -55,7 +55,8 @@ export function AppRoutes() {
 }
 
 function AdminGate() {
-  const { user } = useAdminAuth()
+  const { user, ready } = useAdminAuth()
+  if (!ready) return <RouteFallback />
   return user ? <AdminPage /> : <AdminLogin />
 }
 

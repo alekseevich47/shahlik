@@ -55,7 +55,8 @@ export function CategoriesSection() {
 
   const handleReorder = async (next: Category[]) => {
     const updates = next
-      .map((item, index) => ({ item, order: index }))
+      // 1-based: PB `required` на number = nonzero, order:0 отклоняется.
+      .map((item, index) => ({ item, order: index + 1 }))
       .filter(({ item, order }) => item.order !== order)
 
     if (!updates.length) return
@@ -100,8 +101,7 @@ export function CategoriesSection() {
     }
   }
 
-  const nextOrder =
-    categories.reduce((max, c) => Math.max(max, c.order), -1) + 1
+  const nextOrder = categories.reduce((max, c) => Math.max(max, c.order), 0) + 1
 
   return (
     <SectionShell

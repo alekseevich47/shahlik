@@ -52,7 +52,7 @@ export function BannersSection() {
 
   const handleReorder = async (next: Banner[]) => {
     const updates = next
-      .map((item, index) => ({ item, order: index }))
+      .map((item, index) => ({ item, order: index + 1 }))
       .filter(({ item, order }) => item.order !== order)
 
     if (!updates.length) return
@@ -86,7 +86,7 @@ export function BannersSection() {
     }
   }
 
-  const nextOrder = banners.reduce((max, b) => Math.max(max, b.order), -1) + 1
+  const nextOrder = banners.reduce((max, b) => Math.max(max, b.order), 0) + 1
 
   return (
     <SectionShell

@@ -63,7 +63,7 @@
         "name": "order",
         "onlyInt": true,
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "number"
       },
@@ -181,7 +181,7 @@
         "name": "order",
         "onlyInt": true,
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "number"
       },
@@ -414,7 +414,7 @@
         "name": "order",
         "onlyInt": true,
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "number"
       },
@@ -519,11 +519,11 @@
         "hidden": false,
         "id": "num_addon_price",
         "max": null,
-        "min": null,
+        "min": 0,
         "name": "price",
         "onlyInt": false,
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "number"
       },
@@ -691,7 +691,7 @@
         "name": "order",
         "onlyInt": true,
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "number"
       },
