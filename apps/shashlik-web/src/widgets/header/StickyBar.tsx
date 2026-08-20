@@ -26,6 +26,8 @@ type Props = {
   visible: boolean
   /** Строка тегов ушла из вида — на плашке появляются категории и теги. */
   expanded: boolean
+  /** Идёт переход геометрии — преломление стекла выключено на эти кадры. */
+  animating?: boolean
   category: string
   onCategoryChange: (id: string) => void
   tag: ProductTag | "all"
@@ -39,6 +41,7 @@ type Props = {
 export function StickyBar({
   visible,
   expanded,
+  animating,
   category,
   onCategoryChange,
   tag,
@@ -52,6 +55,7 @@ export function StickyBar({
       className="sticky-bar"
       data-visible={visible ? "1" : "0"}
       data-expanded={expanded ? "1" : "0"}
+      data-animating={animating ? "1" : "0"}
     >
       <Glass className="sticky-bar-panel" contentClassName="flex flex-col" inert={!visible}>
         <div className="sticky-bar-row">

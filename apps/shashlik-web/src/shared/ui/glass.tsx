@@ -5,9 +5,21 @@ import { cn } from "@/shared/lib/cn"
 /** id карты преломления; должен совпадать с `filter: url(...)` в globals.css. */
 export const GLASS_FILTER_ID = "glass-refraction"
 
+/** Сторона тайла `glass-noise.png`; менять только вместе с `SIZE` в генераторе. */
+const NOISE_TILE = 256
+
 /**
  * Карта шума для преломления стекла. Монтируется один раз в `App`:
  * `filter: url(#glass-refraction)` ссылается на неё по документу.
+ *
+ * Карта — готовый бесшовный тайл (`scripts/gen-glass-noise.mjs`), а не
+ * `feTurbulence`: Chromium растеризует SVG-фильтры на CPU и пересчитывает
+ * турбулентность при каждой смене области фильтра, то есть на каждом кадре
+ * скролла и раскрытия плашки. feImage + feTile — это блиты по готовой битмапе.
+ *
+ * Область фильтра держим минимальной: она умножается на площадь растеризации
+ * каждый кадр. Смещение не превышает `scale/2`, запаса в несколько процентов
+ * от бокса хватает.
  */
 export function GlassDefs() {
   return (
@@ -15,24 +27,26 @@ export function GlassDefs() {
       <defs>
         <filter
           id={GLASS_FILTER_ID}
-          x="-15%"
-          y="-40%"
-          width="130%"
-          height="180%"
+          x="-3%"
+          y="-14%"
+          width="106%"
+          height="128%"
           colorInterpolationFilters="sRGB"
         >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.009 0.013"
-            numOctaves="2"
-            seed="7"
-            result="noise"
+          <feImage
+            href="/pattern/glass-noise.png"
+            x="0"
+            y="0"
+            width={NOISE_TILE}
+            height={NOISE_TILE}
+            preserveAspectRatio="none"
+            result="tile"
           />
-          <feGaussianBlur in="noise" stdDeviation="2.4" result="softNoise" />
+          <feTile in="tile" result="noise" />
           <feDisplacementMap
             in="SourceGraphic"
-            in2="softNoise"
-            scale="26"
+            in2="noise"
+            scale="20"
             xChannelSelector="R"
             yChannelSelector="G"
           />

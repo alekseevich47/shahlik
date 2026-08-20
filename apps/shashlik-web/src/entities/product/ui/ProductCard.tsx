@@ -23,7 +23,7 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
   return (
     <article
       className={cn(
-        "group flex flex-col overflow-hidden rounded-[var(--r-xl)] border border-line bg-surface",
+        "product-card group flex flex-col overflow-hidden rounded-[var(--r-xl)] border border-line bg-surface",
         "shadow-[var(--shadow-card)] transition-all duration-300 ease-[var(--ease-out-soft)]",
         "hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]",
         className,

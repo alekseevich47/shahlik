@@ -29,6 +29,7 @@ alwaysApply: false
 | Стили | Tailwind CSS v4 через `@tailwindcss/vite`. **Нет** `tailwind.config` / PostCSS. Тема — CSS-переменные в `src/styles/globals.css` + `@theme inline` |
 | UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
 | Роутер | `react-router-dom` v7. Home/Product — eager (анимация карточки), Admin — lazy. `BrowserRouter` |
+| Анимации маршрутов | `motion` v13 через `LazyMotion` + `m` из `motion/react-m`. Движок фич — асинхронный чанк (`app/motion-features.ts`). Режим `strict`: компонент `motion.*` использовать **нельзя**, только `m.*` |
 | Состояние | Zustand + persist **только корзина** (`shashlik:cart:v1`). Тема — React context + `localStorage` (`shashlik:theme`) |
 | Тосты | `sonner` |
 | Шрифт | Self-hosted **Nunito** 400–800 (`src/assets/fonts/nunito` + `src/styles/fonts.css`). Google Fonts / CDN **запрещены** |
@@ -56,16 +57,20 @@ alwaysApply: false
 ```
 apps/shashlik-web/
   index.html                 # anti-FOUC темы (localStorage + prefers-color-scheme)
-  vite.config.ts             # port 5273, alias @
+  vite.config.ts             # port 5273, alias @, вендорные чанки (react/motion/router)
+  scripts/
+    gen-glass-noise.mjs      # генератор карты преломления стекла (запускать вручную)
     public/
     products/*.jpg           # фото витрины (из temp/фото, сжатые)
     icons/*.png              # иконки категорий + kcal.png (пищевая ценность)
     logo/logo.png            # логотип без фона
     pattern/back.png         # тайловый паттерн (опционально, утилита .bg-pattern)
+    pattern/glass-noise.png  # карта преломления стекла, 256×256, генерируемая
   src/
     main.tsx                 # mount + globals.css
     app/App.tsx              # ThemeProvider + TooltipProvider + Router + Toaster
     app/router.tsx           # /, /product/:slug, /admin
+    app/motion-features.ts   # domAnimation для LazyMotion (асинхронный чанк)
     app/providers/theme.tsx  # class .dark / .light на <html>
     styles/globals.css       # ТОКЕНЫ — единственный источник цветов
     styles/fonts.css
@@ -129,7 +134,7 @@ apps/shashlik-web/
 
 Тема: класс `.dark` / `.light` на `<html>`. Anti-FOUC скрипт в `index.html`. Переключатель — `features/theme-toggle`. Не хардкодить `#fff` / `#000` в компонентах.
 
-Стекло плашки (`StickyBar`): `--glass-tint`, `--glass-shine`, `--glass-shadow`, `--glass-btn`, `--glass-btn-border`, `--glass-fg` (в `.dark` — `#ffffff`). Light: `--glass-btn` = `rgba(23,18,14,0.14)` — темнее тона стекла, иначе кнопки сливаются. Кнопки и выбранные чипы — `--glass-btn`, не `brand-soft`. PNG категорий на плашке: `.category-icon-glass` = `brightness(0)` (чёрные), в dark + `invert(1)` (белые). Компактная плашка (лупа/тема/корзина) — `width: max-content`, padding `6px 10px`, скругление `--r-md` как у лупы (раскрытая — `--r-2xl`); скрытые nav и теги `width: 0` (иначе строка тегов раздувает ширину слева). Раскрытая — `showAccount`: иконка `User` → `/admin` слева от лупы, тот же размер/тон.
+Стекло плашки (`StickyBar`): `--glass-tint`, `--glass-shine`, `--glass-shadow`, `--glass-btn`, `--glass-btn-border`, `--glass-fg` (в `.dark` — `#ffffff`). Устройство слоёв и бюджет производительности — раздел «Производительность». Light: `--glass-btn` = `rgba(23,18,14,0.14)` — темнее тона стекла, иначе кнопки сливаются. Кнопки и выбранные чипы — `--glass-btn`, не `brand-soft`. PNG категорий на плашке: `.category-icon-glass` = `brightness(0)` (чёрные), в dark + `invert(1)` (белые). Компактная плашка (лупа/тема/корзина) — `width: max-content`, padding `6px 10px`, скругление `--r-md` как у лупы (раскрытая — `--r-2xl`); скрытые nav и теги `width: 0` (иначе строка тегов раздувает ширину слева). Раскрытая — `showAccount`: иконка `User` → `/admin` слева от лупы, тот же размер/тон.
 
 Утилита `.bg-pattern` (тайл `/pattern/back.png`, 512×341) **есть**, но витрина сейчас на сплошном `bg-canvas` — не включать паттерн без запроса (ломает совпадение с макетом).
 
@@ -190,7 +195,7 @@ Desktop (`DesktopHome`, ≥1024):
 2. **HeroBanner** — карусель `mocks/banners.ts`, стрелки-хитзоны по краям, dots
 3. **TagFilters** — Все / Классика / Острая / Сырная / BBQ
 4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard`
-5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` + `backdrop-filter`, тон `--glass-tint`). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг и «Добавить» в dark — `text-fg` (белые, звезда тоже). «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Высота блока названия/состава фиксирована (`min-h-[2lh]` / `h-[3lh]`), рейтинг `truncate` + `shrink-0` — без скачка текста при смене ширины колонки.
+5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг и «Добавить» в dark — `text-fg` (белые, звезда тоже). «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Высота блока названия/состава фиксирована (`min-h-[2lh]` / `h-[3lh]`), рейтинг `truncate` + `shrink-0` — без скачка текста при смене ширины колонки.
 
 Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
 
@@ -230,7 +235,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |
 | FloatingActions | `widgets/header/FloatingActions.tsx` — `tone="glass"` на плашке; `showAccount` — `User` → `/admin` |
 | StickyBar | `widgets/header/StickyBar.tsx` — стекло, категории + теги по скроллу |
-| Glass | `shared/ui/glass.tsx` — `Glass` + `GlassDefs` (фильтр преломления) |
+| Glass | `shared/ui/glass.tsx` — `Glass` + `GlassDefs` (фильтр преломления: `feImage` + `feTile` + `feDisplacementMap`) |
 | CartToggle | `features/cart/ui/CartToggle.tsx` — сумма заказа + «р.» слева от иконки, если `total > 0` |
 | CartDock | `features/cart/ui/CartDock.tsx` — sticky + translate-выезд |
 | Cart panel store | `features/cart/model/panel.ts` |
@@ -239,6 +244,62 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` |
 | NutritionHint | `pages/product/ui/NutritionHint.tsx` |
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` |
+
+## Производительность
+
+Витрина держит на одном экране стеклянную плашку, sticky-сайдбар, sticky-корзину и сетку карточек с фото. Это значит, что почти любая правка раскладки попадает в кадры анимации. Ниже — устройство того, что уже оптимизировано, и правила, которые нельзя нарушать, иначе тормоза вернутся.
+
+### Стекло: почему именно так
+
+Слои `Glass` (`shared/ui/glass.tsx`): `glass-refract` (подложка под `backdrop-filter`) → `glass-tint` → `glass-shine` → `glass-content`. Разделены потому, что `backdrop-filter` нельзя смешать с фоном на одном узле.
+
+Карта преломления — **готовый бесшовный тайл** `public/pattern/glass-noise.png` (256×256, `feImage` + `feTile`), а не `feTurbulence`. Chromium растеризует SVG-фильтры на CPU и пересчитывает процедурный шум при каждой смене области фильтра, то есть на каждом кадре скролла. Замер на витрине (2560×1400 @2x, CPU throttle 6×, скролл): `feTurbulence` + `feGaussianBlur` — **1 fps**, тайл — **16 fps**.
+
+- **Не возвращать `feTurbulence`, `feGaussianBlur` и вообще процедурные примитивы** в `#glass-refraction`. Нужен другой рисунок преломления — менять генератор и перегенерировать тайл: `node scripts/gen-glass-noise.mjs`.
+- `NOISE_TILE` в `glass.tsx` и `SIZE` в генераторе — одно и то же число. Меняются только вместе.
+- Область фильтра (`x/y/width/height` у `<filter>`) и `inset` у `.glass-refract` — это площадь растеризации **на каждом кадре**. Держать минимальной: запас = `scale/2` смещения плюс пиксель на округление, не больше. Сейчас `scale=20`, `inset: -12px`, область `106% × 128%`.
+- Гейт `@supports (background: paint(id))` оставить: в Safari и Firefox SVG-фильтр поверх `backdrop-filter` гасит подложку целиком, там штатно остаётся только блюр с тоном.
+- Второй стеклянной плашки на экране быть не должно. `Glass` — для `StickyBar`, не для карточек и не для модалок.
+
+### Анимации раскладки
+
+Треки `--nav-track` / `--cart-track` / `--catalog-gap` меняют `grid-template-columns` у `.home-desktop`, то есть переход открытия корзины и съезда сайдбара — это релэйаут всей витрины, а не работа композитора. Запас по кадрам (inherits, gap, один релэйаут) — в `.cursor/rules/update-frame.mdc`, **не внедрять**, пока явно не попросили.
+
+- **`data-animating`** на `.home-desktop` и `.sticky-bar` (хук `shared/hooks/useSettling.ts`) поднят на время перехода. Под ним гасится преломление стекла и включается `will-change`. Добавляешь новый переход геометрии — заводи его состояние в тот же `useSettling`, а не отдельным таймером.
+- `will-change` ставить **только** под `[data-animating="1"]`. Постоянный `will-change` держит для каждой панели композиторный слой всю жизнь страницы: это память GPU и лишняя работа на каждом кадре скролла, а не ускорение.
+- Выезд панелей — `translate` на внутреннем слое (`.cart-dock`, `.nav-dock`), не `left` / `margin` / `width`. Sticky-бокс снаружи, transform внутри: transform на самом sticky-элементе срывает прилипание.
+- Клип — `overflow-x: clip`, не `hidden`: у `hidden` появляется scrollport и sticky умирает.
+- Новую анимацию собирать на `opacity` / `translate` / `scale`. `width`, `height`, `top`, `margin`, `padding`, `gap`, `grid-template-*` в переходах — только когда без них правда никак, и тогда обязательно под `data-animating`.
+
+### Карточки витрины
+
+`.product-card` несёт `contain: layout paint style` + `content-visibility: auto` + `contain-intrinsic-size: auto 520px`.
+
+- `contain` изолирует раскладку: смена ширины колонки не тянет пересчёт всех карточек сразу.
+- `content-visibility: auto` снимает раскладку с карточек за пределами вьюпорта. Ключевое слово `auto` в `contain-intrinsic-size` обязательно — браузер запоминает реальную высоту, иначе скроллбар дёргается при скролле.
+- Число `520px` — ориентир, не догма. Но если карточка станет заметно выше или ниже, поправить, иначе первый проход скролла прыгает.
+- Внутри карточки не заводить `position: sticky` и не рассчитывать на то, что её содержимое видно скриптам всегда: под `content-visibility` оно может быть не отрисовано.
+- Высота блоков названия и состава фиксирована (`min-h-[2lh]` / `h-[3lh]`) — это не только про макет: одинаковая высота карточек держит `contain-intrinsic-size` честным.
+
+### Скролл
+
+- `scroll-behavior: smooth` на `html` **снят**. Якорей и `scrollIntoView` в витрине нет, а плавный скролл растягивал каждый переход на десятки кадров с перерисовкой стекла. Возвращать — только вместе с реальной анкорной навигацией, и тогда мерить.
+- Наблюдение за скроллом — `IntersectionObserver` (`shared/hooks/useInView.ts`). Обработчик `scroll` не заводить: он даёт работу на каждом кадре и провоцирует принудительные reflow.
+
+### Бандл
+
+`vite.config.ts` делит вендоров на чанки `react` / `motion` / `router`: они меняются редко, поэтому деплой правок витрины не сбрасывает их из кэша браузера.
+
+- `motion` подключён через `LazyMotion` в режиме `strict`. Использовать `m.*` из `motion/react-m`; `motion.*` в `strict` падает в рантайме и тянет движок в основной чанк.
+- В `package.json` держать только реально импортированные пакеты. Из Radix используются `dialog`, `slot`, `tooltip` — остальные были мёртвым весом и удалены.
+- Новая тяжёлая страница — `lazy` в `app/router.tsx`, как `AdminPage`. Home и Product остаются eager: между ними анимация перехода.
+- Фото витрины — в `public/products`, `loading="lazy"` на `img` обязателен. Ориентир: ≤ 120 kB на файл.
+
+### Обязательная проверка перед тем, как считать правку готовой
+
+1. `pnpm build` — посмотреть размеры чанков в отчёте: основной чанк не должен расти скачком.
+2. Проверить собранный CSS, а не только dev. Lightning CSS в `@tailwindcss/vite` минифицирует только на сборке и **схлопывает пару «префикс + стандарт» в одно свойство, оставляя последнее объявленное**. Поэтому вендорный префикс писать **первым**, стандартное свойство — вторым. Обратный порядок уже стоил беспрефиксного `backdrop-filter` в проде (в Firefox стекло стало плоским, в dev всё работало).
+3. Прогнать скролл витрины с `Emulation.setCPUThrottlingRate` 4–6× и посмотреть fps. Если анимация открытия корзины или скролл со стеклом проседают ниже ~30 fps на throttle 6× — правку не принимать.
 
 ## Правила кода
 
@@ -249,6 +310,8 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 - Апостроф в строках — double quotes или escape.
 - Без `window.alert` / `confirm`. Без `console.log` в прод-путях.
 - `useCallback` / `useMemo` — не по умолчанию.
+- Вендорный CSS-префикс — **перед** стандартным свойством (`-webkit-backdrop-filter`, потом `backdrop-filter`). См. «Производительность», пункт про Lightning CSS.
+- Дорогие эффекты (SVG-фильтры, `backdrop-filter`, `will-change`) включать точечно и гасить на кадрах анимации, а не вешать глобально.
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
 - Frontpad: спецификация в `.cursor/rules/API.mdc`. Клиент кассу не зовёт. Секрет — только env на сервере, не в git и не в бандл.
@@ -287,6 +350,9 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не ставить CTA витрины в чёрный `ink` из старого стека: здесь CTA брендовый оранжевый / soft, PDP — `product-accent`.
 - Не подключать Google Fonts, не менять Nunito без запроса.
 - Не поднимать второй dev-сервер на 8443 из этого пакета.
+- Не возвращать `feTurbulence` / `feGaussianBlur` в фильтр стекла и не расширять область фильтра «на всякий случай».
+- Не вешать `will-change` постоянно и не анимировать `width` / `height` / `gap` вне `data-animating`.
+- Не считать dev-сборку доказательством: прод-CSS проходит через Lightning CSS и отличается.
 - Не звать PocketBase/Frontpad с клиента, пока нет явной задачи на интеграцию.
 - Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.
 - Не вешать витрину на `loomixx.ru`: канон — `shashlik.loomixx.ru`.

@@ -1,11 +1,15 @@
 import { lazy, Suspense } from "react"
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, LazyMotion } from "motion/react"
+import * as m from "motion/react-m"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 
 import HomePage from "@/pages/home/HomePage"
 import ProductPage from "@/pages/product/ProductPage"
 
 const AdminPage = lazy(() => import("@/pages/admin/AdminPage"))
+
+/** Движок анимаций подгружается асинхронно; до загрузки переход просто мгновенный. */
+const loadMotionFeatures = () => import("@/app/motion-features").then((mod) => mod.default)
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -21,27 +25,29 @@ export function AppRoutes() {
   const isProduct = location.pathname.startsWith("/product/")
 
   return (
-    <div className="relative min-h-dvh">
-      <AnimatePresence initial={false}>
-        <motion.div
-          key={location.pathname}
-          className="min-h-dvh w-full overflow-x-clip"
-          initial={isProduct ? { opacity: 0, y: 28 } : { opacity: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={isProduct ? { opacity: 0, y: 16, ...EXIT_ABS } : { opacity: 0, ...EXIT_ABS }}
-          transition={{ duration: isProduct ? 0.36 : 0.2, ease: EASE }}
-        >
-          <Suspense fallback={<RouteFallback />}>
-            <Routes location={location}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/product/:slug" element={<ProductPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    <LazyMotion features={loadMotionFeatures} strict>
+      <div className="relative min-h-dvh">
+        <AnimatePresence initial={false}>
+          <m.div
+            key={location.pathname}
+            className="min-h-dvh w-full overflow-x-clip"
+            initial={isProduct ? { opacity: 0, y: 28 } : { opacity: 0 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={isProduct ? { opacity: 0, y: 16, ...EXIT_ABS } : { opacity: 0, ...EXIT_ABS }}
+            transition={{ duration: isProduct ? 0.36 : 0.2, ease: EASE }}
+          >
+            <Suspense fallback={<RouteFallback />}>
+              <Routes location={location}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/product/:slug" element={<ProductPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </m.div>
+        </AnimatePresence>
+      </div>
+    </LazyMotion>
   )
 }
 

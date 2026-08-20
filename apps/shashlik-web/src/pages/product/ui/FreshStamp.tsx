@@ -9,7 +9,7 @@ export function FreshStamp({ className, size = 112 }: { className?: string; size
   const cx = size / 2
   const cy = size / 2
   const r = size / 2 - 9
-  const fontSize = ((2 * Math.PI * r) / STAMP_GLYPHS.length) * 1.72
+  const fontSize = ((2 * Math.PI * r) / STAMP_GLYPHS.length) * 1.35
 
   return (
     <div

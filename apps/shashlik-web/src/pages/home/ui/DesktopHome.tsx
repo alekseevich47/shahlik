@@ -8,6 +8,7 @@ import { useAddProduct } from "@/features/cart/lib/useAddProduct"
 import { categoryById } from "@/mocks/categories"
 import { useInView } from "@/shared/hooks/useInView"
 import { useIsWide } from "@/shared/hooks/useMediaQuery"
+import { useSettling } from "@/shared/hooks/useSettling"
 import { FloatingActions } from "@/widgets/header/FloatingActions"
 import { STICKY_BAR, StickyBar } from "@/widgets/header/StickyBar"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
@@ -56,6 +57,9 @@ export function DesktopHome({
   const cartPressed = wide ? panelOpen : undefined
   const barVisible = ready && !actionsInView
   const barExpanded = ready && !filtersInView
+  // Треки, выезд панелей и геометрия плашки едут одним переходом — метим их
+  // одним флагом, чтобы дорогие эффекты выключались ровно на эти кадры.
+  const animating = useSettling(`${barVisible}|${barExpanded}|${cartState}`)
 
   return (
     <div className="mx-auto w-full max-w-[1680px] px-5 py-5">
@@ -64,6 +68,7 @@ export function DesktopHome({
         data-cart={cartState}
         data-nav={barExpanded ? "hidden" : "shown"}
         data-ready={ready ? "1" : "0"}
+        data-animating={animating ? "1" : "0"}
       >
         <Sidebar
           activeCategory={category}
@@ -82,6 +87,7 @@ export function DesktopHome({
           <StickyBar
             visible={barVisible}
             expanded={barExpanded}
+            animating={animating}
             category={category}
             onCategoryChange={onCategoryChange}
             tag={tag}

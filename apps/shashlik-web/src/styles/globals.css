@@ -309,8 +309,10 @@
     border-color: var(--line);
   }
 
+  /* Без `scroll-behavior: smooth`: якорей и scrollIntoView в витрине нет, а
+     плавный скролл растягивал каждый переход на десятки кадров с перерисовкой
+     стеклянной плашки. Вернуть — только вместе с реальной анкорной навигацией. */
   html {
-    scroll-behavior: smooth;
     scrollbar-gutter: stable;
     -webkit-tap-highlight-color: transparent;
   }
@@ -424,6 +426,17 @@
     grid-template-columns: 1fr;
   }
 
+  /* Карточка витрины: раскладка изолирована. Смена --nav-track / --cart-track
+     меняет ширину колонок сетки, и без containment каждый кадр перехода
+     пересчитывает раскладку всех карточек сразу. content-visibility снимает эту
+     работу с карточек за пределами вьюпорта; `auto` в contain-intrinsic-size
+     запоминает реальную высоту, поэтому скроллбар не дёргается. */
+  .product-card {
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
+  }
+
   /* Карточка витрины: «Добавить» схлапывается 0fr → 1fr, без сдвига */
   .product-card-add {
     display: grid;
@@ -520,6 +533,14 @@
     transition: none;
   }
 
+  /* will-change только на время перехода: постоянный намёк держит для каждой
+     панели отдельный композиторный слой всю жизнь страницы — это память GPU
+     и лишняя работа на каждом кадре скролла, а не ускорение. */
+  .home-desktop[data-animating="1"] .cart-dock,
+  .home-desktop[data-animating="1"] .nav-dock {
+    will-change: translate;
+  }
+
   /* ---------------------------------------------------------------- *
    * Стекло: преломлённая подложка → тон → внутренний блик → контент.
    * ---------------------------------------------------------------- */
@@ -536,18 +557,26 @@
     position: absolute;
     pointer-events: none;
   }
-  /* Вылет за границы: кайма, съеденная дисплейсментом, уходит под overflow. */
+  /* Вылет за границы: кайма, съеденная дисплейсментом, уходит под overflow.
+     Запас = scale/2 фильтра (20/2 = 10) + пиксель на округление: каждый лишний
+     пиксель здесь умножается на периметр и растеризуется на каждом кадре. */
   .glass-refract {
-    inset: -28px;
+    inset: -12px;
     z-index: 0;
-    backdrop-filter: blur(7px) saturate(165%);
     -webkit-backdrop-filter: blur(7px) saturate(165%);
+    backdrop-filter: blur(7px) saturate(165%);
   }
   /* Преломление по карте шума. Гейт — Houdini paint (Chromium): в Safari и
      Firefox SVG-фильтр поверх backdrop-filter гасит подложку целиком. */
   @supports (background: paint(id)) {
     .glass-refract {
       filter: url("#glass-refraction");
+    }
+    /* Пока плашка меняет размер, растеризация фильтра идёт заново каждый кадр
+       на новой геометрии. Блюр остаётся, преломление гасим на время перехода —
+       на движении рисунок смещения всё равно не читается. */
+    .sticky-bar[data-animating="1"] .glass-refract {
+      filter: none;
     }
   }
   .glass-tint {
