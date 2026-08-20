@@ -1,21 +1,25 @@
 import { Pencil, Plus } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Product } from "@/entities/product/model"
-import { minPrice } from "@/entities/product/lib"
+import { useAddons } from "@/entities/addon/api"
+import { useBanners } from "@/entities/banner/api"
+import { useCategories } from "@/entities/category/api"
 import { ORDER_STATUS_LABEL, type Order, type Review } from "@/entities/order/model"
+import { useOrders, useReviews } from "@/entities/order/api"
+import { useProducts } from "@/entities/product/api"
+import { minPrice } from "@/entities/product/lib"
+import type { Product } from "@/entities/product/model"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { DataTable, type Column } from "@/pages/admin/ui/DataTable"
-import { addons } from "@/mocks/addons"
-import { banners } from "@/mocks/banners"
-import { categories, categoryById } from "@/mocks/categories"
-import { orders, reviews } from "@/mocks/orders"
-import { products, productsByCategory } from "@/mocks/products"
 import { formatDate, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 
 export function ProductsTable({ onOpen }: { onOpen: (product: Product) => void }) {
+  const { data: products = [], isPending: productsPending } = useProducts()
+  const { data: categories = [], isPending: categoriesPending } = useCategories()
+  const pending = productsPending || categoriesPending
+
   const columns: Column<Product>[] = [
     {
       key: "name",
@@ -35,7 +39,7 @@ export function ProductsTable({ onOpen }: { onOpen: (product: Product) => void }
     {
       key: "category",
       header: "Категория",
-      render: (row) => categoryById(row.categoryId)?.name ?? "—",
+      render: (row) => categories.find((c) => c.id === row.categoryId)?.name ?? "—",
     },
     {
       key: "price",
@@ -77,35 +81,44 @@ export function ProductsTable({ onOpen }: { onOpen: (product: Product) => void }
 
   return (
     <div className="flex flex-col gap-4">
-      {categories.map((category) => {
-        const rows = productsByCategory(category.id)
-        if (!rows.length) return null
-        return (
-          <AdminCard
-            key={category.id}
-            title={`${category.name} · ${rows.length}`}
-            action={
-              <Button variant="soft" size="xs" onClick={() => toast("Создание товара — заглушка")}>
-                <Plus size={12} strokeWidth={3} />
-                Товар
-              </Button>
-            }
-            bodyClassName="p-1"
-          >
-            <DataTable columns={columns} rows={rows} rowKey={(r) => r.id} onRowClick={onOpen} />
-          </AdminCard>
-        )
-      })}
+      {pending ? (
+        <p className="py-12 text-center text-[13px] font-semibold text-fg-muted">Загрузка…</p>
+      ) : (
+        categories.map((category) => {
+          const rows = products.filter((p) => p.categoryId === category.id)
+          if (!rows.length) return null
+          return (
+            <AdminCard
+              key={category.id}
+              title={`${category.name} · ${rows.length}`}
+              action={
+                <Button variant="soft" size="xs" onClick={() => toast("Создание товара — заглушка")}>
+                  <Plus size={12} strokeWidth={3} />
+                  Товар
+                </Button>
+              }
+              bodyClassName="p-1"
+            >
+              <DataTable columns={columns} rows={rows} rowKey={(r) => r.id} onRowClick={onOpen} />
+            </AdminCard>
+          )
+        })
+      )}
     </div>
   )
 }
 
 export function CategoriesTable() {
+  const { data: categories = [], isPending: categoriesPending } = useCategories()
+  const { data: products = [], isPending: productsPending } = useProducts()
+  const pending = categoriesPending || productsPending
+
   return (
     <AdminCard title={`Категории · ${categories.length}`} bodyClassName="p-1">
       <DataTable
         rows={categories}
         rowKey={(c) => c.id}
+        empty={pending ? "Загрузка…" : undefined}
         columns={[
           {
             key: "name",
@@ -136,11 +149,14 @@ export function CategoriesTable() {
 }
 
 export function BannersTable() {
+  const { data: banners = [], isPending } = useBanners()
+
   return (
     <AdminCard title={`Баннеры · ${banners.length}`} bodyClassName="p-1">
       <DataTable
         rows={banners}
         rowKey={(b) => b.id}
+        empty={isPending ? "Загрузка…" : undefined}
         columns={[
           {
             key: "image",
@@ -166,11 +182,14 @@ export function BannersTable() {
 }
 
 export function AddonsTable() {
+  const { data: addons = [], isPending } = useAddons()
+
   return (
     <AdminCard title={`Добавки и соусы · ${addons.length}`} bodyClassName="p-1">
       <DataTable
         rows={addons}
         rowKey={(a) => a.id}
+        empty={isPending ? "Загрузка…" : undefined}
         columns={[
           {
             key: "name",
@@ -206,6 +225,8 @@ export function AddonsTable() {
 }
 
 export function OrdersTable() {
+  const { data: orders = [], isPending } = useOrders()
+
   const columns: Column<Order>[] = [
     {
       key: "number",
@@ -243,12 +264,19 @@ export function OrdersTable() {
 
   return (
     <AdminCard title={`Заказы · ${orders.length}`} bodyClassName="p-1">
-      <DataTable columns={columns} rows={orders} rowKey={(o) => o.id} />
+      <DataTable
+        columns={columns}
+        rows={orders}
+        rowKey={(o) => o.id}
+        empty={isPending ? "Загрузка…" : undefined}
+      />
     </AdminCard>
   )
 }
 
 export function ReviewsTable() {
+  const { data: reviews = [], isPending } = useReviews()
+
   const columns: Column<Review>[] = [
     {
       key: "author",
@@ -277,7 +305,12 @@ export function ReviewsTable() {
 
   return (
     <AdminCard title={`Отзывы · ${reviews.length}`} bodyClassName="p-1">
-      <DataTable columns={columns} rows={reviews} rowKey={(r) => r.id} />
+      <DataTable
+        columns={columns}
+        rows={reviews}
+        rowKey={(r) => r.id}
+        empty={isPending ? "Загрузка…" : undefined}
+      />
     </AdminCard>
   )
 }

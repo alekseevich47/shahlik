@@ -5,8 +5,10 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 
 import HomePage from "@/pages/home/HomePage"
 import ProductPage from "@/pages/product/ProductPage"
+import { useAdminAuth } from "@/shared/api/auth"
 
 const AdminPage = lazy(() => import("@/pages/admin/AdminPage"))
+const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"))
 
 /** Движок анимаций подгружается асинхронно; до загрузки переход просто мгновенный. */
 const loadMotionFeatures = () => import("@/app/motion-features").then((mod) => mod.default)
@@ -40,7 +42,7 @@ export function AppRoutes() {
               <Routes location={location}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/product/:slug" element={<ProductPage />} />
-                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/admin" element={<AdminGate />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
@@ -49,6 +51,11 @@ export function AppRoutes() {
       </div>
     </LazyMotion>
   )
+}
+
+function AdminGate() {
+  const { isAdmin } = useAdminAuth()
+  return isAdmin ? <AdminPage /> : <AdminLogin />
 }
 
 function RouteFallback() {

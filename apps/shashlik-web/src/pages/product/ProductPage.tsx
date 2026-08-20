@@ -1,13 +1,13 @@
 import { ArrowLeft, Drumstick, Ham, Heart, Leaf, Star, X } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { useExtras, useSauces } from "@/entities/addon/api"
 import type { MeatIcon } from "@/entities/product/model"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
+import { useProductBySlug } from "@/entities/product/api"
 import { useCartStore } from "@/features/cart/model/store"
-import { extras, sauces } from "@/mocks/addons"
-import { productBySlug } from "@/mocks/products"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice, pluralize } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
@@ -25,29 +25,42 @@ import { NutritionHint } from "./ui/NutritionHint"
 export default function ProductPage() {
   const { slug = "" } = useParams()
   const navigate = useNavigate()
-  const product = productBySlug(slug)
+  const { data: product, isPending } = useProductBySlug(slug)
+  const { data: sauces = [] } = useSauces()
+  const { data: extras = [] } = useExtras()
 
-  const [variantId, setVariantId] = useState(() => product?.variants[0]?.id)
-  const [sizeId, setSizeId] = useState(() => product?.sizes[0]?.id ?? "")
+  const [variantId, setVariantId] = useState<string>()
+  const [sizeId, setSizeId] = useState<string>()
   const [quantity, setQuantity] = useState(1)
   const [picked, setPicked] = useState<Record<string, number>>({})
   const [liked, setLiked] = useState(false)
   const add = useCartStore((s) => s.add)
 
+  useEffect(() => {
+    setVariantId(undefined)
+    setSizeId(undefined)
+    setPicked({})
+    setQuantity(1)
+  }, [slug])
+
+  const resolvedVariantId = variantId ?? product?.variants[0]?.id
+  const resolvedSizeId = sizeId ?? product?.sizes[0]?.id ?? ""
+
   const total = useMemo(() => {
     if (!product) return 0
-    const base = priceOf(findSize(product, sizeId), findVariant(product, variantId))
+    const base = priceOf(findSize(product, resolvedSizeId), findVariant(product, resolvedVariantId))
     const addonsSum = [...sauces, ...extras].reduce(
       (sum, addon) => sum + addon.price * (picked[addon.id] ?? 0),
       0,
     )
     return (base + addonsSum) * quantity
-  }, [product, sizeId, variantId, picked, quantity])
+  }, [product, resolvedSizeId, resolvedVariantId, picked, quantity, sauces, extras])
 
-  if (!product) return <Navigate to="/" replace />
+  if (!slug || (!isPending && !product)) return <Navigate to="/" replace />
+  if (!product) return <div className="min-h-dvh bg-canvas" />
 
-  const size = findSize(product, sizeId)
-  const variant = findVariant(product, variantId)
+  const size = findSize(product, resolvedSizeId)
+  const variant = findVariant(product, resolvedVariantId)
   const goHome = () => navigate("/")
 
   const submit = () => {

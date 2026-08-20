@@ -1,16 +1,16 @@
-# Graph Report - shashlik-web  (2026-08-18)
+# Graph Report - shashlik-web  (2026-08-20)
 
 ## Corpus Check
-- 76 files · ~126,896 words
+- 86 files · ~132,108 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 387 nodes · 888 edges · 13 communities (12 shown, 1 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.65)
+- 465 nodes · 1086 edges · 15 communities (13 shown, 2 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.54)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `65f8c93e`
+- Built from commit: `3b945625`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,59 +26,62 @@
 - MobileHeader.tsx
 - formatPrice
 - ADMIN_BANNER_ICON
+- vite-env.d.ts
+- gen-glass-noise.mjs
+- banner/api.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 77 edges
-2. `formatPrice()` - 21 edges
-3. `compilerOptions` - 18 edges
-4. `Product` - 12 edges
-5. `minPrice()` - 11 edges
-6. `useCartTotals()` - 11 edges
-7. `useCartStore` - 11 edges
-8. `categoryById()` - 9 edges
-9. `ProductPage()` - 9 edges
-10. `Button()` - 9 edges
+2. `useCategories()` - 21 edges
+3. `formatPrice()` - 21 edges
+4. `compilerOptions` - 18 edges
+5. `useProducts()` - 15 edges
+6. `Product` - 13 edges
+7. `useCartTotals()` - 13 edges
+8. `minPrice()` - 11 edges
+9. `useCartStore` - 11 edges
+10. `ProductEditor()` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `useAddProduct()` --indirect_call--> `product()`  [INFERRED]
+  src/features/cart/lib/useAddProduct.ts → src/mocks/products.ts
 - `SumRow()` --calls--> `cn()`  [EXTRACTED]
   src/features/cart/ui/CartPanel.tsx → src/shared/lib/cn.ts
+- `SearchDialog()` --indirect_call--> `product()`  [INFERRED]
+  src/features/search/SearchDialog.tsx → src/mocks/products.ts
 - `StepBtn()` --calls--> `cn()`  [EXTRACTED]
   src/shared/ui/stepper.tsx → src/shared/lib/cn.ts
-- `ProductEditor()` --calls--> `priceOf()`  [EXTRACTED]
-  src/pages/admin/sections/ProductEditor.tsx → src/entities/product/lib.ts
-- `ProductCard()` --calls--> `cn()`  [EXTRACTED]
-  src/entities/product/ui/ProductCard.tsx → src/shared/lib/cn.ts
-- `ProductCardCompact()` --calls--> `cn()`  [EXTRACTED]
-  src/entities/product/ui/ProductCardCompact.tsx → src/shared/lib/cn.ts
+- `useCartTotals()` --calls--> `useAddons()`  [EXTRACTED]
+  src/features/cart/model/selectors.ts → src/entities/addon/api.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (13 total, 1 thin omitted)
+## Communities (15 total, 2 thin omitted)
 
 ### Community 0 - "HomePage.tsx"
-Cohesion: 0.09
-Nodes (40): Category, CategoryId, minPrice(), needsChooser(), DEFAULT_CRITERIA, Product, ProductBadge, ProductRating (+32 more)
+Cohesion: 0.10
+Nodes (40): useAddons(), useBanners(), useCategories(), useOrders(), useReviews(), useProducts(), minPrice(), Product (+32 more)
 
 ### Community 1 - "dependencies"
-Cohesion: 0.04
-Nodes (47): class-variance-authority, clsx, lucide-react, motion, dependencies, class-variance-authority, clsx, lucide-react (+39 more)
+Cohesion: 0.06
+Nodes (31): class-variance-authority, clsx, lucide-react, motion, dependencies, class-variance-authority, clsx, lucide-react (+23 more)
 
 ### Community 2 - "selectors.ts"
-Cohesion: 0.08
-Nodes (26): Addon, AddonKind, MeatIcon, ProductNutrition, addons, extras, IMG, sauces (+18 more)
+Cohesion: 0.06
+Nodes (42): categoryKeys, CategoryRecord, fetchCategories(), fetchCategoryById(), mapCategory(), useCategory(), Category, CategoryId (+34 more)
 
 ### Community 3 - "ProductPage.tsx"
-Cohesion: 0.10
-Nodes (26): DeliveryMode, cartLineTitle(), findSize(), findVariant(), priceOf(), CartTotals, ResolvedAddon, ResolvedLine (+18 more)
+Cohesion: 0.06
+Nodes (50): addonKeys, AddonRecord, fetchAddonById(), fetchAddons(), fetchAddonsByKind(), fetchExtras(), fetchSauces(), mapAddon() (+42 more)
 
 ### Community 4 - "cn"
-Cohesion: 0.13
-Nodes (17): categories, productsByCategory(), HomePage(), DesktopHome(), Options, useInView(), useIsDesktop(), useIsWide() (+9 more)
+Cohesion: 0.07
+Nodes (34): needsChooser(), ProductTag, useAddProduct(), CartPanelState, useCartPanelStore, CartDock(), HomePage(), DesktopHome() (+26 more)
 
 ### Community 5 - "CatalogTables.tsx"
-Cohesion: 0.09
-Nodes (29): Banner, Order, ORDER_STATUS_LABEL, OrderStatus, Review, banners, coupons, orders (+21 more)
+Cohesion: 0.12
+Nodes (23): createOrder(), CreateOrderInput, fetchOrderById(), fetchOrders(), fetchReviewById(), fetchReviews(), mapOrder(), mapReview() (+15 more)
 
 ### Community 6 - "devDependencies"
 Cohesion: 0.07
@@ -89,32 +92,40 @@ Cohesion: 0.07
 Nodes (26): DOM, DOM.Iterable, ES2023, node, src, vite/client, vite.config.ts, compilerOptions (+18 more)
 
 ### Community 8 - "MobileHeader.tsx"
-Cohesion: 0.10
-Nodes (19): App(), readInitialTheme(), Theme, ThemeContext, ThemeContextValue, ThemeProvider(), useTheme(), AdminPage (+11 more)
+Cohesion: 0.08
+Nodes (22): App(), readInitialTheme(), Theme, ThemeContext, ThemeContextValue, ThemeProvider(), useTheme(), AdminPage (+14 more)
 
 ### Community 9 - "formatPrice"
 Cohesion: 0.07
-Nodes (43): CategoryIcon(), Props, ProductTag, CartPanelState, useCartPanelStore, CartDock(), CartToggle(), formatOrderSum() (+35 more)
+Nodes (42): CategoryIcon(), Props, CartToggle(), formatOrderSum(), Props, PreviewToggle(), Props, AdminCard() (+34 more)
+
+### Community 13 - "gen-glass-noise.mjs"
+Cohesion: 0.17
+Nodes (14): channelX, channelY, chunk(), crc32(), encodePng(), filterScanlines(), fractal(), makeRandom() (+6 more)
+
+### Community 14 - "banner/api.ts"
+Cohesion: 0.27
+Nodes (8): bannerKeys, BannerRecord, fetchBannerById(), fetchBanners(), mapBanner(), useBanner(), Banner, banners
 
 ## Knowledge Gaps
-- **125 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+120 more)
+- **141 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+136 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `formatPrice` to `HomePage.tsx`, `selectors.ts`, `ProductPage.tsx`, `cn`, `CatalogTables.tsx`, `MobileHeader.tsx`?**
-  _High betweenness centrality (0.138) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `dependencies` to `devDependencies`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
+- **Why does `cn()` connect `formatPrice` to `HomePage.tsx`, `MobileHeader.tsx`, `ProductPage.tsx`, `cn`?**
+  _High betweenness centrality (0.112) - this node is a cross-community bridge._
+- **Why does `Product` connect `HomePage.tsx` to `formatPrice`, `selectors.ts`, `ProductPage.tsx`, `cn`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `useCategories()` connect `HomePage.tsx` to `formatPrice`, `selectors.ts`, `cn`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _125 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _141 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `HomePage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.08525506638714186 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1027450980392157 - nodes in this community are weakly interconnected._
 - **Should `dependencies` be split into smaller, more focused modules?**
-  _Cohesion score 0.0425531914893617 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06451612903225806 - nodes in this community are weakly interconnected._
 - **Should `selectors.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.08408408408408409 - nodes in this community are weakly interconnected._
-- **Should `ProductPage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.10252100840336134 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06127946127946128 - nodes in this community are weakly interconnected._

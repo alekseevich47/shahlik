@@ -1,6 +1,6 @@
 import { LayoutGrid } from "lucide-react"
 
-import { categories } from "@/mocks/categories"
+import { useCategories } from "@/entities/category/api"
 import { cn } from "@/shared/lib/cn"
 
 type Props = {
@@ -11,6 +11,8 @@ type Props = {
 
 /** Мобильная лента категорий: квадратные плитки с иконкой и подписью. */
 export function CategoryTiles({ value, onChange, className }: Props) {
+  const { data: categories = [] } = useCategories()
+
   return (
     <div className={cn("scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4", className)}>
       {categories.map((category) => {

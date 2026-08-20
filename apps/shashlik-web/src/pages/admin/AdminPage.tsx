@@ -1,11 +1,11 @@
 import { useState } from "react"
 
+import { useAddons } from "@/entities/addon/api"
+import { useBanners } from "@/entities/banner/api"
+import { useCategories } from "@/entities/category/api"
+import { useOrders, useReviews } from "@/entities/order/api"
+import { useProducts } from "@/entities/product/api"
 import type { Product } from "@/entities/product/model"
-import { addons } from "@/mocks/addons"
-import { banners } from "@/mocks/banners"
-import { categories } from "@/mocks/categories"
-import { orders, reviews } from "@/mocks/orders"
-import { products } from "@/mocks/products"
 
 import type { AdminTabId } from "./model"
 import { ADMIN_NAV } from "./model"
@@ -22,19 +22,26 @@ import { AdminSidebar } from "./ui/AdminSidebar"
 import { AdminTabs } from "./ui/AdminTabs"
 import { AdminTopbar } from "./ui/AdminTopbar"
 
-const COUNTS: Record<AdminTabId, number> = {
-  products: products.length,
-  categories: categories.length,
-  banners: banners.length,
-  addons: addons.length,
-  orders: orders.length,
-  reviews: reviews.length,
-}
-
 export default function AdminPage() {
+  const { data: products = [] } = useProducts()
+  const { data: categories = [] } = useCategories()
+  const { data: banners = [] } = useBanners()
+  const { data: addons = [] } = useAddons()
+  const { data: orders = [] } = useOrders()
+  const { data: reviews = [] } = useReviews()
+
   const [nav, setNav] = useState("products")
   const [tab, setTab] = useState<AdminTabId>("products")
-  const [editing, setEditing] = useState<Product | null>(products[3] ?? null)
+  const [editing, setEditing] = useState<Product | null>(null)
+
+  const counts: Record<AdminTabId, number> = {
+    products: products.length,
+    categories: categories.length,
+    banners: banners.length,
+    addons: addons.length,
+    orders: orders.length,
+    reviews: reviews.length,
+  }
 
   const selectNav = (id: string) => {
     setNav(id)
@@ -60,7 +67,7 @@ export default function AdminPage() {
         <AdminTopbar />
 
         <div className="border-b border-line bg-surface-2 px-4 py-3">
-          <AdminTabs value={tab} onChange={selectTab} counts={COUNTS} />
+          <AdminTabs value={tab} onChange={selectTab} counts={counts} />
         </div>
 
         <main className="flex-1 p-4">

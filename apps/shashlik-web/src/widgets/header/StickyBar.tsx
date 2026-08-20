@@ -1,6 +1,6 @@
 import type { ProductTag } from "@/entities/product/model"
+import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
-import { categories } from "@/mocks/categories"
 import { TAG_FILTERS } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { Chip } from "@/shared/ui/chip"
@@ -50,6 +50,8 @@ export function StickyBar({
   onCart,
   cartPressed,
 }: Props) {
+  const { data: categories = [] } = useCategories()
+
   return (
     <div
       className="sticky-bar"

@@ -15,10 +15,12 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 
-import type { Product } from "@/entities/product/model"
+import type { CategoryId } from "@/entities/category/model"
+import { useCategories } from "@/entities/category/api"
+import { useDeleteProduct, useUpdateProduct } from "@/entities/product/api"
 import { minPrice, priceOf } from "@/entities/product/lib"
+import type { Product } from "@/entities/product/model"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
-import { categories } from "@/mocks/categories"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
@@ -32,6 +34,11 @@ type Props = {
 }
 
 export function ProductEditor({ product, onBack }: Props) {
+  const { data: categories = [] } = useCategories()
+  const updateProduct = useUpdateProduct()
+  const deleteProduct = useDeleteProduct()
+  const busy = updateProduct.isPending || deleteProduct.isPending
+
   const [name, setName] = useState(product.name)
   const [categoryId, setCategoryId] = useState<string>(product.categoryId)
   const [composition, setComposition] = useState(product.composition)
@@ -43,6 +50,33 @@ export function ProductEditor({ product, onBack }: Props) {
       .filter(Boolean),
   )
   const [preview, setPreview] = useState<"desktop" | "mobile">("desktop")
+
+  const save = async () => {
+    try {
+      await updateProduct.mutateAsync({
+        id: product.id,
+        data: {
+          name,
+          categoryId: categoryId as CategoryId,
+          composition,
+          rating: { ...product.rating, criteria },
+        },
+      })
+      toast.success("Изменения сохранены")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось сохранить")
+    }
+  }
+
+  const remove = async () => {
+    try {
+      await deleteProduct.mutateAsync(product.id)
+      toast.success("Товар удалён")
+      onBack()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось удалить")
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -320,15 +354,13 @@ export function ProductEditor({ product, onBack }: Props) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5 rounded-[var(--r-lg)] border border-line bg-surface-2 p-3">
-        <Button onClick={() => toast.success("Изменения сохранены")}>Сохранить изменения</Button>
-        <Button variant="outline" onClick={onBack}>
+        <Button onClick={() => void save()} disabled={busy}>
+          Сохранить изменения
+        </Button>
+        <Button variant="outline" onClick={onBack} disabled={busy}>
           Отмена
         </Button>
-        <Button
-          variant="danger"
-          className="ml-auto"
-          onClick={() => toast.error("Удаление недоступно в прототипе")}
-        >
+        <Button variant="danger" className="ml-auto" onClick={() => void remove()} disabled={busy}>
           Удалить товар
         </Button>
       </div>

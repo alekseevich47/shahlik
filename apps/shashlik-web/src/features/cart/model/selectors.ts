@@ -1,12 +1,41 @@
+import { addonKeys, useAddons } from "@/entities/addon/api"
 import type { Addon } from "@/entities/addon/model"
-import type { Product } from "@/entities/product/model"
+import { productKeys, useProducts } from "@/entities/product/api"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
-import { addonById } from "@/mocks/addons"
-import { productById } from "@/mocks/products"
+import type { Product } from "@/entities/product/model"
+import { queryClient } from "@/shared/api/query-client"
 import { ORDER_RULES } from "@/shared/config/site"
 
 import type { CartItem } from "./store"
 import { useCartStore } from "./store"
+
+function productFromCache(id: string): Product | undefined {
+  for (const [, data] of queryClient.getQueriesData<Product | Product[] | null>({
+    queryKey: productKeys.all,
+  })) {
+    if (Array.isArray(data)) {
+      const found = data.find((p) => p.id === id)
+      if (found) return found
+    } else if (data && data.id === id) {
+      return data
+    }
+  }
+  return undefined
+}
+
+function addonFromCache(id: string): Addon | undefined {
+  for (const [, data] of queryClient.getQueriesData<Addon | Addon[] | null>({
+    queryKey: addonKeys.all,
+  })) {
+    if (Array.isArray(data)) {
+      const found = data.find((a) => a.id === id)
+      if (found) return found
+    } else if (data && data.id === id) {
+      return data
+    }
+  }
+  return undefined
+}
 
 export type ResolvedAddon = { addon: Addon; quantity: number }
 
@@ -22,14 +51,14 @@ export type ResolvedLine = {
 }
 
 export function resolveLine(line: CartItem): ResolvedLine | null {
-  const product = productById(line.productId)
+  const product = productFromCache(line.productId)
   if (!product) return null
   const variant = findVariant(product, line.variantId)
   const size = findSize(product, line.sizeId)
   const unitPrice = priceOf(size, variant)
   const addons = line.addons
     .map((a) => {
-      const addon = addonById(a.addonId)
+      const addon = addonFromCache(a.addonId)
       return addon ? { addon, quantity: a.quantity } : null
     })
     .filter((a): a is ResolvedAddon => a !== null)
@@ -60,6 +89,8 @@ export function useCartTotals(): CartTotals {
   const items = useCartStore((s) => s.items)
   const mode = useCartStore((s) => s.mode)
   const promo = useCartStore((s) => s.promo)
+  useProducts()
+  useAddons()
 
   const lines = items.map(resolveLine).filter((l): l is ResolvedLine => l !== null)
   const count = lines.reduce((sum, l) => sum + l.line.quantity, 0)

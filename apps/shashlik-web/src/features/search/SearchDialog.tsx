@@ -3,9 +3,9 @@ import { Search } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
+import { useCategories } from "@/entities/category/api"
 import { minPrice } from "@/entities/product/lib"
-import { products } from "@/mocks/products"
-import { categoryById } from "@/mocks/categories"
+import { useProducts } from "@/entities/product/api"
 import { formatPrice } from "@/shared/lib/format"
 
 type SearchDialogProps = {
@@ -16,11 +16,14 @@ type SearchDialogProps = {
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const [query, setQuery] = useState("")
   const navigate = useNavigate()
+  const { data: products = [] } = useProducts()
+  const { data: categories = [] } = useCategories()
 
   const hits = useMemo(() => {
+    const catalog = products.filter((p) => p.active)
     const q = query.trim().toLowerCase()
-    if (!q) return products.slice(0, 6)
-    return products
+    if (!q) return catalog.slice(0, 6)
+    return catalog
       .filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -28,7 +31,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
           p.variants.some((v) => v.label.toLowerCase().includes(q)),
       )
       .slice(0, 8)
-  }, [query])
+  }, [products, query])
 
   const openProduct = (slug: string) => {
     onOpenChange(false)
@@ -77,7 +80,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                         {product.name}
                       </span>
                       <span className="block truncate text-[11px] text-fg-muted">
-                        {categoryById(product.categoryId)?.name}
+                        {categories.find((c) => c.id === product.categoryId)?.name}
                       </span>
                     </span>
                     <span className="shrink-0 text-[13px] font-extrabold text-fg tabular-nums">

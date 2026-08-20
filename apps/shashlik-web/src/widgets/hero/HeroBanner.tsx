@@ -1,24 +1,28 @@
 import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { banners } from "@/mocks/banners"
+import { useBanners } from "@/entities/banner/api"
 import { cn } from "@/shared/lib/cn"
 
 const AUTOPLAY_MS = 6000
 
 export function HeroBanner({ className }: { className?: string }) {
+  const { data: banners = [] } = useBanners()
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const active = banners[index]
+  const count = banners.length
+  const active = count ? banners[index % count] : undefined
 
   useEffect(() => {
-    if (paused) return
-    const timer = setInterval(() => setIndex((i) => (i + 1) % banners.length), AUTOPLAY_MS)
+    if (paused || count < 2) return
+    const timer = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS)
     return () => clearInterval(timer)
-  }, [paused])
+  }, [paused, count])
 
-  const go = (delta: number) =>
-    setIndex((i) => (i + delta + banners.length) % banners.length)
+  const go = (delta: number) => {
+    if (!count) return
+    setIndex((i) => (i + delta + count) % count)
+  }
 
   return (
     <section
@@ -46,15 +50,19 @@ export function HeroBanner({ className }: { className?: string }) {
       <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_30%,color-mix(in_srgb,var(--surface)_72%,transparent)_48%,transparent_78%)] sm:bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_26%,color-mix(in_srgb,var(--surface)_55%,transparent)_46%,transparent_72%)]" />
 
       <div className="relative flex h-full max-w-[62%] flex-col justify-center gap-1.5 px-5 sm:max-w-none sm:px-8">
-        <h1 className="text-[28px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[42px] lg:text-[46px]">
-          {active.title}
-        </h1>
-        <p className="text-[12px] leading-snug font-semibold text-fg-muted sm:text-[14px]">
-          {active.subtitle}
-        </p>
+        {active ? (
+          <>
+            <h1 className="text-[28px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[42px] lg:text-[46px]">
+              {active.title}
+            </h1>
+            <p className="text-[12px] leading-snug font-semibold text-fg-muted sm:text-[14px]">
+              {active.subtitle}
+            </p>
+          </>
+        ) : null}
       </div>
 
-      {active.note ? (
+      {active?.note ? (
         <div className="absolute right-4 bottom-4 hidden items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur-md sm:flex">
           <ShieldCheck size={17} className="text-success" strokeWidth={2.3} />
           <span className="flex flex-col leading-tight">

@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react"
 
 import type { ProductTag } from "@/entities/product/model"
+import { useProducts } from "@/entities/product/api"
 import { CartPanel } from "@/features/cart/ui/CartPanel"
 import { SearchDialog } from "@/features/search/SearchDialog"
-import { categories } from "@/mocks/categories"
-import { productsByCategory } from "@/mocks/products"
 import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
 import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
@@ -15,7 +14,8 @@ import { DesktopHome } from "./ui/DesktopHome"
 import { MobileHome } from "./ui/MobileHome"
 
 export default function HomePage() {
-  const [category, setCategory] = useState<string>(categories[0].id)
+  const { data: products = [] } = useProducts()
+  const [category, setCategory] = useState<string>("shawarma")
   const [tag, setTag] = useState<ProductTag | "all">("all")
   const [searchOpen, setSearchOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
@@ -24,9 +24,9 @@ export default function HomePage() {
   const isDesktop = useIsDesktop()
 
   const items = useMemo(() => {
-    const list = productsByCategory(category)
+    const list = products.filter((p) => p.active && p.categoryId === category)
     return tag === "all" ? list : list.filter((p) => p.tags.includes(tag))
-  }, [category, tag])
+  }, [products, category, tag])
 
   const selectCategory = (id: string) => {
     setCategory(id)

@@ -11,7 +11,5 @@
   "9": "formatPrice",
   "10": "ADMIN_BANNER_ICON",
   "11": "vite-env.d.ts",
-  "12": "vite.config.ts",
-  "13": "gen-glass-noise.mjs",
-  "14": "banner/api.ts"
+  "12": "vite.config.ts"
 }

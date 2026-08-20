@@ -2,10 +2,10 @@ import { useEffect, useState } from "react"
 
 import type { Product, ProductTag } from "@/entities/product/model"
 import { ProductCard } from "@/entities/product/ui/ProductCard"
+import { useCategories } from "@/entities/category/api"
+import { useAddProduct } from "@/features/cart/lib/useAddProduct"
 import { CartDock } from "@/features/cart/ui/CartDock"
 import { useCartPanelStore } from "@/features/cart/model/panel"
-import { useAddProduct } from "@/features/cart/lib/useAddProduct"
-import { categoryById } from "@/mocks/categories"
 import { useInView } from "@/shared/hooks/useInView"
 import { useIsWide } from "@/shared/hooks/useMediaQuery"
 import { useSettling } from "@/shared/hooks/useSettling"
@@ -40,6 +40,7 @@ export function DesktopHome({
   onOpenCart,
 }: Props) {
   const addProduct = useAddProduct()
+  const { data: categories = [] } = useCategories()
   const wide = useIsWide()
   const panelOpen = useCartPanelStore((s) => s.open)
   const togglePanel = useCartPanelStore((s) => s.toggle)
@@ -111,7 +112,7 @@ export function DesktopHome({
           </div>
 
           <section className="mt-4">
-            <h2 className="sr-only">{categoryById(category)?.name}</h2>
+            <h2 className="sr-only">{categories.find((c) => c.id === category)?.name}</h2>
             {items.length === 0 ? (
               <EmptyCategory />
             ) : (

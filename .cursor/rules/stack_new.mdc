@@ -13,7 +13,7 @@ alwaysApply: false
 ## Контекст
 
 - **Бренд**: «Шашлыковский» — шаурма, шашлык, пицца, комбо, гарниры, напитки, соусы. Получение: «Заберу сам» / «Надо привезти».
-- **Витрина пока на моках.** PocketBase на проде **стоит**, но клиент к нему **не** подключён. Касса Frontpad **не** подключена. Не изобретать API-слой, коллекции PB, webhook, секреты и persist каталога без задачи.
+- **Данные — PocketBase.** Клиент читает каталог (категории/товары/добавки/баннеры) напрямую через PocketBase JS SDK + TanStack Query. Заказы пишутся в коллекцию `orders`; мост к кассе Frontpad — только `pb_hooks` на стороне PocketBase (клиент Frontpad не зовёт и секрета не видит). Схема коллекций, `pb_hooks`, API-правила — `Tasks/TASK_DB.md`. Моки (`src/mocks/*`) остаются справочными данными для сида, из кода витрины не импортируются.
 - **Dev**: `cd apps/shashlik-web && pnpm dev` → `http://localhost:5273`. Не путать с корневым Vite (порт 8443 / Figma Make).
 - **Прод**: `https://shashlik.loomixx.ru` (см. раздел «Прод»).
 - **Пакетный менеджер**: pnpm. Скрипты: `dev`, `build` (`tsc -b && vite build`), `preview`, `typecheck`.
@@ -31,10 +31,11 @@ alwaysApply: false
 | Роутер | `react-router-dom` v7. Home/Product — eager (анимация карточки), Admin — lazy. `BrowserRouter` |
 | Анимации маршрутов | `motion` v13 через `LazyMotion` + `m` из `motion/react-m`. Движок фич — асинхронный чанк (`app/motion-features.ts`). Режим `strict`: компонент `motion.*` использовать **нельзя**, только `m.*` |
 | Состояние | Zustand + persist **только корзина** (`shashlik:cart:v1`). Тема — React context + `localStorage` (`shashlik:theme`) |
+| Данные | PocketBase JS SDK (`shared/api/pb.ts`) + `@tanstack/react-query` (`shared/api/query-client.ts`). Прод — same-origin (`/api/` через Nginx), dev — `VITE_PB_URL` |
 | Тосты | `sonner` |
 | Шрифт | Self-hosted **Nunito** 400–800 (`src/assets/fonts/nunito` + `src/styles/fonts.css`). Google Fonts / CDN **запрещены** |
 
-Не добавлять Redux, Mantine, отдельный UI-kit, i18n, бэкенд-клиент без явного запроса.
+Не добавлять Redux, Mantine, отдельный UI-kit, i18n, второй HTTP-клиент/бэкенд помимо PocketBase SDK.
 
 ## Слои (Feature-Sliced, упрощённый)
 
@@ -48,7 +49,7 @@ alwaysApply: false
 | features | `src/features/` | Сценарии: корзина, поиск, переключатель темы |
 | entities | `src/entities/*/` | Типы + чистые функции + UI сущности (`ProductCard`) |
 | shared | `src/shared/` | Токены-утилиты, UI-примитивы, конфиг сайта, хуки |
-| mocks | `src/mocks/` | Единственный источник каталога/заказов **пока нет API** |
+| mocks | `src/mocks/` | Справочные данные для сида PocketBase; из кода витрины **не импортируются** |
 
 Новый экран = новая папка в `pages/`, не раздувать `HomePage.tsx`. Новый примитив (кнопка/чип) = `shared/ui`, не копипастить классы. Новое бизнес-правило цены/корзины = `entities/product/lib` или `features/cart/model`, не JSX.
 
@@ -185,7 +186,7 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 | Режим по умолчанию | `pickup` («Заберу сам») |
 | Заголовок панели | «Мой заказ» |
 
-Оформление заказа — тост-заглушка. Карта адреса — тост-заглушка.
+Оформление заказа — `createOrder` в коллекцию `orders`; статус — `subscribeOrderStatus` (PB realtime), без поллинга. Карта адреса — тост-заглушка.
 
 ## Витрина (home)
 
@@ -217,11 +218,11 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 ## Админка
 
-Прототип UI по макету. **Не пишет** каталог (нет `localStorage` оверлея). Сохранить / удалить / дублировать / сброс кэша — тосты.
+CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role=admin`), гейт на `/admin` в `router.tsx`. Дублировать / сброс кэша — пока тосты (не задача этой интеграции).
 
-Вкладки: Товары, Категории, Баннеры, Добавки, Заказы, Отзывы (`pages/admin/model.ts`). Товары → клик строки открывает `ProductEditor` (форма + превью + статистика из мока).
+Вкладки: Товары, Категории, Баннеры, Добавки, Заказы, Отзывы (`pages/admin/model.ts`). Товары → клик строки открывает `ProductEditor` (форма + превью + статистика).
 
-Не подключать auth. Ссылка «На сайт» / логотип → `/`.
+Ссылка «На сайт» / логотип → `/`.
 
 ## Имена блоков (для правок в чате)
 
@@ -341,7 +342,7 @@ cd /var/www/shashlik && git pull
 cd apps/shashlik-web && pnpm install && pnpm build
 ```
 
-Не слушать PB на `0.0.0.0`. Не класть `pb_data`, `.env`, секреты Frontpad в репозиторий. Хуки PB (`pb_hooks`) не заводить, пока нет задачи на API.
+Не слушать PB на `0.0.0.0`. Не класть `pb_data`, `.env`, секреты Frontpad в репозиторий. `pb_hooks` — мост к Frontpad, схема в `Tasks/TASK_DB.md`; заводится на стороне PocketBase, вне `apps/shashlik-web`.
 
 ## Чего не делать
 
@@ -353,6 +354,7 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не возвращать `feTurbulence` / `feGaussianBlur` в фильтр стекла и не расширять область фильтра «на всякий случай».
 - Не вешать `will-change` постоянно и не анимировать `width` / `height` / `gap` вне `data-animating`.
 - Не считать dev-сборку доказательством: прод-CSS проходит через Lightning CSS и отличается.
-- Не звать PocketBase/Frontpad с клиента, пока нет явной задачи на интеграцию.
+- Не звать Frontpad с клиента и не хранить его секрет в `src/*` — только `pb_hooks` (см. `Tasks/TASK_DB.md`).
+- Не поллить статус заказа — только `pb.collection().subscribe`.
 - Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.
 - Не вешать витрину на `loomixx.ru`: канон — `shashlik.loomixx.ru`.

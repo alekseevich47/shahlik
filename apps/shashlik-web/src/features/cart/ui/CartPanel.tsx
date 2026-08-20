@@ -2,12 +2,16 @@ import { ChevronRight, MapPin, ShoppingBag, TicketPercent, X, Zap } from "lucide
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { subscribeOrderStatus, useCreateOrder } from "@/entities/order/api"
+import { ORDER_STATUS_LABEL } from "@/entities/order/model"
+import { findSize } from "@/entities/product/lib"
 import { useCartTotals } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { ORDER_RULES } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
 import { Segmented } from "@/shared/ui/segmented"
 
 import { CartLineRow } from "./CartLineRow"
@@ -18,16 +22,83 @@ const MODE_OPTIONS = [
 ] as const
 
 export function CartPanel({ className }: { className?: string }) {
-  const { lines, goods, packFee, deliveryFee, discount, total, freeDeliveryLeft } =
+  const { lines, count, goods, packFee, deliveryFee, discount, total, freeDeliveryLeft } =
     useCartTotals()
   const mode = useCartStore((s) => s.mode)
   const setMode = useCartStore((s) => s.setMode)
   const address = useCartStore((s) => s.address)
+  const customer = useCartStore((s) => s.customer)
+  const setCustomer = useCartStore((s) => s.setCustomer)
+  const phone = useCartStore((s) => s.phone)
+  const setPhone = useCartStore((s) => s.setPhone)
   const promo = useCartStore((s) => s.promo)
   const applyPromo = useCartStore((s) => s.applyPromo)
+  const clearCart = useCartStore((s) => s.clear)
+  const createOrder = useCreateOrder()
   const [promoOpen, setPromoOpen] = useState(false)
 
   const empty = lines.length === 0
+
+  function checkout() {
+    const name = customer.trim()
+    const tel = phone.trim()
+    if (!name || !tel) {
+      toast.error("Укажите имя и телефон")
+      return
+    }
+    createOrder.mutate(
+      {
+        customer: name,
+        phone: tel,
+        mode,
+        address: address.trim() || undefined,
+        positions: count,
+        total,
+        promo,
+        lines: lines.map((line) => ({
+          productId: line.product.id,
+          variantId: line.line.variantId,
+          sizeId: line.line.sizeId,
+          article: findSize(line.product, line.line.sizeId).article,
+          quantity: line.line.quantity,
+          name: line.product.name,
+          variantLabel: line.variantLabel,
+          sizeLabel: line.sizeLabel,
+          unitPrice: line.unitPrice,
+          addons: line.addons.map((a) => ({
+            id: a.addon.id,
+            name: a.addon.name,
+            quantity: a.quantity,
+            price: a.addon.price,
+            article: a.addon.article,
+            kind: a.addon.kind,
+          })),
+          total: line.total,
+        })),
+      },
+      {
+        onSuccess: (order) => {
+          clearCart()
+          const toastId = `order-${order.id}`
+          toast.success(`Заказ ${order.number} принят`, {
+            id: toastId,
+            description: ORDER_STATUS_LABEL[order.status],
+            duration: Infinity,
+          })
+          const stop = subscribeOrderStatus(order.id, (next) => {
+            const terminal = next.status === "done" || next.status === "canceled"
+            toast.message(`Заказ ${next.number}`, {
+              id: toastId,
+              description: ORDER_STATUS_LABEL[next.status],
+              duration: terminal ? 6000 : Infinity,
+            })
+            if (terminal) stop()
+          })
+        },
+        onError: () => toast.error("Не удалось оформить заказ"),
+      },
+    )
+  }
 
   return (
     <div
@@ -62,6 +133,21 @@ export function CartPanel({ className }: { className?: string }) {
           </span>
           <ChevronRight size={15} className="shrink-0 text-fg-faint" strokeWidth={2.4} />
         </button>
+        <Input
+          value={customer}
+          onChange={(e) => setCustomer(e.target.value)}
+          placeholder="Имя"
+          autoComplete="name"
+          maxLength={100}
+        />
+        <Input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Телефон"
+          type="tel"
+          autoComplete="tel"
+          maxLength={20}
+        />
       </div>
 
       <div className="scrollbar-slim flex-1 overflow-y-auto px-4">
@@ -174,8 +260,8 @@ export function CartPanel({ className }: { className?: string }) {
           </span>
           <Button
             size="lg"
-            disabled={empty}
-            onClick={() => toast.success("Заказ оформлен — прототип, касса не подключена")}
+            disabled={empty || createOrder.isPending}
+            onClick={checkout}
             className="flex-1"
           >
             <Zap size={17} strokeWidth={2.6} fill="currentColor" />

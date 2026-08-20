@@ -2,9 +2,9 @@ import { ChevronRight } from "lucide-react"
 
 import type { Product, ProductTag } from "@/entities/product/model"
 import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
+import { useCategories } from "@/entities/category/api"
+import { useProducts } from "@/entities/product/api"
 import { useAddProduct } from "@/features/cart/lib/useAddProduct"
-import { categoryById } from "@/mocks/categories"
-import { products } from "@/mocks/products"
 import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
 import { TagFilters } from "@/widgets/catalog/TagFilters"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
@@ -27,9 +27,12 @@ export function MobileHome({
   items,
 }: Props) {
   const addProduct = useAddProduct()
+  const { data: categories = [] } = useCategories()
+  const { data: products = [] } = useProducts()
+  const catalog = products.filter((p) => p.active)
 
-  const popular = [...products].sort((a, b) => b.rating.overall - a.rating.overall).slice(0, 6)
-  const combo = products.filter((p) => p.categoryId === "combo")
+  const popular = [...catalog].sort((a, b) => b.rating.overall - a.rating.overall).slice(0, 6)
+  const combo = catalog.filter((p) => p.categoryId === "combo")
 
   return (
     <div className="flex flex-col gap-4 px-4 pt-3 pb-24">
@@ -48,7 +51,7 @@ export function MobileHome({
       <section>
         <div className="mb-2.5 flex items-center justify-between gap-3">
           <h2 className="text-[18px] leading-none font-extrabold text-fg">
-            {categoryById(category)?.name}
+            {categories.find((c) => c.id === category)?.name}
           </h2>
         </div>
         <TagFilters value={tag} onChange={onTagChange} className="mb-3" />

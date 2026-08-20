@@ -1,8 +1,8 @@
 import { Gift, LogIn } from "lucide-react"
 import { NavLink, useNavigate } from "react-router-dom"
 
+import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
-import { categories } from "@/mocks/categories"
 import { ORDER_RULES, SITE } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { NAV_RAIL_GAP, NAV_RAIL_WIDTH } from "@/widgets/sidebar/rail"
@@ -21,6 +21,7 @@ type SidebarProps = {
  */
 export function Sidebar({ activeCategory, onSelectCategory, collapsed, className }: SidebarProps) {
   const navigate = useNavigate()
+  const { data: categories = [] } = useCategories()
 
   return (
     <aside

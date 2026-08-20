@@ -21,6 +21,8 @@ type CartState = {
   items: CartItem[]
   mode: DeliveryMode
   address: string
+  customer: string
+  phone: string
   promo: string | null
   add: (payload: AddPayload) => void
   setQuantity: (lineId: string, quantity: number) => void
@@ -30,6 +32,8 @@ type CartState = {
   bumpAddon: (addonId: string, delta: number, lineId?: string) => void
   setMode: (mode: DeliveryMode) => void
   setAddress: (address: string) => void
+  setCustomer: (customer: string) => void
+  setPhone: (phone: string) => void
   applyPromo: (code: string | null) => void
 }
 
@@ -48,6 +52,8 @@ export const useCartStore = create<CartState>()(
       items: [],
       mode: "pickup",
       address: "",
+      customer: "",
+      phone: "",
       promo: null,
 
       add: (payload) =>
@@ -108,6 +114,8 @@ export const useCartStore = create<CartState>()(
 
       setMode: (mode) => set({ mode }),
       setAddress: (address) => set({ address }),
+      setCustomer: (customer) => set({ customer }),
+      setPhone: (phone) => set({ phone }),
       applyPromo: (promo) => set({ promo }),
     }),
     { name: "shashlik:cart:v1" },

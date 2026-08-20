@@ -3,9 +3,16 @@ import { Link } from "react-router-dom"
 import { toast } from "sonner"
 
 import { ThemeToggle } from "@/features/theme-toggle/ThemeToggle"
+import { useAdminAuth } from "@/shared/api/auth"
 import { Button } from "@/shared/ui/button"
 
 export function AdminTopbar() {
+  const { user, logout } = useAdminAuth()
+  const displayName =
+    (typeof user?.name === "string" && user.name) ||
+    (typeof user?.email === "string" && user.email) ||
+    "Админ"
+  const initial = displayName.slice(0, 1).toUpperCase()
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-line bg-surface-2/92 px-4 backdrop-blur-xl">
       <Link
@@ -48,14 +55,15 @@ export function AdminTopbar() {
 
         <button
           type="button"
+          onClick={logout}
           className="flex cursor-pointer items-center gap-2 rounded-[var(--r-sm)] px-1.5 py-1 transition-colors hover:bg-surface-3"
         >
           <span className="grid size-8 place-items-center rounded-full bg-brand text-[12px] font-extrabold text-on-brand">
-            А
+            {initial}
           </span>
           <span className="hidden flex-col items-start leading-tight sm:flex">
-            <span className="text-[12.5px] font-bold text-fg">Алексей</span>
-            <span className="text-[10px] text-fg-muted">Администратор</span>
+            <span className="text-[12.5px] font-bold text-fg">{displayName}</span>
+            <span className="text-[10px] text-fg-muted">Выйти</span>
           </span>
           <ChevronDown size={14} className="text-fg-faint" strokeWidth={2.4} />
         </button>
