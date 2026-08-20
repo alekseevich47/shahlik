@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
-import type { Product, ProductTag } from "@/entities/product/model"
+import type { Product } from "@/entities/product/model"
+import type { TagFilterId } from "@/entities/tag/model"
 import { ProductCard } from "@/entities/product/ui/ProductCard"
 import { useCategories } from "@/entities/category/api"
 import { useAddProduct } from "@/features/cart/lib/useAddProduct"
@@ -23,8 +24,8 @@ const FILTERS_MARGIN = `-${STICKY_BAR.top + STICKY_BAR.expanded}px 0px 0px 0px`
 type Props = {
   category: string
   onCategoryChange: (id: string) => void
-  tag: ProductTag | "all"
-  onTagChange: (tag: ProductTag | "all") => void
+  tag: TagFilterId
+  onTagChange: (tag: TagFilterId) => void
   items: Product[]
   onOpenSearch: () => void
   onOpenCart: () => void
@@ -108,7 +109,7 @@ export function DesktopHome({
           <HeroBanner />
 
           <div ref={filtersRef} className="mt-4">
-            <TagFilters value={tag} onChange={onTagChange} />
+            <TagFilters categoryId={category} value={tag} onChange={onTagChange} />
           </div>
 
           <section className="mt-4">

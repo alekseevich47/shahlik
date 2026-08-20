@@ -43,8 +43,8 @@ export type ProductNutrition = {
   carbs: number
 }
 
-/** Тег ленты фильтров под баннером. */
-export type ProductTag = "classic" | "spicy" | "cheese" | "bbq" | "sweet"
+/** Slug тега из `product_tags` (набор задаётся на категорию). */
+export type ProductTag = string
 
 export type Product = {
   id: string

@@ -1,5 +1,3 @@
-import type { ProductTag } from "@/entities/product/model"
-
 export const SITE = {
   name: "Шашлыковский",
   brandLogo: "/logo/logo.png",
@@ -16,14 +14,6 @@ export const ORDER_RULES = {
   freeDeliveryFrom: 800,
   promo: { code: "BOSS10", percent: 10, title: "Скидка 10%", subtitle: "на первый заказ по промокоду" },
 } as const
-
-export const TAG_FILTERS: ReadonlyArray<{ id: ProductTag | "all"; label: string; emoji?: string }> = [
-  { id: "all", label: "Все" },
-  { id: "classic", label: "Классика" },
-  { id: "spicy", label: "Острая", emoji: "🌶" },
-  { id: "cheese", label: "Сырная", emoji: "🧀" },
-  { id: "bbq", label: "BBQ", emoji: "🍖" },
-]
 
 export const BADGE_LABEL = {
   hit: "Хит",

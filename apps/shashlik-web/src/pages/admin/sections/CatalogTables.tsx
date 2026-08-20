@@ -11,6 +11,7 @@ import { minPrice } from "@/entities/product/lib"
 import type { Product } from "@/entities/product/model"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { DataTable, type Column } from "@/pages/admin/ui/DataTable"
+import { CategoryTagsEditor } from "@/pages/admin/sections/CategoryTagsEditor"
 import { formatDate, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -114,37 +115,35 @@ export function CategoriesTable() {
   const pending = categoriesPending || productsPending
 
   return (
-    <AdminCard title={`Категории · ${categories.length}`} bodyClassName="p-1">
-      <DataTable
-        rows={categories}
-        rowKey={(c) => c.id}
-        empty={pending ? "Загрузка…" : undefined}
-        columns={[
-          {
-            key: "name",
-            header: "Категория",
-            render: (row) => (
-              <span className="flex items-center gap-2.5">
-                {row.icon ? (
-                  <img src={row.icon} alt="" className="size-7 object-contain" />
-                ) : (
-                  <span className="size-7 rounded-[var(--r-xs)] bg-surface-3" />
-                )}
-                <span className="text-[12.5px] font-bold text-fg">{row.name}</span>
-              </span>
-            ),
-          },
-          { key: "id", header: "ID", render: (row) => row.id },
-          {
-            key: "count",
-            header: "Товаров",
-            className: "tabular-nums",
-            render: (row) => products.filter((p) => p.categoryId === row.id).length,
-          },
-          { key: "order", header: "Порядок", className: "tabular-nums", render: (row) => row.order },
-        ]}
-      />
-    </AdminCard>
+    <div className="flex flex-col gap-4">
+      {pending ? (
+        <p className="py-12 text-center text-[13px] font-semibold text-fg-muted">Загрузка…</p>
+      ) : (
+        categories.map((category) => (
+          <AdminCard
+            key={category.id}
+            title={category.name}
+            bodyClassName="flex flex-col gap-4 p-4"
+          >
+            <div className="flex items-center gap-2.5">
+              {category.icon ? (
+                <img src={category.icon} alt="" className="size-9 object-contain" />
+              ) : (
+                <span className="size-9 rounded-[var(--r-xs)] bg-surface-3" />
+              )}
+              <div className="min-w-0 flex-1 leading-tight">
+                <p className="text-[12px] font-bold text-fg-muted">{category.id}</p>
+                <p className="text-[12.5px] text-fg-soft">
+                  {products.filter((p) => p.categoryId === category.id).length} товаров · порядок{" "}
+                  {category.order}
+                </p>
+              </div>
+            </div>
+            <CategoryTagsEditor categoryId={category.id} />
+          </AdminCard>
+        ))
+      )}
+    </div>
   )
 }
 

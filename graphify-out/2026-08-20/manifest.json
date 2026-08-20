@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/router.tsx": {
-    "mtime": 1787188748.2509408,
-    "ast_hash": "a70f40b09e58d22815642130f7dc13f6",
+    "mtime": 1787199670.2248068,
+    "ast_hash": "87bac671877a917a560c9a017bec4771",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/addon/model.ts": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/AdminPage.tsx": {
-    "mtime": 1786988558.4847002,
-    "ast_hash": "ec143725a83e7a3de8c400c6ea65894d",
+    "mtime": 1787199490.798904,
+    "ast_hash": "3f14321347c63178ea9c3c73ed8f0b45",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/model.ts": {
@@ -290,13 +290,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/CatalogTables.tsx": {
-    "mtime": 1786988544.9023721,
-    "ast_hash": "bbf89d62bac337b7350e221f0a419aeb",
+    "mtime": 1787199490.4296372,
+    "ast_hash": "4ac0bd2abd229bdd1d419e022708e90c",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx": {
-    "mtime": 1786988499.9061704,
-    "ast_hash": "b1b12a1f4e3ef88aa1aeb80e0d29ad1d",
+    "mtime": 1787199509.3142529,
+    "ast_hash": "02d8363d0e9c08d162f323b151ce5260",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/AdminCard.tsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/AdminTopbar.tsx": {
-    "mtime": 1786988426.79929,
-    "ast_hash": "4db74859cfb136ff3eaf804d616ec477",
+    "mtime": 1787199675.5318556,
+    "ast_hash": "02cf82be745625bfe5c4594cecb5e3c8",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/DataTable.tsx": {
@@ -750,8 +750,18 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/api.ts": {
-    "mtime": 1787195044.385381,
-    "ast_hash": "64a8831596ee582eeeaf0b35a7c7cd53",
+    "mtime": 1787199482.4775202,
+    "ast_hash": "972a1f312c1d55084a7d74f0c6c50328",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/admin/AdminLogin.tsx": {
+    "mtime": 1787199687.1520293,
+    "ast_hash": "88ab1c2e9fc18575f1224fbb02d84308",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/shared/api/auth.ts": {
+    "mtime": 1787199685.4962876,
+    "ast_hash": "4fd79103152af0e3dbcecd00cae643b2",
     "semantic_hash": ""
   }
 }

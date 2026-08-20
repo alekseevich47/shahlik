@@ -90,6 +90,124 @@
     ]
   },
   {
+    "id": "pbc_shahlik_product_tags",
+    "name": "product_tags",
+    "type": "base",
+    "system": false,
+    "listRule": "",
+    "viewRule": "",
+    "createRule": "@request.auth.role = \"admin\"",
+    "updateRule": "@request.auth.role = \"admin\"",
+    "deleteRule": "@request.auth.role = \"admin\"",
+    "indexes": [
+      "CREATE INDEX `idx_product_tags_category` ON `product_tags` (`categoryId`)",
+      "CREATE UNIQUE INDEX `idx_product_tags_cat_slug` ON `product_tags` (`categoryId`, `slug`)"
+    ],
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "cascadeDelete": true,
+        "collectionId": "pbc_shahlik_categories",
+        "hidden": false,
+        "id": "rel_ptag_category",
+        "maxSelect": 1,
+        "minSelect": 0,
+        "name": "categoryId",
+        "presentable": true,
+        "required": true,
+        "system": false,
+        "type": "relation"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_ptag_slug",
+        "max": 40,
+        "min": 1,
+        "name": "slug",
+        "pattern": "^[a-z0-9-]+$",
+        "presentable": false,
+        "primaryKey": false,
+        "required": true,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_ptag_name",
+        "max": 40,
+        "min": 1,
+        "name": "name",
+        "pattern": "",
+        "presentable": true,
+        "primaryKey": false,
+        "required": true,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_ptag_emoji",
+        "max": 8,
+        "min": 0,
+        "name": "emoji",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "num_ptag_order",
+        "max": null,
+        "min": null,
+        "name": "order",
+        "onlyInt": true,
+        "presentable": false,
+        "required": true,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      }
+    ]
+  },
+  {
     "id": "pbc_shahlik_products",
     "name": "products",
     "type": "base",
@@ -253,20 +371,13 @@
       },
       {
         "hidden": false,
-        "id": "sel_prod_tags",
-        "maxSelect": 5,
+        "id": "json_prod_tags",
+        "maxSize": 0,
         "name": "tags",
         "presentable": false,
         "required": false,
         "system": false,
-        "type": "select",
-        "values": [
-          "classic",
-          "spicy",
-          "cheese",
-          "bbq",
-          "sweet"
-        ]
+        "type": "json"
       },
       {
         "hidden": false,

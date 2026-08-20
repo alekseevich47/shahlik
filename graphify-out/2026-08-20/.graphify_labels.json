@@ -1,4 +1,5 @@
 {
+  "0": "addon/api.ts",
   "1": "UI Layout Components",
   "2": "NPM Dependencies",
   "3": "TS Config Tooling",
@@ -19,7 +20,9 @@
   "18": "Vite Figma Plugins",
   "19": "analyze-routes Script",
   "20": "FloatingActions.tsx",
+  "21": "product/api.ts",
   "22": "DesktopHome.tsx",
   "23": "gen-glass-noise.mjs",
-  "24": "pb.ts"
+  "24": "pb.ts",
+  "25": "FloatingActions.tsx"
 }

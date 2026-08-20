@@ -25,7 +25,7 @@ type ProductRecord = {
   image: string
   badge?: ProductBadge
   nutrition: ProductNutrition
-  tags?: ProductTag[]
+  tags?: unknown
   variants: ProductVariant[]
   sizes: ProductSize[]
   rating: ProductRating
@@ -34,6 +34,11 @@ type ProductRecord = {
   stats: Product["stats"]
   created: string
   updated: string
+}
+
+function mapTagSlugs(raw: unknown): ProductTag[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter((item): item is string => typeof item === "string" && item.length > 0)
 }
 
 function mapProduct(record: ProductRecord): Product {
@@ -48,7 +53,7 @@ function mapProduct(record: ProductRecord): Product {
     image: pb.files.getUrl(record, record.image),
     badge: record.badge,
     nutrition: record.nutrition,
-    tags: record.tags ?? [],
+    tags: mapTagSlugs(record.tags),
     variants: record.variants,
     sizes: record.sizes,
     rating: record.rating,
@@ -138,6 +143,7 @@ export type UpdateProductInput = {
   categoryId?: CategoryId
   composition?: string
   rating?: ProductRating
+  tags?: ProductTag[]
 }
 
 export async function updateProduct(id: string, data: UpdateProductInput): Promise<Product> {

@@ -20,11 +20,13 @@ import { useCategories } from "@/entities/category/api"
 import { useDeleteProduct, useUpdateProduct } from "@/entities/product/api"
 import { minPrice, priceOf } from "@/entities/product/lib"
 import type { Product } from "@/entities/product/model"
+import { useCategoryTags } from "@/entities/tag/api"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
+import { Chip } from "@/shared/ui/chip"
 import { Field, Input, Textarea } from "@/shared/ui/input"
 import { scoreColor } from "@/shared/ui/rating"
 
@@ -42,6 +44,8 @@ export function ProductEditor({ product, onBack }: Props) {
   const [name, setName] = useState(product.name)
   const [categoryId, setCategoryId] = useState<string>(product.categoryId)
   const [composition, setComposition] = useState(product.composition)
+  const [tags, setTags] = useState<string[]>(product.tags)
+  const { data: categoryTags, isPending: categoryTagsPending } = useCategoryTags(categoryId)
   const [criteria, setCriteria] = useState(product.rating.criteria)
   const [ingredients, setIngredients] = useState(() =>
     product.composition
@@ -59,6 +63,7 @@ export function ProductEditor({ product, onBack }: Props) {
           name,
           categoryId: categoryId as CategoryId,
           composition,
+          tags,
           rating: { ...product.rating, criteria },
         },
       })
@@ -132,7 +137,11 @@ export function ProductEditor({ product, onBack }: Props) {
               <Field label="Категория">
                 <select
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
+                  onChange={(e) => {
+                    const next = e.target.value
+                    setCategoryId(next)
+                    setTags([])
+                  }}
                   className="h-11 w-full cursor-pointer rounded-[var(--r-md)] border border-line bg-surface px-3.5 text-[14px] font-semibold text-fg outline-none focus:border-brand-border"
                 >
                   {categories.map((category) => (
@@ -141,6 +150,36 @@ export function ProductEditor({ product, onBack }: Props) {
                     </option>
                   ))}
                 </select>
+              </Field>
+
+              <Field label="Теги фильтра">
+                {categoryTags.length ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {categoryTags.map((tag) => {
+                      const on = tags.includes(tag.slug)
+                      return (
+                        <Chip
+                          key={tag.id}
+                          active={on}
+                          onClick={() =>
+                            setTags((list) =>
+                              on ? list.filter((s) => s !== tag.slug) : [...list, tag.slug],
+                            )
+                          }
+                        >
+                          {tag.name}
+                          {tag.emoji ? <span>{tag.emoji}</span> : null}
+                        </Chip>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[12.5px] text-fg-muted">
+                    {categoryTagsPending
+                      ? "Загрузка…"
+                      : "У категории нет тегов — добавьте во вкладке «Категории»"}
+                  </p>
+                )}
               </Field>
 
               <Field label="Краткое описание" hint={`${composition.length}/200`}>

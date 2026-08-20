@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react"
 
-import type { Product, ProductTag } from "@/entities/product/model"
+import type { Product } from "@/entities/product/model"
+import type { TagFilterId } from "@/entities/tag/model"
 import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
 import { useCategories } from "@/entities/category/api"
 import { useProducts } from "@/entities/product/api"
@@ -14,8 +15,8 @@ import { PromoBanner } from "@/widgets/promo/PromoBanner"
 type Props = {
   category: string
   onCategoryChange: (id: string) => void
-  tag: ProductTag | "all"
-  onTagChange: (tag: ProductTag | "all") => void
+  tag: TagFilterId
+  onTagChange: (tag: TagFilterId) => void
   items: Product[]
 }
 
@@ -54,7 +55,7 @@ export function MobileHome({
             {categories.find((c) => c.id === category)?.name}
           </h2>
         </div>
-        <TagFilters value={tag} onChange={onTagChange} className="mb-3" />
+        <TagFilters categoryId={category} value={tag} onChange={onTagChange} className="mb-3" />
         {items.length === 0 ? (
           <p className="rounded-[var(--r-lg)] border border-dashed border-line-strong py-10 text-center text-[13px] font-semibold text-fg-muted">
             В этой категории пока пусто

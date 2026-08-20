@@ -13,7 +13,7 @@ alwaysApply: false
 ## Контекст
 
 - **Бренд**: «Шашлыковский» — шаурма, шашлык, пицца, комбо, гарниры, напитки, соусы. Получение: «Заберу сам» / «Надо привезти».
-- **Данные — PocketBase.** Клиент читает каталог (категории/товары/добавки/баннеры) напрямую через PocketBase JS SDK + TanStack Query. Заказы пишутся в коллекцию `orders`; мост к кассе Frontpad — только `pb_hooks` на стороне PocketBase (клиент Frontpad не зовёт и секрета не видит). Схема коллекций, `pb_hooks`, API-правила — `Tasks/TASK_DB.md`. Моки (`src/mocks/*`) остаются справочными данными для сида, из кода витрины не импортируются.
+- **Данные — PocketBase.** Клиент читает каталог (категории/теги фильтров/товары/добавки/баннеры) напрямую через PocketBase JS SDK + TanStack Query. Заказы пишутся в коллекцию `orders`; мост к кассе Frontpad — только `pb_hooks` на стороне PocketBase (клиент Frontpad не зовёт и секрета не видит). Схема коллекций, `pb_hooks`, API-правила — `Tasks/TASK_DB.md`. Моки (`src/mocks/*`) остаются справочными данными для сида, из кода витрины не импортируются.
 - **Dev**: `cd apps/shashlik-web && pnpm dev` → `http://localhost:5273`. Не путать с корневым Vite (порт 8443 / Figma Make).
 - **Прод**: `https://shashlik.loomixx.ru` (см. раздел «Прод»).
 - **Пакетный менеджер**: pnpm. Скрипты: `dev`, `build` (`tsc -b && vite build`), `preview`, `typecheck`.
@@ -47,7 +47,7 @@ alwaysApply: false
 | pages | `src/pages/*/` | Сборка экрана. Состояние экрана (категория, вкладка админки) живёт здесь |
 | widgets | `src/widgets/` | Крупные блоки витрины: сайдбар, баннер, мобильный chrome |
 | features | `src/features/` | Сценарии: корзина, поиск, переключатель темы |
-| entities | `src/entities/*/` | Типы + чистые функции + UI сущности (`ProductCard`) |
+| entities | `src/entities/*/` | Типы + чистые функции + UI сущности (`ProductCard`). Теги фильтров — `entities/tag` |
 | shared | `src/shared/` | Токены-утилиты, UI-примитивы, конфиг сайта, хуки |
 | mocks | `src/mocks/` | Справочные данные для сида PocketBase; из кода витрины **не импортируются** |
 
@@ -80,9 +80,9 @@ apps/shashlik-web/
     pages/admin/             # админка (моки, без persist каталога)
     widgets/sidebar|hero|catalog|header|mobile|promo  # header: FloatingActions + StickyBar
     features/cart|search|theme-toggle  # cart: store + panel (колонка ≥1280) + CartToggle
-    entities/product|category|addon|banner|order  # category/ui: CategoryIcon
+    entities/product|category|addon|banner|order|tag  # category/ui: CategoryIcon; tag: фильтры витрины
     shared/ui|lib|config|hooks
-    mocks/products|categories|addons|banners|orders
+    mocks/products|categories|addons|banners|orders|tags
 ```
 
 ## Маршруты
@@ -147,6 +147,8 @@ apps/shashlik-web/
 
 `id`: `shawarma | shashlik | pizza | combo | sides | drinks | sauces`. Поля: `name`, `icon` (PNG из `/icons` или `null` у соусов), `order`. Seed: `mocks/categories.ts`.
 
+Фильтры под баннером — коллекция `product_tags` (`entities/tag`): `{ slug, name, emoji, order }` + relation `categoryId`. Набор свой у каждой категории (шаурма ≠ пицца). Чип «Все» синтетический, в PB не хранится. Seed: `mocks/tags.ts`. CRUD — вкладка «Категории» в `/admin`.
+
 ### Product (карточка вкуса, не SKU)
 
 Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
@@ -155,7 +157,7 @@ apps/shashlik-web/
 - `sizes[]`: `{ id, label, price, article? }` — **артикул кассы живёт на размере**
 - Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
-- `tags`: `classic | spicy | cheese | bbq | sweet` — фильтры под баннером
+- `tags`: slug[] из `product_tags` своей категории (не глобальный enum)
 - `badge`: `hit | new | spicy`
 - `nutrition`: `{ kcal, fat, protein, carbs }` на 100 г. Дефолт по категории в `mocks/products.ts` (`NUTRITION_BY_CATEGORY`)
 - `rating.overall` 0–10, `criteria[].value` 0–5 шаг ½. Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
@@ -194,7 +196,7 @@ Desktop (`DesktopHome`, ≥1024):
 
 1. **Sidebar** — категории + промо `BOSS10` + ссылка «Войти» → `/admin`
 2. **HeroBanner** — карусель `mocks/banners.ts`, стрелки-хитзоны по краям, dots
-3. **TagFilters** — Все / Классика / Острая / Сырная / BBQ
+3. **TagFilters** — «Все» + теги активной категории из `product_tags` (spring / `popLayout` при смене категории). На стекле плашки — без layout-анимации.
 4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard`
 5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг и «Добавить» в dark — `text-fg` (белые, звезда тоже). «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Высота блока названия/состава фиксирована (`min-h-[2lh]` / `h-[3lh]`), рейтинг `truncate` + `shrink-0` — без скачка текста при смене ширины колонки.
 
@@ -220,7 +222,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role=admin`), гейт на `/admin` в `router.tsx`. Дублировать / сброс кэша — пока тосты (не задача этой интеграции).
 
-Вкладки: Товары, Категории, Баннеры, Добавки, Заказы, Отзывы (`pages/admin/model.ts`). Товары → клик строки открывает `ProductEditor` (форма + превью + статистика).
+Вкладки: Товары, Категории, Баннеры, Добавки, Заказы, Отзывы (`pages/admin/model.ts`). Категории — карточка + теги фильтров (`CategoryTagsEditor`). Товары → клик строки открывает `ProductEditor` (форма + превью + статистика; теги — мультивыбор из тегов категории).
 
 Ссылка «На сайт» / логотип → `/`.
 
@@ -230,7 +232,7 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 |-----|------|
 | Sidebar | `widgets/sidebar/Sidebar.tsx` |
 | HeroBanner | `widgets/hero/HeroBanner.tsx` |
-| TagFilters | `widgets/catalog/TagFilters.tsx` |
+| TagFilters | `widgets/catalog/TagFilters.tsx` — «Все» + теги категории из PB |
 | ProductCard | `entities/product/ui/ProductCard.tsx` — «Добавить» по hover (`.product-card-add`: fade + 0fr→1fr, без translate). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | CartPanel | `features/cart/ui/CartPanel.tsx` |
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |

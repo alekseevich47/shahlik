@@ -1,10 +1,10 @@
-import type { ProductTag } from "@/entities/product/model"
 import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
-import { TAG_FILTERS } from "@/shared/config/site"
+import type { TagFilterId } from "@/entities/tag/model"
 import { cn } from "@/shared/lib/cn"
 import { Chip } from "@/shared/ui/chip"
 import { Glass } from "@/shared/ui/glass"
+import { TagFilters } from "@/widgets/catalog/TagFilters"
 import { FloatingActions } from "@/widgets/header/FloatingActions"
 
 /**
@@ -30,8 +30,8 @@ type Props = {
   animating?: boolean
   category: string
   onCategoryChange: (id: string) => void
-  tag: ProductTag | "all"
-  onTagChange: (tag: ProductTag | "all") => void
+  tag: TagFilterId
+  onTagChange: (tag: TagFilterId) => void
   onSearch: () => void
   onCart: () => void
   cartPressed?: boolean
@@ -100,19 +100,15 @@ export function StickyBar({
 
         <div className="sticky-bar-tags">
           <div>
-            <div className="sticky-bar-fade scrollbar-none flex gap-2 overflow-x-auto px-2 pb-2">
-              {TAG_FILTERS.map((filter) => (
-                <Chip
-                  key={filter.id}
-                  active={filter.id === tag}
-                  onClick={() => onTagChange(filter.id)}
-                  className={cn(filter.id === tag ? GLASS_CHIP_ACTIVE : GLASS_CHIP)}
-                >
-                  {filter.label}
-                  {filter.emoji ? <span>{filter.emoji}</span> : null}
-                </Chip>
-              ))}
-            </div>
+            <TagFilters
+              categoryId={category}
+              value={tag}
+              onChange={onTagChange}
+              layoutGroup="glass-tags"
+              animated={false}
+              className="sticky-bar-fade px-2 pb-2"
+              chipClassName={(active) => (active ? GLASS_CHIP_ACTIVE : GLASS_CHIP)}
+            />
           </div>
         </div>
       </Glass>
