@@ -48,7 +48,7 @@
 
 ### Env / инфра
 
-- `VITE_PB_URL` — клиентский base URL (не секрет): прод — пустая строка/same-origin, dev — адрес dev/staging PB.
+- `VITE_PB_URL` — base URL **без** `/api` (SDK добавляет сам): прод — не задавать (берётся `window.location.origin`), dev — `http://127.0.0.1:8090` или staging origin.
 - Nginx/systemd — уже готовы (см. `stack_new.mdc`, раздел «Прод»), доп. правок не требуют.
 
 ## Зона кода — делает агент (после того как коллекции выше созданы)
