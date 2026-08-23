@@ -241,9 +241,9 @@ function processSendJob(job) {
 
 function processSyncJob(job) {
   var sync = require(__hooks + "/lib/sync.js")
+  var outcome = null
 
   try {
-    var outcome
     if (job.kind === "sync_products") {
       outcome = sync.syncProducts()
     } else if (job.kind === "sync_stops") {
@@ -269,8 +269,35 @@ function processSyncJob(job) {
   }
 }
 
+function recoverStaleRunningJobs() {
+  var cutoff = new Date(Date.now() - 5 * 60 * 1000)
+  var cutoffStr = formatPbDateTime(cutoff)
+  var records = $app.findRecordsByFilter(
+    "frontpad_jobs",
+    'status = "' + JOB_STATUS.RUNNING + '" && updated < {:cutoff}',
+    "-updated",
+    50,
+    0,
+    { cutoff: cutoffStr },
+  )
+
+  for (var i = 0; i < records.length; i++) {
+    var record = records[i]
+    record.set("status", JOB_STATUS.QUEUED)
+    record.set("error", "Сброшено: зависло в running")
+    $app.save(record)
+  }
+}
+
 /** Cron-воркер: ≤2 отправки и ≤1 синхронизация за тик. */
 function runWorkerTick() {
+  var config = require(__hooks + "/lib/config.js")
+  if (!config.getSecret()) {
+    return
+  }
+
+  recoverStaleRunningJobs()
+
   var sendCount = 0
   while (sendCount < MAX_SEND_PER_TICK) {
     var sendJob = claimNextJob(SEND_KINDS)

@@ -1,10 +1,16 @@
 // Регистрации хуков, роутов и cron для интеграции Frontpad.
 // require(`${__hooks}/lib/…`) — только внутри обработчиков (JSVM).
 //
+// Cron можно выключить env FRONTPAD_CRON=0 (systemd unit).
+//
 // Шаг 3: onRecordAfterCreateSuccess("orders") → send.sendOrder
 // Шаг 4: cronAdd("frontpad-worker", …) → jobs.runWorkerTick
 // Шаг 5: cronAdd sync_stops / sync_products → sync.*
 // Шаг 6: routerAdd POST /api/webhooks/frontpad/status
+
+function frontpadCronEnabled() {
+  return $os.getenv("FRONTPAD_CRON") !== "0"
+}
 
 onRecordCreateRequest(function (e) {
   var order = require(__hooks + "/lib/order.js")
@@ -43,35 +49,37 @@ onRecordAfterCreateSuccess(function (e) {
   }
 }, "orders")
 
-cronAdd("frontpad-worker", "* * * * *", function () {
-  var logger = $app.logger()
-  try {
-    var jobs = require(__hooks + "/lib/jobs.js")
-    jobs.runWorkerTick()
-  } catch (err) {
-    logger.error("frontpad worker tick failed", "error", String(err))
-  }
-})
+if (frontpadCronEnabled()) {
+  cronAdd("frontpad-worker", "* * * * *", function () {
+    var logger = $app.logger()
+    try {
+      var jobs = require(__hooks + "/lib/jobs.js")
+      jobs.runWorkerTick()
+    } catch (err) {
+      logger.error("frontpad worker tick failed", "error", String(err))
+    }
+  })
 
-cronAdd("frontpad-sync-stops", "*/15 * * * *", function () {
-  var logger = $app.logger()
-  try {
-    var jobs = require(__hooks + "/lib/jobs.js")
-    jobs.enqueueJob("sync_stops", {})
-  } catch (err) {
-    logger.error("frontpad sync_stops enqueue failed", "error", String(err))
-  }
-})
+  cronAdd("frontpad-sync-stops", "*/15 * * * *", function () {
+    var logger = $app.logger()
+    try {
+      var jobs = require(__hooks + "/lib/jobs.js")
+      jobs.enqueueJob("sync_stops", {})
+    } catch (err) {
+      logger.error("frontpad sync_stops enqueue failed", "error", String(err))
+    }
+  })
 
-cronAdd("frontpad-sync-products", "0 * * * *", function () {
-  var logger = $app.logger()
-  try {
-    var jobs = require(__hooks + "/lib/jobs.js")
-    jobs.enqueueJob("sync_products", {})
-  } catch (err) {
-    logger.error("frontpad sync_products enqueue failed", "error", String(err))
-  }
-})
+  cronAdd("frontpad-sync-products", "0 * * * *", function () {
+    var logger = $app.logger()
+    try {
+      var jobs = require(__hooks + "/lib/jobs.js")
+      jobs.enqueueJob("sync_products", {})
+    } catch (err) {
+      logger.error("frontpad sync_products enqueue failed", "error", String(err))
+    }
+  })
+}
 
 routerAdd("POST", "/api/webhooks/frontpad/status", function (e) {
   var webhook = require(__hooks + "/lib/webhook.js")
