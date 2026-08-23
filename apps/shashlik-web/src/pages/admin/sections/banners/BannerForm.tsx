@@ -34,33 +34,18 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
   const updateBanner = useUpdateBanner()
   const busy = createBanner.isPending || updateBanner.isPending
 
-  const [title, setTitle] = useState("")
-  const [subtitle, setSubtitle] = useState("")
   const [noteTitle, setNoteTitle] = useState("")
   const [noteText, setNoteText] = useState("")
   const [image, setImage] = useState<File | null>(null)
 
   useEffect(() => {
     if (!open) return
-    setTitle(banner?.title ?? "")
-    setSubtitle(banner?.subtitle ?? "")
     setNoteTitle(banner?.note?.title ?? "")
     setNoteText(banner?.note?.text ?? "")
     setImage(null)
   }, [open, banner])
 
   async function submit() {
-    const trimmedTitle = title.trim()
-    const trimmedSubtitle = subtitle.trim()
-
-    if (!trimmedTitle) {
-      toast.error("Укажите заголовок")
-      return
-    }
-    if (!trimmedSubtitle) {
-      toast.error("Укажите подзаголовок")
-      return
-    }
     if (!isEdit && !image) {
       toast.error("Добавьте изображение")
       return
@@ -73,16 +58,12 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
         await updateBanner.mutateAsync({
           id: banner.id,
           data: {
-            title: trimmedTitle,
-            subtitle: trimmedSubtitle,
             note,
             ...(image ? { image } : {}),
           },
         })
       } else {
         await createBanner.mutateAsync({
-          title: trimmedTitle,
-          subtitle: trimmedSubtitle,
           order: nextOrder,
           note,
           image: image!,
@@ -121,28 +102,6 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
               value={image}
               onChange={setImage}
               maxBytes={IMAGE_MAX_BYTES.banner}
-              disabled={busy}
-            />
-          </Field>
-
-          <Field label="Заголовок">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Шаурма"
-              maxLength={200}
-              required
-              disabled={busy}
-            />
-          </Field>
-
-          <Field label="Подзаголовок">
-            <Input
-              value={subtitle}
-              onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="Сочная, сытная и свежая"
-              maxLength={500}
-              required
               disabled={busy}
             />
           </Field>

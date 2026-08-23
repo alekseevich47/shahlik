@@ -6,8 +6,6 @@ import { BANNER_ASPECT_RATIO } from "@/entities/banner/format"
 import { cn } from "@/shared/lib/cn"
 
 const AUTOPLAY_MS = 6000
-/** Временно: только картинка, без заголовка и подзаголовка на витрине. */
-const SHOW_BANNER_TEXT = false
 
 export function HeroBanner({ className }: { className?: string }) {
   const { data: banners = [] } = useBanners()
@@ -50,25 +48,6 @@ export function HeroBanner({ className }: { className?: string }) {
           )}
         />
       ))}
-
-      {SHOW_BANNER_TEXT ? (
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_30%,color-mix(in_srgb,var(--surface)_72%,transparent)_48%,transparent_78%)] sm:bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_26%,color-mix(in_srgb,var(--surface)_55%,transparent)_46%,transparent_72%)]" />
-      ) : null}
-
-      {SHOW_BANNER_TEXT ? (
-        <div className="relative flex h-full max-w-[62%] flex-col justify-center gap-1.5 px-5 sm:max-w-none sm:px-8">
-          {active ? (
-            <>
-              <h1 className="text-[28px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[42px] lg:text-[46px]">
-                {active.title}
-              </h1>
-              <p className="text-[12px] leading-snug font-semibold text-fg-muted sm:text-[14px]">
-                {active.subtitle}
-              </p>
-            </>
-          ) : null}
-        </div>
-      ) : null}
 
       {active?.note ? (
         <div className="absolute right-4 bottom-4 hidden items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur-md sm:flex">

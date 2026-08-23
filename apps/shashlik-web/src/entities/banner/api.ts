@@ -11,8 +11,6 @@ export type BannerNote = { title: string; text: string }
 
 type BannerRecord = {
   id: string
-  title: string
-  subtitle: string
   image: string
   note?: BannerNote | null
   order: number
@@ -23,8 +21,6 @@ function mapBanner(record: BannerRecord): Banner {
     record.note && (record.note.title || record.note.text) ? record.note : undefined
   return {
     id: record.id,
-    title: record.title,
-    subtitle: record.subtitle,
     image: imageUrl(record, "image"),
     note,
     order: record.order,
@@ -68,16 +64,12 @@ export function useBanner(id: string) {
 }
 
 export type CreateBannerInput = {
-  title: string
-  subtitle: string
   order: number
   note?: BannerNote | null
   image: File
 }
 
 export type UpdateBannerInput = {
-  title?: string
-  subtitle?: string
   order?: number
   /** Объект или `null`, чтобы очистить плашку. */
   note?: BannerNote | null
@@ -102,8 +94,6 @@ const BANNER_MAX_BYTES = 5_242_880
 
 /** FormData: `note: null` → JSON null (toFormData иначе шлёт "" как удаление файла). */
 async function bannerFormData(data: {
-  title?: string
-  subtitle?: string
   order?: number
   note?: BannerNote | null
   image?: File | null
@@ -126,8 +116,6 @@ export function useCreateBanner() {
     mutateAsync: async (input: CreateBannerInput) =>
       mutation.mutateAsync(
         (await bannerFormData({
-          title: input.title,
-          subtitle: input.subtitle,
           order: input.order,
           note: input.note,
           image: input.image,
@@ -143,8 +131,6 @@ export function useUpdateBanner() {
     mutateAsync: async (args: { id: string; data: UpdateBannerInput }) => {
       const { note, image, ...rest } = args.data
       const payload: {
-        title?: string
-        subtitle?: string
         order?: number
         note?: BannerNote | null
         image?: File | null

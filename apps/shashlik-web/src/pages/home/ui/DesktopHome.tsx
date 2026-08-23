@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import { ALL_CATEGORY } from "@/entities/category/model"
 import type { Product } from "@/entities/product/model"
 import type { TagFilterId } from "@/entities/tag/model"
 import { ProductCard } from "@/entities/product/ui/ProductCard"
@@ -15,6 +16,8 @@ import { STICKY_BAR, StickyBar } from "@/widgets/header/StickyBar"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
 import { Sidebar } from "@/widgets/sidebar/Sidebar"
 import { TagFilters } from "@/widgets/catalog/TagFilters"
+
+import { groupProductsByCategory } from "../lib/groupByCategory"
 
 /** Маяк действий пропал под верхом плашки → плашка выезжает. */
 const ACTIONS_MARGIN = `-${STICKY_BAR.top}px 0px 0px 0px`
@@ -62,6 +65,9 @@ export function DesktopHome({
   // Треки, выезд панелей и геометрия плашки едут одним переходом — метим их
   // одним флагом, чтобы дорогие эффекты выключались ровно на эти кадры.
   const animating = useSettling(`${barVisible}|${barExpanded}|${cartState}`)
+  const allCategories = category === ALL_CATEGORY
+  const sections = allCategories ? groupProductsByCategory(items, categories) : null
+  const activeCategory = categories.find((c) => c.id === category)
 
   return (
     <div className="mx-auto w-full max-w-[1680px] px-5 py-5">
@@ -113,15 +119,22 @@ export function DesktopHome({
           </div>
 
           <section className="mt-4">
-            <h2 className="sr-only">{categories.find((c) => c.id === category)?.name}</h2>
             {items.length === 0 ? (
-              <EmptyCategory />
-            ) : (
-              <div className="grid grid-cols-2 xl:grid-cols-3" style={{ gap: "var(--catalog-gap)" }}>
-                {items.map((product) => (
-                  <ProductCard key={product.id} product={product} onAdd={addProduct} />
+              <EmptyCategory all={allCategories} />
+            ) : allCategories && sections ? (
+              <div className="flex flex-col gap-8">
+                {sections.map(({ category: section, items: sectionItems }) => (
+                  <div key={section.id}>
+                    <h2 className="mb-3 text-[18px] font-extrabold text-fg">{section.name}</h2>
+                    <ProductGrid items={sectionItems} onAdd={addProduct} />
+                  </div>
                 ))}
               </div>
+            ) : (
+              <>
+                <h2 className="sr-only">{activeCategory?.name}</h2>
+                <ProductGrid items={items} onAdd={addProduct} />
+              </>
             )}
           </section>
         </main>
@@ -132,12 +145,26 @@ export function DesktopHome({
   )
 }
 
-function EmptyCategory() {
+function ProductGrid({ items, onAdd }: { items: Product[]; onAdd: (product: Product) => void }) {
+  return (
+    <div className="grid grid-cols-2 xl:grid-cols-3" style={{ gap: "var(--catalog-gap)" }}>
+      {items.map((product) => (
+        <ProductCard key={product.id} product={product} onAdd={onAdd} />
+      ))}
+    </div>
+  )
+}
+
+function EmptyCategory({ all }: { all: boolean }) {
   return (
     <div className="grid place-items-center rounded-[var(--r-xl)] border border-dashed border-line-strong py-20 text-center">
-      <p className="text-[15px] font-bold text-fg-soft">В этой категории пока пусто</p>
+      <p className="text-[15px] font-bold text-fg-soft">
+        {all ? "В меню пока пусто" : "В этой категории пока пусто"}
+      </p>
       <p className="mt-1 text-[13px] text-fg-muted">
-        Скоро добавим — загляните в «Шаурму» или «Шашлык»
+        {all
+          ? "Скоро добавим блюда — загляните позже"
+          : "Скоро добавим — загляните в «Шаурму» или «Шашлык»"}
       </p>
     </div>
   )

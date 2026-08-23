@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 
+import { ALL_CATEGORY } from "@/entities/category/model"
 import { useProducts } from "@/entities/product/api"
 import { ALL_TAG, type TagFilterId } from "@/entities/tag/model"
 import { CartPanel } from "@/features/cart/ui/CartPanel"
@@ -15,7 +16,7 @@ import { MobileHome } from "./ui/MobileHome"
 
 export default function HomePage() {
   const { data: products = [] } = useProducts()
-  const [category, setCategory] = useState<string>("shawarma")
+  const [category, setCategory] = useState<string>(ALL_CATEGORY)
   const [tag, setTag] = useState<TagFilterId>(ALL_TAG)
   const [searchOpen, setSearchOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
@@ -24,8 +25,13 @@ export default function HomePage() {
   const isDesktop = useIsDesktop()
 
   const items = useMemo(() => {
-    const list = products.filter((p) => p.active && p.categoryId === category)
-    return tag === ALL_TAG ? list : list.filter((p) => p.tags.includes(tag))
+    const list = products.filter((p) => {
+      if (!p.active) return false
+      if (category !== ALL_CATEGORY && p.categoryId !== category) return false
+      if (tag !== ALL_TAG && !p.tags.includes(tag)) return false
+      return true
+    })
+    return list
   }, [products, category, tag])
 
   const selectCategory = (id: string) => {

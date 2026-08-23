@@ -30,14 +30,9 @@ export function BannersSection() {
   const busy = updateBanner.isPending || deleteBanner.isPending
 
   const filtered = query.trim()
-    ? banners.filter((b) => {
-        const q = query.trim().toLowerCase()
-        return (
-          b.title.toLowerCase().includes(q) ||
-          b.subtitle.toLowerCase().includes(q) ||
-          (b.note?.title.toLowerCase().includes(q) ?? false)
-        )
-      })
+    ? banners.filter((b) =>
+        (b.note?.title ?? "").toLowerCase().includes(query.trim().toLowerCase()),
+      )
     : banners
 
   const openCreate = () => {
@@ -68,9 +63,9 @@ export function BannersSection() {
     }
   }
 
-  const handleDelete = async (banner: Banner) => {
+  const handleDelete = async (banner: Banner, label: string) => {
     const ok = await confirm({
-      title: `Удалить «${banner.title}»?`,
+      title: `Удалить ${label}?`,
       description: "Баннер исчезнет из карусели на главной.",
       confirmLabel: "Удалить",
       cancelLabel: "Отмена",
@@ -94,7 +89,7 @@ export function BannersSection() {
       description="Карусель на главной. Порядок — стрелками; пустая плашка скрывается."
     >
       <Toolbar
-        searchPlaceholder="Поиск по заголовку или плашке…"
+        searchPlaceholder="Поиск по плашке…"
         onSearchChange={setQuery}
         createLabel="Баннер"
         onCreate={openCreate}
@@ -105,7 +100,7 @@ export function BannersSection() {
       ) : !banners.length ? (
         <EmptyState
           title="Баннеров пока нет"
-          description="Добавьте первый — с фото, заголовком и опциональной плашкой."
+          description="Добавьте первый — фото и опциональная плашка."
           actionLabel="Создать баннер"
           onAction={openCreate}
         />
@@ -117,7 +112,9 @@ export function BannersSection() {
           keyOf={(b) => b.id}
           disabled={busy || Boolean(query.trim())}
           onReorder={(next) => void handleReorder(next)}
-          renderItem={(banner) => (
+          renderItem={(banner, index) => {
+            const label = `Баннер ${banner.order || index + 1}`
+            return (
             <div className="flex items-center gap-2.5 py-0.5">
               <img
                 src={banner.image}
@@ -125,8 +122,7 @@ export function BannersSection() {
                 className="h-12 w-[72px] shrink-0 rounded-[var(--r-xs)] object-cover"
               />
               <div className="min-w-0 flex-1 leading-tight">
-                <p className="text-[14px] font-extrabold text-fg">{banner.title}</p>
-                <p className="mt-0.5 truncate text-[12px] text-fg-muted">{banner.subtitle}</p>
+                <p className="text-[14px] font-extrabold text-fg">{label}</p>
                 <p className="mt-1 text-[12px] text-fg-soft">
                   {banner.note?.title ? `Плашка: ${banner.note.title}` : "Без плашки"} · порядок{" "}
                   {banner.order}
@@ -137,7 +133,7 @@ export function BannersSection() {
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Редактировать ${banner.title}`}
+                  aria-label={`Редактировать ${label}`}
                   disabled={busy}
                   onClick={() => openEdit(banner)}
                 >
@@ -147,16 +143,17 @@ export function BannersSection() {
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Удалить ${banner.title}`}
+                  aria-label={`Удалить ${label}`}
                   disabled={busy}
                   className="text-fg-faint hover:bg-red-soft hover:text-red"
-                  onClick={() => void handleDelete(banner)}
+                  onClick={() => void handleDelete(banner, label)}
                 >
                   <Trash2 size={14} strokeWidth={2.3} />
                 </Button>
               </div>
             </div>
-          )}
+            )
+          }}
         />
       )}
 

@@ -207,7 +207,7 @@
 
 **Читать:** `entities/banner/model.ts`, `entities/banner/api.ts`, `pages/admin/sections/CatalogTables.tsx` (`BannersTable`).
 
-**Создать:** `pages/admin/sections/banners/BannersSection.tsx`, `BannerForm.tsx` (title/subtitle/image/`note.{title,text}`/order).
+**Создать:** `pages/admin/sections/banners/BannersSection.tsx`, `BannerForm.tsx` (image/`note.{title,text}`/order).
 
 **Править:** `entities/banner/api.ts` — мутации + файл.
 

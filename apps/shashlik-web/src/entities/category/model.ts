@@ -1,3 +1,6 @@
+/** Синтетический режим витрины «все категории» — в PB не хранится. */
+export const ALL_CATEGORY = "all" as const
+
 /** Известные id из сида — для дефолтов в моках. Новые категории из админки — произвольный `string`. */
 export const KNOWN_CATEGORY_IDS = [
   "shawarma",

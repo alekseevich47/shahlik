@@ -716,34 +716,6 @@
         "type": "text"
       },
       {
-        "autogeneratePattern": "",
-        "hidden": false,
-        "id": "text_banner_title",
-        "max": 200,
-        "min": 1,
-        "name": "title",
-        "pattern": "",
-        "presentable": true,
-        "primaryKey": false,
-        "required": true,
-        "system": false,
-        "type": "text"
-      },
-      {
-        "autogeneratePattern": "",
-        "hidden": false,
-        "id": "text_banner_subtitle",
-        "max": 500,
-        "min": 1,
-        "name": "subtitle",
-        "pattern": "",
-        "presentable": false,
-        "primaryKey": false,
-        "required": true,
-        "system": false,
-        "type": "text"
-      },
-      {
         "hidden": false,
         "id": "file_banner_image",
         "maxSelect": 1,
