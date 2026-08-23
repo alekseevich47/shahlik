@@ -15,15 +15,3 @@ export type CategoryTag = {
   emoji: string | null
   order: number
 }
-
-export function slugFromName(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .replace(/ё/g, "e")
-    .replace(/[^a-z0-9а-я-]+/gi, "-")
-    .replace(/^-|-$/g, "")
-    .replace(/[а-я]/gi, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-}

@@ -290,8 +290,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx": {
-    "mtime": 1787444678.9892929,
-    "ast_hash": "2e4266c4289df80468bcc7c711d4bebd",
+    "mtime": 1787462320.1429045,
+    "ast_hash": "75d3a93cfd7761563127c4c1da33c56a",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/AdminCard.tsx": {
@@ -380,8 +380,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/ui/input.tsx": {
-    "mtime": 1786987334.5637996,
-    "ast_hash": "1c875ffea85b85a5560e57c0c73aa1b5",
+    "mtime": 1787465290.3255882,
+    "ast_hash": "4b0802beea0b17a3046aedb0a6353cf8",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/ui/rating.tsx": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx": {
-    "mtime": 1787198587.4295945,
-    "ast_hash": "82f0c26e9e2cff570dfa3efac7832377",
+    "mtime": 1787471492.5220823,
+    "ast_hash": "77ae80dbd0fd9926ce2050f32a31d2c5",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/mobile/AddressBar.tsx": {
@@ -740,8 +740,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/api.ts": {
-    "mtime": 1787444341.7617106,
-    "ast_hash": "c0a4a4d53af1affd74f37e536294fb53",
+    "mtime": 1787462462.351093,
+    "ast_hash": "d64aa518c4536a2e31c55be626799ef2",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/AdminLogin.tsx": {
@@ -755,8 +755,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/tag/model.ts": {
-    "mtime": 1787201093.6417038,
-    "ast_hash": "9d298c7a4e23705e3c114fdfd0d1c8e1",
+    "mtime": 1787471303.5823135,
+    "ast_hash": "5e49c3cc7441078a5d348a805cc39418",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/mocks/tags.ts": {
@@ -765,8 +765,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/CategoryTagsEditor.tsx": {
-    "mtime": 1787237774.2598052,
-    "ast_hash": "66a54fd402f1414c8878283d51eceec5",
+    "mtime": 1787471305.1470897,
+    "ast_hash": "b8e6f36d95f560e1c1b55ac7645cd8ba",
     "semantic_hash": ""
   },
   "Tasks/TASK_ADMIN.md": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/SortableList.tsx": {
-    "mtime": 1787231020.2622004,
-    "ast_hash": "c8c6643a646a9214136c8c451ddb8b12",
+    "mtime": 1787462288.1591115,
+    "ast_hash": "440beae93f94508b3554d35eb790d164",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/Toolbar.tsx": {
@@ -815,8 +815,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/api/files.ts": {
-    "mtime": 1787444269.3773093,
-    "ast_hash": "5cd802898aca4c504e995d110d30c381",
+    "mtime": 1787462236.3483062,
+    "ast_hash": "a2875320f3dd9c86aaa546bd844b0305",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/api/realtime.ts": {
@@ -950,13 +950,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/products/ProductCreateForm.tsx": {
-    "mtime": 1787444539.8395696,
-    "ast_hash": "0da061cb598e4af39e1480c7b1f9022e",
+    "mtime": 1787462315.9924269,
+    "ast_hash": "a0af6eaf71bf896186960e91120338a0",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/products/ProductsSection.tsx": {
-    "mtime": 1787232133.6614416,
-    "ast_hash": "78c46661e776c9bb1926d63a2579ae54",
+    "mtime": 1787462378.985541,
+    "ast_hash": "3592179fdc3d014e5d903bab3cc033e3",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/reviews/ReviewsSection.tsx": {
@@ -1025,13 +1025,18 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/products/BadgeManagerDialog.tsx": {
-    "mtime": 1787444682.3882167,
-    "ast_hash": "e2a683f2376363488b30b126906985ef",
+    "mtime": 1787462378.985541,
+    "ast_hash": "708cc694c5dc5744b456101aa7541112",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/ui/multi-image-field.tsx": {
-    "mtime": 1787444684.790713,
-    "ast_hash": "a44f6f2234bdd8ac1a0c72b5b6ee839c",
+    "mtime": 1787462288.1591115,
+    "ast_hash": "19a47088f3e9c7fe4ba68d42e9cc1fd1",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/shared/lib/slug.ts": {
+    "mtime": 1787462232.5618632,
+    "ast_hash": "fd950de780c8d9c7ff88360cd5dec7b9",
     "semantic_hash": ""
   }
 }

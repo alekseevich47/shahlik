@@ -3,7 +3,8 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { useCreateTag, useDeleteTag, useTags, useUpdateTag } from "@/entities/tag/api"
-import { slugFromName, type CategoryTag } from "@/entities/tag/model"
+import type { CategoryTag } from "@/entities/tag/model"
+import { slugFromName } from "@/shared/lib/slug"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
@@ -18,6 +19,7 @@ export function CategoryTagsEditor({ categoryId }: { categoryId: string }) {
   const updateTag = useUpdateTag()
   const deleteTag = useDeleteTag()
   const [draft, setDraft] = useState<Draft>(EMPTY)
+  const [slugTouched, setSlugTouched] = useState(false)
   const busy = createTag.isPending || updateTag.isPending || deleteTag.isPending
 
   const add = async () => {
@@ -40,6 +42,7 @@ export function CategoryTagsEditor({ categoryId }: { categoryId: string }) {
         order: tags.reduce((max, t) => Math.max(max, t.order), 0) + 1,
       })
       setDraft(EMPTY)
+      setSlugTouched(false)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Не удалось добавить тег")
     }
@@ -75,19 +78,26 @@ export function CategoryTagsEditor({ categoryId }: { categoryId: string }) {
         <Input
           placeholder="Название"
           value={draft.name}
-          onChange={(e) =>
+          onChange={(e) => {
+            const next = e.target.value
             setDraft((d) => ({
               ...d,
-              name: e.target.value,
-              slug: d.slug || slugFromName(e.target.value),
+              name: next,
+              slug: slugTouched ? d.slug : slugFromName(next),
             }))
-          }
+          }}
           className="h-8 min-w-[8rem] flex-1 px-2.5 text-[12.5px]"
         />
         <Input
           placeholder="slug"
           value={draft.slug}
-          onChange={(e) => setDraft((d) => ({ ...d, slug: e.target.value }))}
+          onChange={(e) => {
+            setSlugTouched(true)
+            setDraft((d) => ({
+              ...d,
+              slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+            }))
+          }}
           className="h-8 w-28 px-2.5 text-[12.5px]"
         />
         <Input

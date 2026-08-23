@@ -5,6 +5,8 @@ import { useBanners } from "@/entities/banner/api"
 import { cn } from "@/shared/lib/cn"
 
 const AUTOPLAY_MS = 6000
+/** Временно: только картинка, без заголовка и подзаголовка на витрине. */
+const SHOW_BANNER_TEXT = false
 
 export function HeroBanner({ className }: { className?: string }) {
   const { data: banners = [] } = useBanners()
@@ -41,26 +43,30 @@ export function HeroBanner({ className }: { className?: string }) {
           alt=""
           aria-hidden
           className={cn(
-            "absolute inset-y-0 right-0 h-full w-[70%] object-cover transition-opacity duration-700 ease-[var(--ease-out-soft)] sm:w-[64%]",
+            "absolute inset-0 size-full object-cover transition-opacity duration-700 ease-[var(--ease-out-soft)]",
             i === index ? "opacity-100" : "opacity-0",
           )}
         />
       ))}
 
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_30%,color-mix(in_srgb,var(--surface)_72%,transparent)_48%,transparent_78%)] sm:bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_26%,color-mix(in_srgb,var(--surface)_55%,transparent)_46%,transparent_72%)]" />
+      {SHOW_BANNER_TEXT ? (
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_30%,color-mix(in_srgb,var(--surface)_72%,transparent)_48%,transparent_78%)] sm:bg-[linear-gradient(90deg,var(--surface)_0%,var(--surface)_26%,color-mix(in_srgb,var(--surface)_55%,transparent)_46%,transparent_72%)]" />
+      ) : null}
 
-      <div className="relative flex h-full max-w-[62%] flex-col justify-center gap-1.5 px-5 sm:max-w-none sm:px-8">
-        {active ? (
-          <>
-            <h1 className="text-[28px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[42px] lg:text-[46px]">
-              {active.title}
-            </h1>
-            <p className="text-[12px] leading-snug font-semibold text-fg-muted sm:text-[14px]">
-              {active.subtitle}
-            </p>
-          </>
-        ) : null}
-      </div>
+      {SHOW_BANNER_TEXT ? (
+        <div className="relative flex h-full max-w-[62%] flex-col justify-center gap-1.5 px-5 sm:max-w-none sm:px-8">
+          {active ? (
+            <>
+              <h1 className="text-[28px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[42px] lg:text-[46px]">
+                {active.title}
+              </h1>
+              <p className="text-[12px] leading-snug font-semibold text-fg-muted sm:text-[14px]">
+                {active.subtitle}
+              </p>
+            </>
+          ) : null}
+        </div>
+      ) : null}
 
       {active?.note ? (
         <div className="absolute right-4 bottom-4 hidden items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur-md sm:flex">
