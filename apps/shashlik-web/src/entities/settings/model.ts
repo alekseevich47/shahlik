@@ -27,6 +27,20 @@ export type Settings = {
 export type FrontpadSettings = {
   id: string
   sendEnabled: boolean
+  /** Публичный URL вебхука без токена — токен добавит хук из env */
+  hookUrl: string
+  /** Передавать product_price в new_order (только если в кассе разрешено) */
+  sendPrices: boolean
+  /** Артикул кассы для упаковки; пусто — не передавать */
+  articlePack: string
+  /** Артикул кассы для доставки; пусто — не передавать */
+  articleDelivery: string
+  /** Попыток на джоб resend_order, дефолт 5 */
+  retryLimit: number
+  /** Последняя ошибка кассы (read-only с сервера) */
+  lastError: string
+  /** Время последней успешной отправки (read-only) */
+  lastOrderSentAt: string | null
   payCodePickup: string
   payCodeDelivery: string
   channel: string
@@ -84,6 +98,13 @@ export function frontpadSettingsFallback(): FrontpadSettings {
   return {
     id: SETTINGS_ID,
     sendEnabled: false,
+    hookUrl: "",
+    sendPrices: false,
+    articlePack: "",
+    articleDelivery: "",
+    retryLimit: 5,
+    lastError: "",
+    lastOrderSentAt: null,
     payCodePickup: "",
     payCodeDelivery: "",
     channel: "",

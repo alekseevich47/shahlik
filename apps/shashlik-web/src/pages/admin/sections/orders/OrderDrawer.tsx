@@ -63,6 +63,7 @@ export function OrderDrawer({ order: seed, open, onOpenChange }: Props) {
   const activeJob = order
     ? jobs.find((j) => j.payload?.orderId === order.id)
     : undefined
+  const alreadySent = Boolean(order?.frontpadOrderId)
   const nextStatuses: OrderStatus[] = order ? ORDER_STATUS_FLOW[order.status] : []
 
   const handleStatus = async (status: OrderStatus) => {
@@ -286,11 +287,17 @@ export function OrderDrawer({ order: seed, open, onOpenChange }: Props) {
                           : activeJob.status}
                     </p>
                   ) : null}
+                  {alreadySent ? (
+                    <p className="text-[12px] text-fg-muted">
+                      Заказ уже в кассе — повторная отправка заблокирована, иначе будет дубль на
+                      кухне.
+                    </p>
+                  ) : null}
                   <Button
                     type="button"
                     variant="soft"
                     size="sm"
-                    disabled={busy || Boolean(activeJob)}
+                    disabled={busy || Boolean(activeJob) || alreadySent}
                     onClick={() => void handleResend()}
                   >
                     Переотправить в кассу

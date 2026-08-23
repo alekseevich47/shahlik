@@ -6,6 +6,7 @@ import { badgeLabel } from "@/entities/badge/model"
 import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
+import { isProductStopped, useStoppedArticles } from "@/entities/product/lib/stock"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { scoreColor } from "@/shared/ui/rating"
@@ -20,8 +21,10 @@ type ProductCardProps = {
 
 export function ProductCard({ product, onAdd, className }: ProductCardProps) {
   const { data: badges = [] } = useBadges()
+  const { data: stopped = new Set<string>() } = useStoppedArticles()
   const label = badgeLabel(product.badge, badges)
   const hasMeta = product.variants.length > 0 || product.sizes.length > 0
+  const outOfStock = isProductStopped(product, stopped)
 
   return (
     <article
@@ -114,11 +117,16 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
               <Button
                 variant="soft"
                 size="sm"
+                disabled={outOfStock}
                 onClick={() => onAdd(product)}
                 className="dark:text-fg dark:hover:text-fg"
-                aria-label={`Добавить «${product.name}» в заказ`}
+                aria-label={
+                  outOfStock
+                    ? `«${product.name}» нет в наличии`
+                    : `Добавить «${product.name}» в заказ`
+                }
               >
-                Добавить
+                {outOfStock ? "Нет в наличии" : "Добавить"}
               </Button>
             </div>
           </div>

@@ -41,6 +41,13 @@ type SettingsRecord = {
 type FrontpadSettingsRecord = {
   id: string
   sendEnabled?: boolean
+  hookUrl?: string
+  sendPrices?: boolean
+  articlePack?: string
+  articleDelivery?: string
+  retryLimit?: number
+  lastError?: string
+  lastOrderSentAt?: string | null
   payCodePickup?: string
   payCodeDelivery?: string
   channel?: string
@@ -153,9 +160,19 @@ function mapSettings(record: SettingsRecord): Settings {
 }
 
 function mapFrontpadSettings(record: FrontpadSettingsRecord): FrontpadSettings {
+  const fallback = frontpadSettingsFallback()
+  const retryLimit = record.retryLimit
   return {
     id: record.id,
     sendEnabled: Boolean(record.sendEnabled),
+    hookUrl: record.hookUrl ?? "",
+    sendPrices: Boolean(record.sendPrices),
+    articlePack: record.articlePack ?? "",
+    articleDelivery: record.articleDelivery ?? "",
+    retryLimit:
+      typeof retryLimit === "number" && retryLimit >= 1 ? retryLimit : fallback.retryLimit,
+    lastError: record.lastError ?? "",
+    lastOrderSentAt: record.lastOrderSentAt ?? null,
     payCodePickup: record.payCodePickup ?? "",
     payCodeDelivery: record.payCodeDelivery ?? "",
     channel: record.channel ?? "",

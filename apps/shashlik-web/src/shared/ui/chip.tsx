@@ -40,6 +40,7 @@ export function OptionCard({ className, active = false, ...props }: OptionCardPr
         active
           ? "border border-product-accent-border bg-product-accent-soft text-product-accent"
           : "border border-line bg-surface text-fg-soft hover:border-line-strong",
+        "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-line",
         className,
       )}
       {...props}

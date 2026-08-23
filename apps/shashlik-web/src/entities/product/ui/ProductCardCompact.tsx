@@ -6,6 +6,7 @@ import { badgeLabel } from "@/entities/badge/model"
 import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
+import { isProductStopped, useStoppedArticles } from "@/entities/product/lib/stock"
 import { Badge } from "@/shared/ui/badge"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
@@ -20,7 +21,9 @@ type Props = {
 /** Компактная карточка для мобильных горизонтальных подборок. */
 export function ProductCardCompact({ product, onAdd, className }: Props) {
   const { data: badges = [] } = useBadges()
+  const { data: stopped = new Set<string>() } = useStoppedArticles()
   const label = badgeLabel(product.badge, badges)
+  const outOfStock = isProductStopped(product, stopped)
   const meta = [
     ...product.variants.map((v) => v.label),
     ...product.sizes.map((s) => s.label),
@@ -70,14 +73,18 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
           <span className="text-[15px] leading-none font-extrabold text-fg tabular-nums">
             {formatPrice(minPrice(product))}
           </span>
-          <button
-            type="button"
-            onClick={() => onAdd(product)}
-            aria-label={`Добавить «${product.name}»`}
-            className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand shadow-brand transition-colors hover:bg-brand-hover"
-          >
-            <Plus size={15} strokeWidth={3} />
-          </button>
+          {outOfStock ? (
+            <span className="text-[10px] leading-tight font-bold text-fg-muted">Нет в наличии</span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAdd(product)}
+              aria-label={`Добавить «${product.name}»`}
+              className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand shadow-brand transition-colors hover:bg-brand-hover"
+            >
+              <Plus size={15} strokeWidth={3} />
+            </button>
+          )}
         </div>
       </div>
     </article>

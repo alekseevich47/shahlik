@@ -256,6 +256,29 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 
 Ссылка «На сайт» / логотип → `/`.
 
+## Касса (Frontpad)
+
+План интеграции — **`Tasks/TASK_inter.md`** (шаги, зона БД, карта файлов). Спека API — `.cursor/rules/API.mdc`.
+
+Мост к кассе — только `pb_hooks` (каталог `pb_hooks/` в корне репозитория, деплой в `/opt/pocketbase/pb_hooks`). Ни витрина, ни админка Frontpad не зовут и секрета не видят.
+
+| Файл | Роль |
+|---|---|
+| `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, роут вебхука, `cronAdd` |
+| `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
+| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` — модули, автозагрузку не проходят (нет `.pb.js`) |
+
+Env процесса `pocketbase`: `FRONTPAD_SECRET`, `FRONTPAD_HOOK_TOKEN`, `FRONTPAD_API_URL`. В git и в бандл не попадают.
+
+- **Деньги считает сервер.** `onRecordCreateRequest("orders")` пересчитывает строки/упаковку/доставку/скидку из БД, валидирует стоп-лист и артикулы, генерирует `number`. Клиентские суммы затираются.
+- **Отправка идемпотентна.** Перед `new_order` в транзакции ставится `sentAt`; повторно уходит только заказ с пустым `frontpadOrderId`. Неизвестный результат (таймаут) — `frontpadError` **без автоповтора**, дальше только ручная переотправка из админки.
+- **Очередь `frontpad_jobs` + cron-воркер** (раз в минуту, ≤2 отправки и ≤1 синхронизация за тик — лимиты кассы 30/мин, 2/сек). Бэкофф по `attempts`: 1/2/5/15/60 мин. `get_products` — жёсткий гейт 1/час по `lastProductsSyncAt`.
+- **`hook_url` — пер-заказный:** глобальный webhook в настройках кассы занят сторонней интеграцией (FoodSoul) и не меняется; наши заказы передают свой `hook_url` + токен и `hook_status[]`. Роут `POST /api/webhooks/frontpad/status` сверяет токен, отвечает **всегда 200**, не понижает терминальные статусы, ставит `statusSource="hook"`.
+- **Dry-run:** `frontpad_settings.sendEnabled = false` — payload пишется в `frontpad_jobs.result`, запроса в кассу нет. Первая приёмка — так.
+- Стоп-лист (`frontpad_stock`, публичное чтение) режет витрину: `entities/product/lib/stock.ts` + `useCollectionRealtime`, не поллинг.
+
+JSVM (Goja): нет `async`/`await`/`fetch`/`setTimeout`; HTTP — синхронный `$http.send`, env — `$os.getenv`. Обработчик исполняется в изолированном пуле VM, **замыкания на внешние переменные файла не работают** — зависимости через `require(`${__hooks}/lib/…`)` внутри тела хука. Ошибки API — `new BadRequestError(...)`.
+
 ## Имена блоков (для правок в чате)
 
 | Имя | Файл |
@@ -363,7 +386,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 - Дорогие эффекты (SVG-фильтры, `backdrop-filter`, `will-change`) включать точечно и гасить на кадрах анимации, а не вешать глобально.
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
-- Frontpad: спецификация в `.cursor/rules/API.mdc`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
+- Frontpad: спецификация в `.cursor/rules/API.mdc`, план — `Tasks/TASK_inter.md`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
 - Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`. Multi-file **update** (PB ≥0.23): дозапись — ключ `field+`, удаление — `field-` (имена файлов); голый `field` **заменяет** весь набор.
 - PB `required`: number = nonzero, bool = только `true`, json = не `[]`/`{}`. Допустимые пустые/false — `required: false` в `Tasks/schema.json` (+ sync `/_/` на проде). UI порядок 1-based.
 - Не плодить несколько независимых `useAdminAuth` с локальным `authRefresh().catch(clear)` — только `AdminAuthProvider`.
@@ -410,6 +433,9 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не звать Frontpad с клиента и не хранить его секрет в `src/*` — только `pb_hooks` (см. `Tasks/TASK_DB.md`).
 - Не поллить статус заказа и джобы кассы — только `pb.collection().subscribe`.
 - Не менять статус заказа в кассе из админки: API кассы этого не умеет, наш `status` — зеркало.
+- Не автоповторять `new_order`, когда результат неизвестен (таймаут), и не переотправлять заказ с заполненным `frontpadOrderId` — на кухне будет дубль.
+- Не менять глобальный webhook URL в настройках кассы: свой адрес передаём через `hook_url` в заказе.
+- Не доверять суммам, `number` и артикулам из клиентского запроса на создание заказа.
 - Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
 - Не включать `domMax` на витрине и не оставлять кнопок-заглушек (`toast("…заглушка")`) в админке.
 - Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.

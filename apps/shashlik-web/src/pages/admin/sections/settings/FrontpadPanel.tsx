@@ -126,6 +126,11 @@ export function FrontpadPanel({ enabled }: Props) {
     try {
       await updateSettings.mutateAsync({
         sendEnabled: draft.sendEnabled,
+        hookUrl: draft.hookUrl.trim(),
+        sendPrices: draft.sendPrices,
+        articlePack: draft.articlePack.trim(),
+        articleDelivery: draft.articleDelivery.trim(),
+        retryLimit: Math.max(1, draft.retryLimit),
         syncEnabled: draft.syncEnabled,
         payCodePickup: draft.payCodePickup.trim(),
         payCodeDelivery: draft.payCodeDelivery.trim(),
@@ -155,6 +160,19 @@ export function FrontpadPanel({ enabled }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
+      {!draft.sendEnabled ? (
+        <p className="rounded-[var(--r-md)] border border-brand/30 bg-brand-soft px-4 py-3 text-[13px] leading-snug font-semibold text-fg">
+          Dry-run включён: заказы в кассу не уходят, payload сохраняется в{" "}
+          <code className="font-mono text-[12px]">frontpad_jobs.result</code>.
+        </p>
+      ) : null}
+
+      {draft.lastError ? (
+        <p className="rounded-[var(--r-md)] border border-red/30 bg-red-soft px-4 py-3 text-[13px] leading-snug font-medium text-red">
+          Последняя ошибка кассы: {draft.lastError}
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-4 rounded-[var(--r-md)] border border-line bg-surface-2 px-4 py-3">
         <label className="flex items-center gap-2.5 text-[13px] font-bold text-fg">
           <Switch
@@ -173,6 +191,62 @@ export function FrontpadPanel({ enabled }: Props) {
           Синхронизация каталога
         </label>
       </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="URL вебхука (без токена)" className="sm:col-span-2">
+          <Input
+            value={draft.hookUrl}
+            onChange={(e) => patch("hookUrl", e.target.value)}
+            placeholder="https://shashlik.loomixx.ru/api/webhooks/frontpad/status"
+            disabled={busy}
+          />
+        </Field>
+        <label className="flex items-center gap-2.5 text-[13px] font-bold text-fg">
+          <Switch
+            checked={draft.sendPrices}
+            onCheckedChange={(v) => patch("sendPrices", v)}
+            disabled={busy}
+          />
+          Передавать цены в кассу (product_price)
+        </label>
+        <Field label="Попыток переотправки (retryLimit)">
+          <Input
+            value={String(draft.retryLimit)}
+            onChange={(e) => {
+              const n = Number(e.target.value)
+              patch("retryLimit", Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1)
+            }}
+            inputMode="numeric"
+            min={1}
+            max={20}
+            disabled={busy}
+          />
+        </Field>
+        <Field label="Артикул упаковки">
+          <Input
+            value={draft.articlePack}
+            onChange={(e) => patch("articlePack", e.target.value)}
+            placeholder="Пусто — не передавать"
+            maxLength={32}
+            disabled={busy}
+          />
+        </Field>
+        <Field label="Артикул доставки">
+          <Input
+            value={draft.articleDelivery}
+            onChange={(e) => patch("articleDelivery", e.target.value)}
+            placeholder="Пусто — не передавать"
+            maxLength={32}
+            disabled={busy}
+          />
+        </Field>
+      </div>
+
+      {draft.lastOrderSentAt ? (
+        <p className="text-[12px] text-fg-muted">
+          Последний заказ отправлен: {formatDateTime(draft.lastOrderSentAt)}
+        </p>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Код оплаты (самовывоз)">

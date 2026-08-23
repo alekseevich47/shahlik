@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 
 import { useProducts } from "@/entities/product/api"
+import { useFrontpadStockRealtime } from "@/entities/product/lib/stock"
 import { ALL_TAG, type TagFilterId } from "@/entities/tag/model"
 import { CartPanel } from "@/features/cart/ui/CartPanel"
 import { SearchDialog } from "@/features/search/SearchDialog"
@@ -14,6 +15,7 @@ import { DesktopHome } from "./ui/DesktopHome"
 import { MobileHome } from "./ui/MobileHome"
 
 export default function HomePage() {
+  useFrontpadStockRealtime()
   const { data: products = [] } = useProducts()
   const [category, setCategory] = useState("shawarma")
   const [tag, setTag] = useState<TagFilterId>(ALL_TAG)

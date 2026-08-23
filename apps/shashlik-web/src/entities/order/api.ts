@@ -26,10 +26,17 @@ export type CreateOrderInput = {
   phone: string
   mode: DeliveryMode
   address?: string
+  addressParts?: OrderAddressParts | null
+  comment?: string
   positions: number
+  /** Справочно — сервер пересчитывает в хуке. */
+  goods: number
+  packFee: number
+  deliveryFee: number
+  discount: number
   total: number
+  couponCode?: string | null
   lines: OrderLineSnapshot[]
-  promo?: string | null
 }
 
 export type OrdersPageParams = {
@@ -372,16 +379,20 @@ export function useOrderJobs(enabled = true) {
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const record = await pb.collection("orders").create<OrderRecord>({
-    number: `№ ${Date.now().toString().slice(-6)}`,
     customer: input.customer,
     phone: input.phone,
     mode: input.mode,
     address: input.address ?? "",
-    status: "new",
+    addressParts: input.addressParts ?? null,
+    comment: input.comment ?? "",
     positions: input.positions,
+    goods: input.goods,
+    packFee: input.packFee,
+    deliveryFee: input.deliveryFee,
+    discount: input.discount,
     total: input.total,
+    couponCode: input.couponCode ?? "",
     lines: input.lines,
-    promo: input.promo ?? "",
   })
   return mapOrder(record)
 }

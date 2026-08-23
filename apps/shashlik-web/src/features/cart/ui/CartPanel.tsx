@@ -5,16 +5,18 @@ import { toast } from "sonner"
 import { checkPromo } from "@/entities/coupon/api"
 import { formatCouponValue } from "@/entities/coupon/model"
 import { subscribeOrderStatus, useCreateOrder } from "@/entities/order/api"
+import type { OrderAddressParts } from "@/entities/order/model"
 import { ORDER_STATUS_LABEL } from "@/entities/order/model"
 import { articleFor } from "@/entities/product/lib"
 import { useSettings } from "@/entities/settings/api"
 import { settingsFallback } from "@/entities/settings/model"
 import { useCartTotals } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
+import { pbErrorMessage } from "@/shared/api/crud"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 import { Button } from "@/shared/ui/button"
-import { Input } from "@/shared/ui/input"
+import { Field, Input, Textarea } from "@/shared/ui/input"
 import { Segmented } from "@/shared/ui/segmented"
 
 import { CartLineRow } from "./CartLineRow"
@@ -23,6 +25,17 @@ const MODE_OPTIONS = [
   { value: "pickup", label: "Заберу сам" },
   { value: "delivery", label: "Надо привезти" },
 ] as const
+
+function formatAddressLine(parts: OrderAddressParts): string {
+  const chunks = [parts.street?.trim(), parts.home?.trim()].filter(Boolean)
+  const extra = [
+    parts.pod?.trim() ? `подъезд ${parts.pod.trim()}` : "",
+    parts.et?.trim() ? `эт. ${parts.et.trim()}` : "",
+    parts.apart?.trim() ? `кв. ${parts.apart.trim()}` : "",
+  ].filter(Boolean)
+  if (extra.length) chunks.push(extra.join(", "))
+  return chunks.join(", ")
+}
 
 export function CartPanel({ className }: { className?: string }) {
   const {
@@ -40,7 +53,10 @@ export function CartPanel({ className }: { className?: string }) {
   } = useCartTotals()
   const mode = useCartStore((s) => s.mode)
   const setMode = useCartStore((s) => s.setMode)
-  const address = useCartStore((s) => s.address)
+  const addressParts = useCartStore((s) => s.addressParts)
+  const setAddressPart = useCartStore((s) => s.setAddressPart)
+  const comment = useCartStore((s) => s.comment)
+  const setComment = useCartStore((s) => s.setComment)
   const customer = useCartStore((s) => s.customer)
   const setCustomer = useCartStore((s) => s.setCustomer)
   const phone = useCartStore((s) => s.phone)
@@ -98,15 +114,31 @@ export function CartPanel({ className }: { className?: string }) {
       toast.error("Укажите имя и телефон")
       return
     }
+    if (mode === "delivery") {
+      const street = addressParts.street?.trim() ?? ""
+      const home = addressParts.home?.trim() ?? ""
+      if (!street || !home) {
+        toast.error("Укажите улицу и дом для доставки")
+        return
+      }
+    }
+    const deliveryAddress =
+      mode === "delivery" ? formatAddressLine(addressParts) : undefined
     createOrder.mutate(
       {
         customer: name,
         phone: tel,
         mode,
-        address: address.trim() || undefined,
+        address: deliveryAddress,
+        addressParts: mode === "delivery" ? addressParts : null,
+        comment: comment.trim(),
         positions: count,
+        goods,
+        packFee,
+        deliveryFee,
+        discount,
         total,
-        promo: appliedCoupon?.code ?? null,
+        couponCode: appliedCoupon?.code ?? null,
         lines: lines.map((line) => ({
           productId: line.product.id,
           variantId: line.line.variantId,
@@ -147,7 +179,7 @@ export function CartPanel({ className }: { className?: string }) {
             if (terminal) stop()
           })
         },
-        onError: () => toast.error("Не удалось оформить заказ"),
+        onError: (err) => toast.error(pbErrorMessage(err, "Не удалось оформить заказ")),
       },
     )
   }
@@ -169,23 +201,62 @@ export function CartPanel({ className }: { className?: string }) {
           options={MODE_OPTIONS}
           ariaLabel="Способ получения"
         />
-        <button
-          type="button"
-          onClick={() => toast("Выбор адреса появится после интеграции с картой")}
-          className="flex h-11 cursor-pointer items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface-2 px-3 text-left transition-colors hover:border-line-strong"
-        >
-          <MapPin size={15} className="shrink-0 text-fg-faint" strokeWidth={2.3} />
-          <span
-            className={cn(
-              "flex-1 truncate text-[13px] font-semibold",
-              address ? "text-fg" : "text-fg-faint",
-            )}
-          >
-            {address ||
-              (mode === "delivery" ? "Укажите адрес" : `Заберу сам — ${settings.address}`)}
-          </span>
-          <ChevronRight size={15} className="shrink-0 text-fg-faint" strokeWidth={2.4} />
-        </button>
+        {mode === "delivery" ? (
+          <div className="flex flex-col gap-2">
+            <Input
+              value={addressParts.street ?? ""}
+              onChange={(e) => setAddressPart("street", e.target.value)}
+              placeholder="Улица"
+              autoComplete="address-line1"
+              maxLength={50}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={addressParts.home ?? ""}
+                onChange={(e) => setAddressPart("home", e.target.value)}
+                placeholder="Дом"
+                autoComplete="address-line2"
+                maxLength={50}
+              />
+              <Input
+                value={addressParts.pod ?? ""}
+                onChange={(e) => setAddressPart("pod", e.target.value)}
+                placeholder="Подъезд"
+                maxLength={2}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={addressParts.et ?? ""}
+                onChange={(e) => setAddressPart("et", e.target.value)}
+                placeholder="Этаж"
+                maxLength={2}
+              />
+              <Input
+                value={addressParts.apart ?? ""}
+                onChange={(e) => setAddressPart("apart", e.target.value)}
+                placeholder="Квартира"
+                maxLength={50}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-11 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface-2 px-3">
+            <MapPin size={15} className="shrink-0 text-fg-faint" strokeWidth={2.3} />
+            <span className="truncate text-[13px] font-semibold text-fg">
+              Заберу сам — {settings.address}
+            </span>
+          </div>
+        )}
+        <Field label="Комментарий">
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Пожелания к заказу"
+            rows={2}
+            maxLength={100}
+          />
+        </Field>
         <Input
           value={customer}
           onChange={(e) => setCustomer(e.target.value)}

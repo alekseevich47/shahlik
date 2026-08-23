@@ -2,7 +2,15 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 import type { AppliedCoupon } from "@/entities/coupon/model"
-import type { DeliveryMode } from "@/entities/order/model"
+import type { DeliveryMode, OrderAddressParts } from "@/entities/order/model"
+
+export const EMPTY_ADDRESS_PARTS: OrderAddressParts = {
+  street: "",
+  home: "",
+  pod: "",
+  et: "",
+  apart: "",
+}
 
 export type CartAddon = { addonId: string; quantity: number }
 
@@ -22,6 +30,8 @@ type CartState = {
   items: CartItem[]
   mode: DeliveryMode
   address: string
+  addressParts: OrderAddressParts
+  comment: string
   customer: string
   phone: string
   appliedCoupon: AppliedCoupon | null
@@ -33,6 +43,8 @@ type CartState = {
   bumpAddon: (addonId: string, delta: number, lineId?: string) => void
   setMode: (mode: DeliveryMode) => void
   setAddress: (address: string) => void
+  setAddressPart: (key: keyof OrderAddressParts, value: string) => void
+  setComment: (comment: string) => void
   setCustomer: (customer: string) => void
   setPhone: (phone: string) => void
   applyCoupon: (coupon: AppliedCoupon | null) => void
@@ -53,6 +65,8 @@ export const useCartStore = create<CartState>()(
       items: [],
       mode: "pickup",
       address: "",
+      addressParts: { ...EMPTY_ADDRESS_PARTS },
+      comment: "",
       customer: "",
       phone: "",
       appliedCoupon: null,
@@ -115,6 +129,11 @@ export const useCartStore = create<CartState>()(
 
       setMode: (mode) => set({ mode }),
       setAddress: (address) => set({ address }),
+      setAddressPart: (key, value) =>
+        set((state) => ({
+          addressParts: { ...state.addressParts, [key]: value },
+        })),
+      setComment: (comment) => set({ comment }),
       setCustomer: (customer) => set({ customer }),
       setPhone: (phone) => set({ phone }),
       applyCoupon: (appliedCoupon) => set({ appliedCoupon }),

@@ -8,6 +8,14 @@ import { badgeLabel } from "@/entities/badge/model"
 import { useExtras, useSauces } from "@/entities/addon/api"
 import type { MeatIcon } from "@/entities/product/model"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
+import {
+  isAddonStopped,
+  isSizeStopped,
+  isSkuStopped,
+  isVariantStopped,
+  useFrontpadStockRealtime,
+  useStoppedArticles,
+} from "@/entities/product/lib/stock"
 import { useProductBySlug } from "@/entities/product/api"
 import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import { useCartStore } from "@/features/cart/model/store"
@@ -28,7 +36,9 @@ import { NutritionHint } from "./ui/NutritionHint"
 export default function ProductPage() {
   const { slug = "" } = useParams()
   const navigate = useNavigate()
+  useFrontpadStockRealtime()
   const { data: product, isPending } = useProductBySlug(slug)
+  const { data: stopped = new Set<string>() } = useStoppedArticles()
   const { data: sauces = [] } = useSauces()
   const { data: extras = [] } = useExtras()
   const { data: badges = [] } = useBadges()
@@ -65,6 +75,9 @@ export default function ProductPage() {
 
   const size = findSize(product, resolvedSizeId)
   const variant = findVariant(product, resolvedVariantId)
+  const skuStopped = isSkuStopped(product, size.id, variant?.id, stopped)
+  const visibleSauces = sauces.filter((addon) => !isAddonStopped(addon, stopped))
+  const visibleExtras = extras.filter((addon) => !isAddonStopped(addon, stopped))
   const goHome = () => navigate("/")
 
   const submit = () => {
@@ -194,16 +207,20 @@ export default function ProductPage() {
             <div>
               <GroupLabel>Выберите вариант</GroupLabel>
               <div className="flex gap-2.5">
-                {product.variants.map((v) => (
-                  <OptionCard
-                    key={v.id}
-                    active={v.id === variant?.id}
-                    onClick={() => setVariantId(v.id)}
-                  >
-                    <MeatGlyph icon={v.icon} />
-                    {v.label}
-                  </OptionCard>
-                ))}
+                {product.variants.map((v) => {
+                  const unavailable = isVariantStopped(product, v.id, stopped)
+                  return (
+                    <OptionCard
+                      key={v.id}
+                      active={v.id === variant?.id}
+                      disabled={unavailable}
+                      onClick={() => setVariantId(v.id)}
+                    >
+                      <MeatGlyph icon={v.icon} />
+                      {v.label}
+                    </OptionCard>
+                  )
+                })}
               </div>
             </div>
           ) : null}
@@ -212,19 +229,23 @@ export default function ProductPage() {
             <div>
               <GroupLabel>Размер</GroupLabel>
               <div className="flex gap-2.5">
-                {product.sizes.map((s) => (
-                  <OptionCard
-                    key={s.id}
-                    active={s.id === size.id}
-                    onClick={() => setSizeId(s.id)}
-                    className="flex-col gap-0.5"
-                  >
-                    <span className="text-[14px] font-extrabold">{s.label}</span>
-                    <span className="text-[12px] font-bold opacity-80 tabular-nums">
-                      {formatPrice(priceOf(s, variant))}
-                    </span>
-                  </OptionCard>
-                ))}
+                {product.sizes.map((s) => {
+                  const unavailable = isSizeStopped(product, s.id, variant?.id, stopped)
+                  return (
+                    <OptionCard
+                      key={s.id}
+                      active={s.id === size.id}
+                      disabled={unavailable}
+                      onClick={() => setSizeId(s.id)}
+                      className="flex-col gap-0.5"
+                    >
+                      <span className="text-[14px] font-extrabold">{s.label}</span>
+                      <span className="text-[12px] font-bold opacity-80 tabular-nums">
+                        {formatPrice(priceOf(s, variant))}
+                      </span>
+                    </OptionCard>
+                  )
+                })}
               </div>
             </div>
           ) : null}
@@ -233,7 +254,7 @@ export default function ProductPage() {
             <div>
               <GroupLabel>Соусы</GroupLabel>
               <ul className="flex flex-col gap-1.5">
-                {sauces.slice(0, 4).map((addon) => (
+                {visibleSauces.slice(0, 4).map((addon) => (
                   <AddonRow
                     key={addon.id}
                     addon={addon}
@@ -246,7 +267,7 @@ export default function ProductPage() {
             <div>
               <GroupLabel>Добавки</GroupLabel>
               <ul className="flex flex-col gap-1.5">
-                {extras.slice(0, 4).map((addon) => (
+                {visibleExtras.slice(0, 4).map((addon) => (
                   <AddonRow
                     key={addon.id}
                     addon={addon}
@@ -260,8 +281,14 @@ export default function ProductPage() {
 
           <div className="mt-auto flex items-center gap-3 pt-1">
             <Stepper size="lg" value={quantity} min={1} onChange={setQuantity} />
-            <Button variant="product" size="xl" className="flex-1" onClick={submit}>
-              В корзину • {formatPrice(total)}
+            <Button
+              variant="product"
+              size="xl"
+              className="flex-1"
+              disabled={skuStopped}
+              onClick={submit}
+            >
+              {skuStopped ? "Нет в наличии" : `В корзину • ${formatPrice(total)}`}
             </Button>
           </div>
         </section>

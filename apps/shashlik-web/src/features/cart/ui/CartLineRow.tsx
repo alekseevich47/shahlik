@@ -1,5 +1,6 @@
 import { X } from "lucide-react"
 
+import { isAddonStopped, isSkuStopped, useStoppedArticles } from "@/entities/product/lib/stock"
 import type { ResolvedLine } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { Stepper } from "@/shared/ui/stepper"
@@ -8,10 +9,15 @@ import { formatPrice } from "@/shared/lib/format"
 export function CartLineRow({ line }: { line: ResolvedLine }) {
   const setQuantity = useCartStore((s) => s.setQuantity)
   const remove = useCartStore((s) => s.remove)
+  const { data: stopped = new Set<string>() } = useStoppedArticles()
 
   const title = [line.product.name, line.variantLabel, line.sizeLabel]
     .filter(Boolean)
     .join(" • ")
+
+  const lineStopped =
+    isSkuStopped(line.product, line.line.sizeId, line.line.variantId, stopped) ||
+    line.addons.some(({ addon }) => isAddonStopped(addon, stopped))
 
   return (
     <li className="flex flex-col gap-1.5 py-2.5">
@@ -23,6 +29,9 @@ export function CartLineRow({ line }: { line: ResolvedLine }) {
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[12.5px] font-bold text-fg">{title}</p>
+          {lineStopped ? (
+            <p className="text-[11px] font-semibold text-red">Нет в наличии</p>
+          ) : null}
           <p className="text-[13px] font-extrabold text-fg tabular-nums">
             {formatPrice(line.unitPrice * line.line.quantity)}
           </p>

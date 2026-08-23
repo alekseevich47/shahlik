@@ -2160,6 +2160,94 @@
         "type": "date"
       },
       {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_fps_hook_url",
+        "max": 200,
+        "min": 0,
+        "name": "hookUrl",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "bool_fps_send_prices",
+        "name": "sendPrices",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_fps_article_pack",
+        "max": 32,
+        "min": 0,
+        "name": "articlePack",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_fps_article_delivery",
+        "max": 32,
+        "min": 0,
+        "name": "articleDelivery",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "num_fps_retry_limit",
+        "max": null,
+        "min": null,
+        "name": "retryLimit",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_fps_last_error",
+        "max": 500,
+        "min": 0,
+        "name": "lastError",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "date_fps_last_order_sent",
+        "max": "",
+        "min": "",
+        "name": "lastOrderSentAt",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "date"
+      },
+      {
         "hidden": false,
         "id": "autodate2990389176",
         "name": "created",
@@ -2329,6 +2417,7 @@
         "values": [
           "sync_products",
           "sync_stops",
+          "send_order",
           "resend_order",
           "check_client"
         ]
