@@ -238,10 +238,22 @@ function normalizeLines(raw, parseJsonField) {
   var parsed = raw
   if (typeof raw === "string") {
     parsed = parseJsonField(raw, null)
-  } else if (raw && typeof raw === "object" && typeof raw.length !== "number") {
+  }
+
+  if (parsed === undefined || parsed === null) {
+    return []
+  }
+
+  try {
+    parsed = JSON.parse(JSON.stringify(parsed))
+  } catch (err) {
+    // оставляем как есть
+  }
+
+  if (parsed && typeof parsed === "object" && typeof parsed.length !== "number") {
     var keys = []
-    for (var key in raw) {
-      if (raw.hasOwnProperty(key)) {
+    for (var key in parsed) {
+      if (parsed.hasOwnProperty(key)) {
         keys.push(key)
       }
     }
@@ -250,7 +262,7 @@ function normalizeLines(raw, parseJsonField) {
     })
     var asArray = []
     for (var k = 0; k < keys.length; k++) {
-      asArray.push(raw[keys[k]])
+      asArray.push(parsed[keys[k]])
     }
     parsed = asArray
   }
@@ -265,12 +277,37 @@ function normalizeLines(raw, parseJsonField) {
     if (typeof line === "string") {
       line = parseJsonField(line, null)
     }
+    if (line && typeof line === "object") {
+      try {
+        line = JSON.parse(JSON.stringify(line))
+      } catch (err2) {
+        // keep line
+      }
+    }
     if (!line || typeof line !== "object" || typeof line.length === "number") {
       continue
     }
     out.push(line)
   }
   return out
+}
+
+function readOrderLinesFromEvent(e, parseJsonField) {
+  var fromRecord = normalizeLines(e.record.get("lines"), parseJsonField)
+  if (fromRecord.length) {
+    return fromRecord
+  }
+
+  try {
+    var info = e.requestInfo()
+    if (info && info.body && info.body.lines !== undefined) {
+      return normalizeLines(info.body.lines, parseJsonField)
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  return fromRecord
 }
 
 function resolveLine(line, parseJsonField) {
@@ -397,7 +434,7 @@ function validateAndRecalculateOrder(e) {
     throw new BadRequestError(settings.stopMessage || "Сейчас заказы не принимаем")
   }
 
-  var rawLines = normalizeLines(record.get("lines"), parseJsonField)
+  var rawLines = readOrderLinesFromEvent(e, parseJsonField)
   if (!rawLines.length) {
     throw new BadRequestError("Добавьте позиции в заказ")
   }
