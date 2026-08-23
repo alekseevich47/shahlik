@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx": {
-    "mtime": 1787471965.239029,
-    "ast_hash": "3eff661df97b7611332ec8567b5008e1",
+    "mtime": 1787472308.3293252,
+    "ast_hash": "bc6cb9c647ff21f66b4da85157885a2c",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/mobile/AddressBar.tsx": {
@@ -895,8 +895,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/banners/BannerForm.tsx": {
-    "mtime": 1787471952.781533,
-    "ast_hash": "22f7f624de4ea39e8187c1d33d5a8ea2",
+    "mtime": 1787472312.4297535,
+    "ast_hash": "ce192c7d504ee19002db31bcd2066f14",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/banners/BannersSection.tsx": {
@@ -1040,8 +1040,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/banner/format.ts": {
-    "mtime": 1787471920.3920083,
-    "ast_hash": "3c219283201eeef49031d7e25308c274",
+    "mtime": 1787472307.6327486,
+    "ast_hash": "0e350578150020a030346bedc12ba0e3",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/lib/crop-image.ts": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/ui/banner-image-field.tsx": {
-    "mtime": 1787471965.239029,
-    "ast_hash": "3d029f9f3ed0c6aeef55c397e5a72189",
+    "mtime": 1787472309.393634,
+    "ast_hash": "3e17710ac4af32f6f5dc179c16656555",
     "semantic_hash": ""
   }
 }

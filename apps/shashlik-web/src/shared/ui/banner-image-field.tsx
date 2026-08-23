@@ -13,6 +13,7 @@ import "react-easy-crop/react-easy-crop.css"
 
 import {
   BANNER_ASPECT,
+  BANNER_ASPECT_RATIO,
   BANNER_FORMAT_LABEL,
   BANNER_HEIGHT,
   BANNER_MIN_SOURCE_HEIGHT,
@@ -178,7 +179,10 @@ export function BannerImageField({
     <div className="flex flex-col gap-2">
       {cropping && cropUrl ? (
         <div className="flex flex-col gap-3">
-          <div className="relative aspect-[1680/360] overflow-hidden rounded-[var(--r-md)] border border-line bg-surface-3">
+          <div
+            className="relative overflow-hidden rounded-[var(--r-md)] border border-line bg-surface-3"
+            style={{ aspectRatio: BANNER_ASPECT_RATIO }}
+          >
             <Cropper
               image={cropUrl}
               crop={crop}
@@ -236,10 +240,11 @@ export function BannerImageField({
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
             className={cn(
-              "relative flex aspect-[1680/360] items-center justify-center overflow-hidden rounded-[var(--r-md)] border border-dashed",
+              "relative flex items-center justify-center overflow-hidden rounded-[var(--r-md)] border border-dashed",
               dragging ? "border-brand bg-brand-soft" : "border-line bg-surface-3",
               fieldDisabled && "opacity-50",
             )}
+            style={{ aspectRatio: BANNER_ASPECT_RATIO }}
           >
             {shown ? (
               <>

@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/package.json": {
-    "mtime": 1787194597.0844953,
-    "ast_hash": "16e9612e74b42868305179bf36568f80",
+    "mtime": 1787471929.6031668,
+    "ast_hash": "ca05e5a9e3a44f72ddf9a3a6692b86b0",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/App.tsx": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx": {
-    "mtime": 1787471492.5220823,
-    "ast_hash": "77ae80dbd0fd9926ce2050f32a31d2c5",
+    "mtime": 1787471965.239029,
+    "ast_hash": "3eff661df97b7611332ec8567b5008e1",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/mobile/AddressBar.tsx": {
@@ -895,8 +895,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/banners/BannerForm.tsx": {
-    "mtime": 1787232490.1086898,
-    "ast_hash": "ee0e32588d702f2c756a6b7a31988908",
+    "mtime": 1787471952.781533,
+    "ast_hash": "22f7f624de4ea39e8187c1d33d5a8ea2",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/banners/BannersSection.tsx": {
@@ -1037,6 +1037,21 @@
   "apps/shashlik-web/src/shared/lib/slug.ts": {
     "mtime": 1787462232.5618632,
     "ast_hash": "fd950de780c8d9c7ff88360cd5dec7b9",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/entities/banner/format.ts": {
+    "mtime": 1787471920.3920083,
+    "ast_hash": "3c219283201eeef49031d7e25308c274",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/shared/lib/crop-image.ts": {
+    "mtime": 1787471920.3960295,
+    "ast_hash": "512b661d636606ec6f290414d1f0c6b5",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/shared/ui/banner-image-field.tsx": {
+    "mtime": 1787471965.239029,
+    "ast_hash": "3d029f9f3ed0c6aeef55c397e5a72189",
     "semantic_hash": ""
   }
 }

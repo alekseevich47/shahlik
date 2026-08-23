@@ -7,6 +7,7 @@ import {
   type BannerNote,
 } from "@/entities/banner/api"
 import type { Banner } from "@/entities/banner/model"
+import { BANNER_FORMAT_LABEL } from "@/entities/banner/format"
 import { Button } from "@/shared/ui/button"
 import { Field, Input } from "@/shared/ui/input"
 import { BannerImageField } from "@/shared/ui/banner-image-field"
@@ -102,8 +103,8 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
             {isEdit ? "Редактировать баннер" : "Новый баннер"}
           </SheetTitle>
           <SheetDescription className="mt-1 text-[12.5px] text-fg-muted">
-            Карусель на главной. Изображение — 1680×360, обрезка в форме. Плашку можно оставить
-            пустой — она скроется.
+            Карусель на главной. Изображение — {BANNER_FORMAT_LABEL}, обрезка в форме. Плашку можно
+            оставить пустой — она скроется.
           </SheetDescription>
         </div>
 
@@ -114,7 +115,7 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
             void submit()
           }}
         >
-          <Field label="Изображение" hint="Формат 1680×360 — подгоняется при загрузке">
+          <Field label="Изображение" hint={`Формат ${BANNER_FORMAT_LABEL} — подгоняется при загрузке`}>
             <BannerImageField
               previewUrl={banner?.image || null}
               value={image}

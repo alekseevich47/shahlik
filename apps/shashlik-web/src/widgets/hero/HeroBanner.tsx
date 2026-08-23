@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { useBanners } from "@/entities/banner/api"
+import { BANNER_ASPECT_RATIO } from "@/entities/banner/format"
 import { cn } from "@/shared/lib/cn"
 
 const AUTOPLAY_MS = 6000
@@ -32,9 +33,10 @@ export function HeroBanner({ className }: { className?: string }) {
       onMouseLeave={() => setPaused(false)}
       className={cn(
         "relative isolate w-full overflow-hidden rounded-[var(--r-2xl)] border border-line bg-surface",
-        "aspect-[1680/360] shadow-[var(--shadow-card)]",
+        "shadow-[var(--shadow-card)]",
         className,
       )}
+      style={{ aspectRatio: BANNER_ASPECT_RATIO }}
     >
       {banners.map((banner, i) => (
         <img
