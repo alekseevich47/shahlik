@@ -43,11 +43,13 @@ export function Field({
   className?: string
   children: React.ReactNode
 }) {
+  // div, не <label>: иначе клик по любой области активирует первую кнопку/input
+  // внутри (у MultiImageField — крестик удаления фото).
   return (
-    <label className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn("flex flex-col gap-1.5", className)}>
       <span className="text-[12px] font-bold text-fg-muted">{label}</span>
       {children}
       {hint ? <span className="text-[11px] text-fg-faint">{hint}</span> : null}
-    </label>
+    </div>
   )
 }
