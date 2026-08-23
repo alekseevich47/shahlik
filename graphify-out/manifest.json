@@ -1040,8 +1040,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/banner/format.ts": {
-    "mtime": 1787472307.6327486,
-    "ast_hash": "0e350578150020a030346bedc12ba0e3",
+    "mtime": 1787472444.2348278,
+    "ast_hash": "03070965b3727484a84f486d90a28416",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/lib/crop-image.ts": {
