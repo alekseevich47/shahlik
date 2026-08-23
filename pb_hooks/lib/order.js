@@ -234,8 +234,47 @@ function loadAddon(addonId) {
   }
 }
 
+function normalizeLines(raw, parseJsonField) {
+  var parsed = raw
+  if (typeof raw === "string") {
+    parsed = parseJsonField(raw, null)
+  } else if (raw && typeof raw === "object" && typeof raw.length !== "number") {
+    var keys = []
+    for (var key in raw) {
+      if (raw.hasOwnProperty(key)) {
+        keys.push(key)
+      }
+    }
+    keys.sort(function (a, b) {
+      return Number(a) - Number(b)
+    })
+    var asArray = []
+    for (var k = 0; k < keys.length; k++) {
+      asArray.push(raw[keys[k]])
+    }
+    parsed = asArray
+  }
+
+  if (!parsed || typeof parsed.length !== "number" || parsed.length < 1) {
+    return []
+  }
+
+  var out = []
+  for (var i = 0; i < parsed.length; i++) {
+    var line = parsed[i]
+    if (typeof line === "string") {
+      line = parseJsonField(line, null)
+    }
+    if (!line || typeof line !== "object" || typeof line.length === "number") {
+      continue
+    }
+    out.push(line)
+  }
+  return out
+}
+
 function resolveLine(line, parseJsonField) {
-  if (!line || typeof line !== "object") {
+  if (!line || typeof line !== "object" || typeof line.length === "number") {
     throw new BadRequestError("Некорректный состав заказа")
   }
 
@@ -358,8 +397,8 @@ function validateAndRecalculateOrder(e) {
     throw new BadRequestError(settings.stopMessage || "Сейчас заказы не принимаем")
   }
 
-  var rawLines = parseJsonField(record.get("lines"), null)
-  if (!rawLines || !rawLines.length) {
+  var rawLines = normalizeLines(record.get("lines"), parseJsonField)
+  if (!rawLines.length) {
     throw new BadRequestError("Добавьте позиции в заказ")
   }
 
