@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx": {
-    "mtime": 1787471306.1905186,
-    "ast_hash": "8c599b9fb05074eae72e0c57159910f9",
+    "mtime": 1787471492.5220823,
+    "ast_hash": "77ae80dbd0fd9926ce2050f32a31d2c5",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/mobile/AddressBar.tsx": {

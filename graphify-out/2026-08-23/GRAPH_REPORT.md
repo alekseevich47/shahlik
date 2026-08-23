@@ -1,11 +1,11 @@
 # Graph Report - shahlik  (2026-08-23)
 
 ## Corpus Check
-- 149 files · ~1,357,090 words
+- 149 files · ~1,357,093 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1027 nodes · 2693 edges · 58 communities (50 shown, 8 thin omitted)
+- 1027 nodes · 2693 edges · 57 communities (49 shown, 8 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 69 edges (avg confidence: 0.55)
 - Token cost: 0 input · 0 output
 
@@ -61,7 +61,6 @@
 - AdminSidebar.tsx
 - order/model.ts
 - addon/model.ts
-- store.ts
 - lucide-react
 - motion
 - pocketbase
@@ -89,17 +88,17 @@
   temp/логотип/лого CMYK.pdf → AGENTS.md
 - `Logo RGB` --conceptually_related_to--> `figma-make-app`  [AMBIGUOUS]
   temp/логотип/лого RGB.pdf → AGENTS.md
+- `AdminGate()` --calls--> `useAdminAuth()`  [EXTRACTED]
+  apps/shashlik-web/src/app/router.tsx → apps/shashlik-web/src/shared/api/auth.tsx
 - `ProductEditorRoute()` --calls--> `useAdminProducts()`  [EXTRACTED]
   apps/shashlik-web/src/pages/admin/AdminPage.tsx → apps/shashlik-web/src/entities/product/api.ts
 - `collectArticleConflicts()` --indirect_call--> `product()`  [INFERRED]
-  apps/shashlik-web/src/entities/product/lib/articles.ts → apps/shashlik-web/src/mocks/products.ts
-- `articleConflictMessage()` --indirect_call--> `product()`  [INFERRED]
   apps/shashlik-web/src/entities/product/lib/articles.ts → apps/shashlik-web/src/mocks/products.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (58 total, 8 thin omitted)
+## Communities (57 total, 8 thin omitted)
 
 ### Community 0 - "addon/api.ts"
 Cohesion: 0.14
@@ -194,20 +193,20 @@ Cohesion: 0.18
 Nodes (16): bannerFormData(), fetchProducts(), mapProduct(), mapTagSlugs(), filenamesOf(), FileRecord, imageFilenames(), imageUrl() (+8 more)
 
 ### Community 26 - "category/api.ts"
-Cohesion: 0.16
-Nodes (11): AdminGate(), AdminLogin, AdminPage, EASE, EXIT_ABS, loadMotionFeatures(), AdminLogin(), AdminTopbar() (+3 more)
+Cohesion: 0.24
+Nodes (8): AdminLogin(), AdminTopbar(), fetchNewOrdersCount(), newOrdersKey, useAdminAuth(), pb, queryClient, QueryKey
 
 ### Community 27 - "cn.ts"
-Cohesion: 0.23
-Nodes (10): loadDomMax(), ProductEditorRoute(), SectionStub(), ADMIN_NAV, AdminNavItem, AdminRole, AdminSectionId, AdminSidebar() (+2 more)
+Cohesion: 0.16
+Nodes (15): AdminPage(), loadDomMax(), ProductEditorRoute(), SectionStub(), ADMIN_NAV, AdminNavItem, AdminRole, AdminSectionId (+7 more)
 
 ### Community 28 - "StickyBar.tsx"
 Cohesion: 0.23
 Nodes (9): needsChooser(), Product, ALL_TAG, TagFilterId, useAddProduct(), Props, Props, SPRING (+1 more)
 
 ### Community 29 - "order/model.ts"
-Cohesion: 0.21
-Nodes (10): collectionMutations(), CollectionMutationsConfig, FIELD_CODE_RU, invalidate(), listKeys(), MutationKeys, QueryKey, syncDetail() (+2 more)
+Cohesion: 0.28
+Nodes (8): collectionMutations(), CollectionMutationsConfig, FIELD_CODE_RU, invalidate(), listKeys(), MutationKeys, QueryKey, syncDetail()
 
 ### Community 30 - "FloatingActions.tsx"
 Cohesion: 0.25
@@ -278,12 +277,8 @@ Cohesion: 0.18
 Nodes (11): FrontpadJob, FrontpadJobKind, FrontpadJobStatus, Order, OrderAddressParts, OrderLineAddon, OrderStatusSource, Review (+3 more)
 
 ### Community 47 - "addon/model.ts"
-Cohesion: 0.24
-Nodes (7): App(), AppRoutes(), ScrollToTop(), container, Glass(), GlassDefs(), GlassProps
-
-### Community 48 - "store.ts"
-Cohesion: 0.28
-Nodes (6): AdminPage(), adminCountKeys, AdminCounts, fetchAdminCounts(), useAdminCounts(), pb
+Cohesion: 0.12
+Nodes (13): App(), AdminGate(), AdminLogin, AdminPage, AppRoutes(), EASE, EXIT_ABS, loadMotionFeatures() (+5 more)
 
 ### Community 56 - "FloatingActions.tsx"
 Cohesion: 0.15
@@ -313,7 +308,7 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **Why does `cn()` connect `product/api.ts` to `UI Layout Components`, `order/model.ts`, `Meal Add-ons UI`, `HomePage.tsx`, `products.ts`, `pb.ts`, `AdminSidebar.tsx`, `addon/model.ts`, `FloatingActions.tsx`, `cn`, `cn.ts`, `StickyBar.tsx`?**
   _High betweenness centrality (0.082) - this node is a cross-community bridge._
-- **Why does `pb` connect `store.ts` to `order/api.ts`, `customer/api.ts`, `banner/api.ts`, `addon/api.ts`, `addon/api.ts`, `articles.ts`, `order/model.ts`, `Sushi Catalog UI`, `products.ts`, `category/api.ts`, `FloatingActions.tsx`, `ProductEditor.tsx`, `cn`, `HomePage.tsx`, `category/api.ts`, `order/model.ts`, `useCategories`?**
+- **Why does `pb` connect `category/api.ts` to `order/api.ts`, `customer/api.ts`, `banner/api.ts`, `addon/api.ts`, `addon/api.ts`, `articles.ts`, `order/model.ts`, `Sushi Catalog UI`, `products.ts`, `category/api.ts`, `FloatingActions.tsx`, `ProductEditor.tsx`, `cn`, `HomePage.tsx`, `cn.ts`, `order/model.ts`, `useCategories`?**
   _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `formatPrice()` connect `UI Layout Components` to `order/model.ts`, `OrderDrawer.tsx`, `HomePage.tsx`, `products.ts`, `cn.ts`, `AdminSidebar.tsx`, `FloatingActions.tsx`, `product/api.ts`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._

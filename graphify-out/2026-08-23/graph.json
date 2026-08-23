@@ -912,8 +912,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_motion_features",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "motion-features.ts"
     },
     {
@@ -1000,8 +1000,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "router.tsx"
     },
     {
@@ -1011,8 +1011,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_adminpage",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "adminpage"
     },
     {
@@ -1022,8 +1022,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_adminlogin",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "adminlogin"
     },
     {
@@ -1033,8 +1033,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_loadmotionfeatures",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "loadmotionfeatures()"
     },
     {
@@ -1044,8 +1044,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_ease",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "ease"
     },
     {
@@ -1055,8 +1055,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_exit_abs",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "exit_abs"
     },
     {
@@ -1077,8 +1077,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_admingate",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "admingate()"
     },
     {
@@ -1088,8 +1088,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_app_router_routefallback",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 47,
+      "community_name": "addon/model.ts",
       "norm_label": "routefallback()"
     },
     {
@@ -5477,8 +5477,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_adminpage_adminpage",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "adminpage()"
     },
     {
@@ -7688,8 +7688,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_counts",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "counts.ts"
     },
     {
@@ -7699,8 +7699,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_counts_admincounts",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "admincounts"
     },
     {
@@ -7710,8 +7710,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_counts_admincountkeys",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "admincountkeys"
     },
     {
@@ -7721,8 +7721,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_counts_fetchadmincounts",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "fetchadmincounts()"
     },
     {
@@ -7732,8 +7732,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_counts_useadmincounts",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "useadmincounts()"
     },
     {
@@ -7963,8 +7963,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_pb",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "pb.ts"
     },
     {
@@ -7974,8 +7974,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_pb_resolvepbbaseurl",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "resolvepbbaseurl()"
     },
     {
@@ -7985,8 +7985,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_pb_pb",
-      "community": 48,
-      "community_name": "store.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "pb"
     },
     {
@@ -7996,8 +7996,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_query_client",
-      "community": 29,
-      "community_name": "order/model.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "query-client.ts"
     },
     {
@@ -8007,8 +8007,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_query_client_queryclient",
-      "community": 29,
-      "community_name": "order/model.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "queryclient"
     },
     {
@@ -8018,8 +8018,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_realtime",
-      "community": 29,
-      "community_name": "order/model.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "realtime.ts"
     },
     {
@@ -8029,8 +8029,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_realtime_querykey",
-      "community": 29,
-      "community_name": "order/model.ts",
+      "community": 26,
+      "community_name": "category/api.ts",
       "norm_label": "querykey"
     },
     {
@@ -9401,7 +9401,7 @@
       "label": "HoverArrow()",
       "file_type": "code",
       "source_file": "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx",
-      "source_location": "L100",
+      "source_location": "L102",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_hero_herobanner_hoverarrow",
       "community": 24,
@@ -39466,7 +39466,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx",
-      "source_location": "L107",
+      "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_widgets_hero_herobanner_hoverarrow",
@@ -40777,7 +40777,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_widgets_hero_herobanner",

@@ -47,6 +47,7 @@
   "45": "AdminSidebar.tsx",
   "46": "order/model.ts",
   "47": "addon/model.ts",
+  "48": "BannersSection.tsx",
   "49": "lucide-react",
   "50": "motion",
   "51": "pocketbase",
@@ -55,5 +56,16 @@
   "54": "@tanstack/react-query",
   "55": "zustand",
   "56": "FloatingActions.tsx",
-  "59": "invalidateProductRatings"
+  "57": "banner-image-field.tsx",
+  "58": "SettingsSection.tsx",
+  "59": "invalidateProductRatings",
+  "60": "ProductEditor.tsx",
+  "61": "router.tsx",
+  "62": "CartPanel.tsx",
+  "63": "store.ts",
+  "64": "theme.tsx",
+  "65": "@radix-ui/react-dialog",
+  "66": "react-router-dom",
+  "67": "tailwind-merge",
+  "68": "loadDomMax"
 }

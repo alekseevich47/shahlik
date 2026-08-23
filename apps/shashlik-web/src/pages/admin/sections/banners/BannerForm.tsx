@@ -9,7 +9,8 @@ import {
 import type { Banner } from "@/entities/banner/model"
 import { Button } from "@/shared/ui/button"
 import { Field, Input } from "@/shared/ui/input"
-import { ImageField, IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
+import { BannerImageField } from "@/shared/ui/banner-image-field"
+import { IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet"
 
 type Props = {
@@ -101,7 +102,8 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
             {isEdit ? "Редактировать баннер" : "Новый баннер"}
           </SheetTitle>
           <SheetDescription className="mt-1 text-[12.5px] text-fg-muted">
-            Карусель на главной. Плашку можно оставить пустой — она скроется.
+            Карусель на главной. Изображение — 1680×360, обрезка в форме. Плашку можно оставить
+            пустой — она скроется.
           </SheetDescription>
         </div>
 
@@ -112,8 +114,8 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
             void submit()
           }}
         >
-          <Field label="Изображение">
-            <ImageField
+          <Field label="Изображение" hint="Формат 1680×360 — подгоняется при загрузке">
+            <BannerImageField
               previewUrl={banner?.image || null}
               value={image}
               onChange={setImage}

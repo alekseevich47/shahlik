@@ -31,8 +31,8 @@ export function HeroBanner({ className }: { className?: string }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       className={cn(
-        "relative isolate h-[190px] overflow-hidden rounded-[var(--r-2xl)] border border-line bg-surface",
-        "shadow-[var(--shadow-card)] sm:h-[220px] lg:h-[236px]",
+        "relative isolate w-full overflow-hidden rounded-[var(--r-2xl)] border border-line bg-surface",
+        "aspect-[1680/360] shadow-[var(--shadow-card)]",
         className,
       )}
     >
