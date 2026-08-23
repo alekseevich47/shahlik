@@ -47,7 +47,7 @@ alwaysApply: false
 | pages | `src/pages/*/` | Сборка экрана. Состояние экрана (категория, вкладка админки) живёт здесь |
 | widgets | `src/widgets/` | Крупные блоки витрины: сайдбар, баннер, мобильный chrome |
 | features | `src/features/` | Сценарии: корзина, поиск, переключатель темы |
-| entities | `src/entities/*/` | Типы + чистые функции + UI сущности (`ProductCard`). Теги фильтров — `entities/tag` |
+| entities | `src/entities/*/` | Типы + чистые функции + UI сущности (`ProductCard`). Теги фильтров — `entities/tag`; бейджи карточек — `entities/badge` |
 | shared | `src/shared/` | Токены-утилиты, UI-примитивы, конфиг сайта, хуки |
 | mocks | `src/mocks/` | Справочные данные для сида PocketBase; из кода витрины **не импортируются** |
 
@@ -80,7 +80,7 @@ apps/shashlik-web/
     pages/admin/             # админка: sections/<раздел>/ + ui/ (каркас, таблицы), роуты /admin/*
     widgets/sidebar|hero|catalog|header|mobile|promo  # header: FloatingActions + StickyBar
     features/cart|search|theme-toggle  # cart: store + panel (колонка ≥1280) + CartToggle
-    entities/product|category|addon|banner|order|tag  # category/ui: CategoryIcon; tag: фильтры витрины
+    entities/product|category|addon|banner|order|tag|badge  # category/ui: CategoryIcon; tag: фильтры витрины; badge: метки карточек
     shared/ui|lib|config|hooks
     mocks/products|categories|addons|banners|orders|tags
 ```
@@ -155,12 +155,14 @@ apps/shashlik-web/
 
 Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
 
-- `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`
+- `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`. Пустой массив валиден (напитки/соусы без выбора мяса); в PB поле **`required: false`**
 - `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул
+- `active` — bool; черновик = `false`. В PB **`required: false`** (иначе `false` → `validation_required`)
 - Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
 - `tags`: slug[] из `product_tags` своей категории (не глобальный enum)
-- `badge`: `hit | new | spicy`
+- `badge`: slug из `product_badges` (текст, не select). Справочник CRUD в модалке редактора товара; дефолты hit / new / spicy
+- `images[]` (до 5) — PB multi-file `image`; `image` = первое для карточек/PDP
 - `nutrition`: `{ kcal, fat, protein, carbs }` на 100 г. Дефолт по категории в `mocks/products.ts` (`NUTRITION_BY_CATEGORY`)
 - `rating.overall` 0–10, `criteria[].value` 0–5 шаг ½. Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
 
@@ -228,13 +230,21 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 
 Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет.
 
-Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов вариант × размер + статистика).
+Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. До 5 фото (вертикальный ряд), в превью — точки-индикаторы. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка «+ Добавить».
 
 Layout-анимации (`layoutId`, перестановка строк) требуют `domMax` — включать **вложенным** `LazyMotion` внутри админского чанка (`app/motion-features-max.ts`). Витрина остаётся на `domAnimation`, где layout-фич нет.
 
 Живые данные (заказы) — `subscribe("*")` + инвалидация react-query (`shared/api/realtime.ts`), не поллинг. Мутации — фабрика `shared/api/crud.ts`, файлы — `shared/api/files.ts` (`toFormData`, `toUploadFormData` + `compressImage` до ~900 КБ под nginx, `pb.files.getURL`, `thumb` в таблицах).
 
-**Числа и `order`:** в PocketBase `required` у number = **nonzero** (значение `0` → `validation_required`). Порядок в админке — **1-based** (`index + 1`, `nextOrder = max + 1`). В схеме `order`/`price` с допустимым нулём — `required: false` (+ `min` при необходимости). После правки `Tasks/schema.json` снять Nonzero в `/_/` на проде.
+**`required` в PocketBase ≠ «поле должно быть в запросе».** Семантика по типу:
+
+| Тип | `required: true` означает | Допустимый «пустой» кейс |
+|-----|---------------------------|--------------------------|
+| number | **nonzero** (`0` → `validation_required`) | `order`/`price` с нулём → `required: false` (+ `min`) |
+| bool | значение **строго `true`** (`false` → `validation_required`) | флаги вроде `active`/`published`/`sale` → `required: false` |
+| json | значение **непустое** (`[]` / `{}` / `null` → `validation_required`) | массивы, которые бывают пустыми (`variants`, `tags`) → `required: false`; `sizes` остаётся required (минимум один размер) |
+
+Порядок в админке — **1-based** (`index + 1`, `nextOrder = max + 1`). Создание товара шлёт `variants: []` и может `active: false` — это валидно для домена. После правки `Tasks/schema.json` синхронизировать поля в `/_/` на проде (снять Nonzero / Required).
 
 Действия с кассой из админки — **только запись в `frontpad_jobs`**; сам Frontpad зовёт `pb_hooks`. Статус в кассе по API не меняется: наш `status` — зеркало, ручная правка помечается `statusSource="manual"`.
 
@@ -262,7 +272,9 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | ProductPage / PDP | `pages/product/ProductPage.tsx` |
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` |
 | NutritionHint | `pages/product/ui/NutritionHint.tsx` |
-| ProductEditor | `pages/admin/sections/ProductEditor.tsx` |
+| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — мультифото, бейджи CRUD, критерии DnD |
+| BadgeManagerDialog | `pages/admin/sections/products/BadgeManagerDialog.tsx` |
+| product_badges | `entities/badge` + `mocks/badges.ts` |
 | AdminSidebar | `pages/admin/ui/AdminSidebar.tsx` — меню + счётчики + layout pill |
 | ADMIN_NAV | `pages/admin/model.ts` — порядок пунктов, `AdminSectionId`, минимальная роль |
 
@@ -337,7 +349,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
 - Frontpad: спецификация в `.cursor/rules/API.mdc`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
 - Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`.
-- Number `required` в PB ≠ «обязательно заполнить»: это **nonzero**. Для `order`/`price` с нулём — `required: false` в схеме; в UI порядок 1-based.
+- PB `required`: number = nonzero, bool = только `true`, json = не `[]`/`{}`. Допустимые пустые/false — `required: false` в `Tasks/schema.json` (+ sync `/_/` на проде). UI порядок 1-based.
 - Не плодить несколько независимых `useAdminAuth` с локальным `authRefresh().catch(clear)` — только `AdminAuthProvider`.
 - Клиентские суммы заказа недостоверны: деньги пересчитывает хук `onRecordCreateRequest("orders")`.
 - Коммиты / push — только по явной просьбе.

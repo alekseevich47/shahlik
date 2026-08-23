@@ -36,7 +36,8 @@ export type ProductRating = {
   criteria: RatingCriterion[]
 }
 
-export type ProductBadge = "hit" | "new" | "spicy"
+/** Slug бейджа из `product_badges` (hit / new / spicy / кастом). */
+export type ProductBadge = string
 
 /** Пищевая ценность на 100 г. */
 export type ProductNutrition = {
@@ -54,12 +55,17 @@ export type Product = {
   slug: string
   categoryId: CategoryId
   name: string
-  /** Эмодзи рядом с названием на карточке (🔥 / 🧀 / 🌶). */
+  /** Эмодзи рядом с названием на карточке (legacy, в форме редактора не показывается). */
   emoji?: string
   /** Одна строка для страницы товара. */
   tagline: string
   composition: string
+  /** Главное фото (= `images[0]`). */
   image: string
+  /** До 5 фото (PB multi-file `image`). */
+  images: string[]
+  /** Имена файлов в PB — для точечного удаления. */
+  imageFilenames: string[]
   badge?: ProductBadge
   nutrition: ProductNutrition
   tags: ProductTag[]

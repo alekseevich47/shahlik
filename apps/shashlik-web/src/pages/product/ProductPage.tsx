@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { useBadges } from "@/entities/badge/api"
+import { badgeLabel } from "@/entities/badge/model"
 import { useExtras, useSauces } from "@/entities/addon/api"
 import type { MeatIcon } from "@/entities/product/model"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
@@ -28,6 +30,7 @@ export default function ProductPage() {
   const { data: product, isPending } = useProductBySlug(slug)
   const { data: sauces = [] } = useSauces()
   const { data: extras = [] } = useExtras()
+  const { data: badges = [] } = useBadges()
 
   const [variantId, setVariantId] = useState<string>()
   const [sizeId, setSizeId] = useState<string>()
@@ -141,9 +144,9 @@ export default function ProductPage() {
                   {product.name}
                   <NutritionHint nutrition={product.nutrition} />
                 </h1>
-                {product.badge === "hit" ? (
+                {product.badge ? (
                   <Badge variant="soft" size="lg">
-                    🔥 Хит продаж
+                    {badgeLabel(product.badge, badges)}
                   </Badge>
                 ) : null}
               </div>

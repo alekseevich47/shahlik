@@ -1,3 +1,5 @@
+import { badgeLabel, DEFAULT_BADGES } from "@/entities/badge/model"
+
 /** Fallback, если PB `settings#main` недоступен. Живые значения — `useSettings()`. */
 export const SITE = {
   name: "Шашлыковский",
@@ -16,8 +18,11 @@ export const ORDER_RULES = {
   promo: { code: "BOSS10", percent: 10, title: "Скидка 10%", subtitle: "на первый заказ по промокоду" },
 } as const
 
-export const BADGE_LABEL = {
-  hit: "Хит",
-  new: "Новинка",
-  spicy: "Острое",
-} as const
+/** @deprecated используйте `badgeLabel` + `useBadges()`; оставлен для сида/фолбэка. */
+export const BADGE_LABEL = Object.fromEntries(
+  DEFAULT_BADGES.map((b) => [b.slug, b.label]),
+) as Record<string, string>
+
+export function resolveBadgeLabel(slug: string | undefined): string {
+  return badgeLabel(slug, DEFAULT_BADGES)
+}

@@ -7,12 +7,17 @@ import { useAdminProducts, useCreateProduct } from "@/entities/product/api"
 import type { ProductNutrition } from "@/entities/product/model"
 import { Button } from "@/shared/ui/button"
 import { Field, Input, Textarea } from "@/shared/ui/input"
-import { ImageField, IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
+import { IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
+import {
+  MultiImageField,
+  type MultiImageItem,
+} from "@/shared/ui/multi-image-field"
 import { Select } from "@/shared/ui/select"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet"
 import { Switch } from "@/shared/ui/switch"
 
 const SLUG_PATTERN = /^[a-z0-9-]+$/
+const MAX_PHOTOS = 5
 
 const CYR_MAP: Record<string, string> = {
   а: "a",
@@ -86,7 +91,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
   const [price, setPrice] = useState("")
   const [sizeLabel, setSizeLabel] = useState("Стандарт")
   const [active, setActive] = useState(true)
-  const [image, setImage] = useState<File | null>(null)
+  const [photos, setPhotos] = useState<MultiImageItem[]>([])
 
   useEffect(() => {
     if (!open) return
@@ -99,7 +104,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
     setPrice("")
     setSizeLabel("Стандарт")
     setActive(true)
-    setImage(null)
+    setPhotos([])
   }, [open, defaultCategoryId, categories])
 
   async function submit() {
@@ -108,6 +113,9 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
     const trimmedTagline = tagline.trim()
     const trimmedComposition = composition.trim()
     const priceNum = Number(price.replace(",", "."))
+    const files = photos
+      .filter((p): p is Extract<MultiImageItem, { kind: "new" }> => p.kind === "new")
+      .map((p) => p.file)
 
     if (!trimmedName) {
       toast.error("Укажите название")
@@ -137,7 +145,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
       toast.error("Укажите размер")
       return
     }
-    if (!image) {
+    if (!files.length) {
       toast.error("Добавьте фото")
       return
     }
@@ -154,7 +162,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
         sizes: [{ id: "std", label: sizeLabel.trim(), price: priceNum }],
         order: products.length ? Math.max(...products.map((p) => p.order)) + 1 : 1,
         active,
-        image,
+        image: files.length === 1 ? files[0] : files,
       })
       toast.success("Товар создан")
       onOpenChange(false)
@@ -181,10 +189,11 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
             void submit()
           }}
         >
-          <Field label="Фото">
-            <ImageField
-              value={image}
-              onChange={setImage}
+          <Field label="Фото" hint={`до ${MAX_PHOTOS}`}>
+            <MultiImageField
+              items={photos}
+              onChange={setPhotos}
+              maxCount={MAX_PHOTOS}
               maxBytes={IMAGE_MAX_BYTES.product}
               disabled={busy}
             />

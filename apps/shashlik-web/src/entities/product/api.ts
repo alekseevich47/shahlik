@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import type { CategoryId } from "@/entities/category/model"
 import { adminCountKeys } from "@/shared/api/counts"
 import { collectionMutations } from "@/shared/api/crud"
-import { imageUrl, toUploadFormData } from "@/shared/api/files"
+import { imageFilenames, imageUrl, imageUrls, toUploadFormData } from "@/shared/api/files"
 import { pb } from "@/shared/api/pb"
 import { queryClient } from "@/shared/api/query-client"
 
@@ -26,7 +26,7 @@ type ProductRecord = {
   emoji?: string
   tagline: string
   composition: string
-  image: string
+  image: string | string[]
   badge?: ProductBadge
   nutrition: ProductNutrition
   tags?: unknown
@@ -46,6 +46,7 @@ function mapTagSlugs(raw: unknown): ProductTag[] {
 }
 
 function mapProduct(record: ProductRecord): Product {
+  const images = imageUrls(record, "image")
   return {
     id: record.id,
     slug: record.slug,
@@ -54,8 +55,10 @@ function mapProduct(record: ProductRecord): Product {
     emoji: record.emoji || undefined,
     tagline: record.tagline,
     composition: record.composition,
-    image: imageUrl(record, "image"),
-    badge: record.badge,
+    image: images[0] ?? imageUrl(record, "image"),
+    images,
+    imageFilenames: imageFilenames(record, "image"),
+    badge: record.badge || undefined,
     nutrition: record.nutrition,
     tags: mapTagSlugs(record.tags),
     variants: record.variants ?? [],
@@ -190,7 +193,8 @@ export type CreateProductInput = {
   sizes: ProductSize[]
   order: number
   active: boolean
-  image: File
+  /** Одно или несколько фото (1–5). */
+  image: File | File[]
 }
 
 export type UpdateProductInput = {
@@ -208,8 +212,10 @@ export type UpdateProductInput = {
   rating?: ProductRating
   order?: number
   active?: boolean
-  /** Новый файл; `null` — удалить (поле required — обычно не используем). */
-  image?: File | null
+  /** Новые файлы (append к multi-file). */
+  image?: File | File[] | null
+  /** Имена файлов PB для удаления (`image-`). */
+  imageRemove?: string[]
 }
 
 const EMPTY_STATS: Product["stats"] = {
@@ -244,6 +250,7 @@ const productMutations = collectionMutations<
 const PRODUCT_MAX_BYTES = 5_242_880
 
 async function createBody(input: CreateProductInput): Promise<Record<string, unknown>> {
+  const images = Array.isArray(input.image) ? input.image : [input.image]
   return (await toUploadFormData(
     {
       name: input.name,
@@ -261,33 +268,34 @@ async function createBody(input: CreateProductInput): Promise<Record<string, unk
       order: input.order,
       active: input.active,
       stats: EMPTY_STATS,
-      image: input.image,
+      image: images.length === 1 ? images[0] : images,
     },
     { maxBytes: PRODUCT_MAX_BYTES },
   )) as unknown as Record<string, unknown>
 }
 
 async function updateBody(input: UpdateProductInput): Promise<Record<string, unknown>> {
-  return (await toUploadFormData(
-    {
-      name: input.name,
-      slug: input.slug,
-      categoryId: input.categoryId,
-      tagline: input.tagline,
-      composition: input.composition,
-      emoji: input.emoji,
-      badge: input.badge === "" ? null : input.badge,
-      nutrition: input.nutrition,
-      tags: input.tags,
-      variants: input.variants,
-      sizes: input.sizes,
-      rating: input.rating,
-      order: input.order,
-      active: input.active,
-      image: input.image,
-    },
-    { maxBytes: PRODUCT_MAX_BYTES },
-  )) as unknown as Record<string, unknown>
+  const payload: Record<string, unknown> = {
+    name: input.name,
+    slug: input.slug,
+    categoryId: input.categoryId,
+    tagline: input.tagline,
+    composition: input.composition,
+    emoji: input.emoji,
+    badge: input.badge === "" ? null : input.badge,
+    nutrition: input.nutrition,
+    tags: input.tags,
+    variants: input.variants,
+    sizes: input.sizes,
+    rating: input.rating,
+    order: input.order,
+    active: input.active,
+  }
+  if (input.image !== undefined) payload.image = input.image
+  if (input.imageRemove?.length) payload["image-"] = input.imageRemove
+  return (await toUploadFormData(payload, {
+    maxBytes: PRODUCT_MAX_BYTES,
+  })) as unknown as Record<string, unknown>
 }
 
 export async function createProduct(input: CreateProductInput): Promise<Product> {
@@ -302,19 +310,29 @@ export async function deleteProduct(id: string): Promise<void> {
   return productMutations.remove(id)
 }
 
-async function fileFromProductImage(product: Product): Promise<File> {
-  const res = await fetch(product.image)
-  if (!res.ok) throw new Error("Не удалось скопировать фото")
-  const blob = await res.blob()
-  const ext = blob.type.split("/")[1] || "jpg"
-  return new File([blob], `${product.slug}-copy.${ext}`, { type: blob.type || "image/jpeg" })
+async function filesFromProductImages(product: Product): Promise<File[]> {
+  const urls = product.images.length ? product.images : product.image ? [product.image] : []
+  if (!urls.length) throw new Error("Не удалось скопировать фото")
+  const files: File[] = []
+  for (const [index, url] of urls.entries()) {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error("Не удалось скопировать фото")
+    const blob = await res.blob()
+    const ext = blob.type.split("/")[1] || "jpg"
+    files.push(
+      new File([blob], `${product.slug}-copy-${index + 1}.${ext}`, {
+        type: blob.type || "image/jpeg",
+      }),
+    )
+  }
+  return files
 }
 
 export async function duplicateProduct(id: string): Promise<Product> {
   const source = await fetchProductById(id)
   if (!source) throw new Error("Товар не найден")
 
-  const image = await fileFromProductImage(source)
+  const image = await filesFromProductImages(source)
   const slugBase = `${source.slug}-copy`.slice(0, 190)
   let slug = slugBase
   let n = 2

@@ -25,7 +25,8 @@
 |---|---|---|
 | `categories` | `name`, `icon` (text, путь `/icons/*.png` или пусто), `order` (number) | id записи = код категории (`shawarma`, `shashlik`, …) — задать вручную при создании, не автоген, чтобы совпадало с `CategoryId` |
 | `product_tags` | `categoryId` (relation → `categories`, cascade), `slug` (`^[a-z0-9-]+$`), `name`, `emoji` (text, optional), `order` (number) | уникально `(categoryId, slug)`. Чип «Все» не хранится. Сид: `mocks/tags.ts` |
-| `products` | `name`, `slug` (unique), `categoryId` (text/select = `CategoryId`), `emoji` (text, optional), `tagline`, `composition`, `image` (file, single), `badge` (select optional: hit/new/spicy), `nutrition` (JSON), `tags` (JSON массив slug из `product_tags` своей категории), `variants` (JSON массив), `sizes` (JSON массив, артикул кассы — `sizes[].article`), `rating` (JSON), `order` (number), `active` (bool), `stats` (JSON) | `created`/`updated` — встроенные автополя PB (не заводить свои `createdAt`/`updatedAt`). Бывший select `classic|spicy|…` заменить на json, значения slug оставить |
+| `product_badges` | `slug` (unique, `^[a-z0-9-]+$`), `label`, `order` (number) | Справочник бейджей витрины. Сид: `mocks/badges.ts` (hit/new/spicy). На товаре — `products.badge` = slug |
+| `products` | `name`, `slug` (unique), `categoryId` (text/select = `CategoryId`), `emoji` (text, optional, legacy), `tagline`, `composition`, `image` (file, **до 5**), `badge` (text optional = slug из `product_badges`), `nutrition` (JSON), `tags` (JSON массив slug из `product_tags` своей категории), `variants` (JSON массив, **`required: false`** — пустой `[]` валиден), `sizes` (JSON массив, артикул кассы — `sizes[].article`), `rating` (JSON), `order` (number, `required: false`), `active` (bool, **`required: false`** — иначе PB отвергает `false`), `stats` (JSON) | `created`/`updated` — встроенные автополя PB (не заводить свои `createdAt`/`updatedAt`). Бывший select `classic|spicy|…` заменить на json, значения slug оставить. PB: `required` у bool = только `true`, у json = непустой — см. `stack_new.mdc` |
 | `addons` | `name`, `weight`, `price` (number), `image` (file), `kind` (select: extra/sauce), `article` (text optional) | |
 | `banners` | `title`, `subtitle`, `image` (file), `note` (JSON optional `{title, text}`), `order` (number) | |
 | `orders` | `number` (text), `customer`, `phone`, `mode` (select: pickup/delivery), `address` (text optional), `status` (select: new/cooking/delivering/done/canceled), `positions` (number), `total` (number), `lines` (JSON — снимок корзины), `promo` (text optional), `frontpadOrderId` (number optional), `frontpadOrderNumber` (text optional), `frontpadError` (text optional) | пишет клиент (create) + патчит хук |
@@ -35,7 +36,7 @@
 
 ### API-правила (PB Rules)
 
-- `categories`/`product_tags`/`products`/`addons`/`banners`/`reviews` (published=true): List/View — публично; Create/Update/Delete — `@request.auth.role = "admin"`.
+- `categories`/`product_tags`/`product_badges`/`products`/`addons`/`banners`/`reviews` (published=true): List/View — публично; Create/Update/Delete — `@request.auth.role = "admin"`.
 - `orders`: Create — публично (с валидацией полей); List/View/Update — только `admin`; клиенту для realtime-подписки на свою запись достаточно `view` по id, если правило это разрешает точечно.
 - `frontpad_stock`: List/View — публично (для проверки стоп-листа на сайте); запись — только хук/суперюзер.
 - `users`: обычные правила auth-коллекции, регистрация закрыта (создавать сотрудников из `/_/`).

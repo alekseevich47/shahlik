@@ -12,10 +12,12 @@ import {
   Trash2,
   X,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type DragEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
+import { useBadges } from "@/entities/badge/api"
+import { badgeLabel } from "@/entities/badge/model"
 import { useCategories } from "@/entities/category/api"
 import { ARTICLE_PATTERN, articleConflictMessage } from "@/entities/product/lib/articles"
 import { minPrice, skuMatrix } from "@/entities/product/lib"
@@ -26,6 +28,7 @@ import type {
   ProductNutrition,
   ProductSize,
   ProductVariant,
+  RatingCriterion,
 } from "@/entities/product/model"
 import { useAddons } from "@/entities/addon/api"
 import {
@@ -36,6 +39,7 @@ import {
 } from "@/entities/product/api"
 import { useCategoryTags } from "@/entities/tag/api"
 import { ArticleMatrix } from "@/pages/admin/sections/products/ArticleMatrix"
+import { BadgeManagerDialog } from "@/pages/admin/sections/products/BadgeManagerDialog"
 import { slugFromName } from "@/pages/admin/sections/products/ProductCreateForm"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { cn } from "@/shared/lib/cn"
@@ -45,7 +49,12 @@ import { Button } from "@/shared/ui/button"
 import { Chip } from "@/shared/ui/chip"
 import { useConfirm } from "@/shared/ui/confirm-dialog"
 import { Field, Input, Textarea } from "@/shared/ui/input"
-import { ImageField, IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
+import { IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
+import {
+  MultiImageField,
+  multiImageDiff,
+  type MultiImageItem,
+} from "@/shared/ui/multi-image-field"
 import { scoreColor } from "@/shared/ui/rating"
 import { Select } from "@/shared/ui/select"
 import { Switch } from "@/shared/ui/switch"
@@ -55,21 +64,34 @@ type Props = {
   onBack: () => void
 }
 
-const BADGE_OPTIONS: Array<{ value: "" | ProductBadge; label: string }> = [
-  { value: "", label: "Без бейджа" },
-  { value: "hit", label: "Хит" },
-  { value: "new", label: "Новинка" },
-  { value: "spicy", label: "Острое" },
-]
-
 const MEAT_OPTIONS: Array<{ value: MeatIcon; label: string }> = [
   { value: "chicken", label: "Курица" },
   { value: "pork", label: "Свинина" },
   { value: null, label: "Без иконки" },
 ]
 
+const MAX_PHOTOS = 5
+
 function newId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`
+}
+
+function imagesFromProduct(product: Product): MultiImageItem[] {
+  const urls = product.images.length ? product.images : product.image ? [product.image] : []
+  return urls.map((url, index) => ({
+    kind: "existing" as const,
+    key: `ex-${product.imageFilenames[index] ?? index}`,
+    url,
+    filename: product.imageFilenames[index] ?? `legacy-${index}`,
+  }))
+}
+
+function moveCriterion(list: RatingCriterion[], from: number, to: number): RatingCriterion[] {
+  if (to < 0 || to >= list.length) return list
+  const next = list.slice()
+  const [item] = next.splice(from, 1)
+  next.splice(to, 0, item)
+  return next
 }
 
 export function ProductEditor({ product, onBack }: Props) {
@@ -77,6 +99,7 @@ export function ProductEditor({ product, onBack }: Props) {
   const { data: categories = [] } = useCategories()
   const { data: products = [] } = useAdminProducts()
   const { data: addons = [] } = useAddons()
+  const { data: badges = [] } = useBadges()
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
   const duplicateProduct = useDuplicateProduct()
@@ -90,29 +113,21 @@ export function ProductEditor({ product, onBack }: Props) {
   const [categoryId, setCategoryId] = useState<string>(product.categoryId)
   const [tagline, setTagline] = useState(product.tagline)
   const [composition, setComposition] = useState(product.composition)
-  const [emoji, setEmoji] = useState(product.emoji ?? "")
   const [badge, setBadge] = useState<"" | ProductBadge>(product.badge ?? "")
+  const [badgeManagerOpen, setBadgeManagerOpen] = useState(false)
   const [nutrition, setNutrition] = useState<ProductNutrition>(product.nutrition)
   const [tags, setTags] = useState<string[]>(product.tags)
   const [variants, setVariants] = useState<ProductVariant[]>(product.variants)
   const [sizes, setSizes] = useState<ProductSize[]>(product.sizes)
   const [active, setActive] = useState(product.active)
-  const [image, setImage] = useState<File | null>(null)
+  const [photoItems, setPhotoItems] = useState<MultiImageItem[]>(() => imagesFromProduct(product))
+  const [initialFilenames, setInitialFilenames] = useState(product.imageFilenames)
   const [criteria, setCriteria] = useState(product.rating.criteria)
   const [preview, setPreview] = useState<"desktop" | "mobile">("desktop")
-  const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null)
+  const [previewIndex, setPreviewIndex] = useState(0)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
 
   const { data: categoryTags, isPending: categoryTagsPending } = useCategoryTags(categoryId)
-
-  useEffect(() => {
-    if (!image) {
-      setPreviewObjectUrl(null)
-      return
-    }
-    const url = URL.createObjectURL(image)
-    setPreviewObjectUrl(url)
-    return () => URL.revokeObjectURL(url)
-  }, [image])
 
   useEffect(() => {
     setName(product.name)
@@ -121,16 +136,23 @@ export function ProductEditor({ product, onBack }: Props) {
     setCategoryId(product.categoryId)
     setTagline(product.tagline)
     setComposition(product.composition)
-    setEmoji(product.emoji ?? "")
     setBadge(product.badge ?? "")
     setNutrition(product.nutrition)
     setTags(product.tags)
     setVariants(product.variants)
     setSizes(product.sizes)
     setActive(product.active)
-    setImage(null)
+    setPhotoItems(imagesFromProduct(product))
+    setInitialFilenames(product.imageFilenames)
     setCriteria(product.rating.criteria)
+    setPreviewIndex(0)
   }, [product])
+
+  useEffect(() => {
+    if (previewIndex >= photoItems.length) {
+      setPreviewIndex(Math.max(0, photoItems.length - 1))
+    }
+  }, [photoItems.length, previewIndex])
 
   const draftProduct: Product = {
     ...product,
@@ -139,7 +161,6 @@ export function ProductEditor({ product, onBack }: Props) {
     categoryId,
     tagline,
     composition,
-    emoji: emoji || undefined,
     badge: badge || undefined,
     nutrition,
     tags,
@@ -147,6 +168,10 @@ export function ProductEditor({ product, onBack }: Props) {
     sizes,
     active,
   }
+
+  const previewImages = photoItems.map((item) => item.url)
+  const previewImage = previewImages[previewIndex] ?? previewImages[0] ?? ""
+  const selectedBadgeLabel = badge ? badgeLabel(badge, badges) : ""
 
   const validateArticles = (): string | null => {
     for (const cell of skuMatrix(draftProduct)) {
@@ -162,7 +187,6 @@ export function ProductEditor({ product, onBack }: Props) {
       })
       if (conflict) return conflict
     }
-    // uniqueness inside draft
     const seen = new Map<string, string>()
     for (const cell of skuMatrix(draftProduct)) {
       const article = cell.article.trim()
@@ -198,6 +222,10 @@ export function ProductEditor({ product, onBack }: Props) {
       toast.error("Нужен хотя бы один размер")
       return
     }
+    if (!photoItems.length) {
+      toast.error("Добавьте хотя бы одно фото")
+      return
+    }
     const articleError = validateArticles()
     if (articleError) {
       toast.error(articleError)
@@ -217,6 +245,8 @@ export function ProductEditor({ product, onBack }: Props) {
         }
       })
 
+      const { files, remove } = multiImageDiff(initialFilenames, photoItems)
+
       await updateProduct.mutateAsync({
         id: product.id,
         data: {
@@ -225,7 +255,6 @@ export function ProductEditor({ product, onBack }: Props) {
           categoryId,
           tagline: tagline.trim(),
           composition: composition.trim(),
-          emoji: emoji.trim(),
           badge,
           nutrition,
           tags,
@@ -233,10 +262,12 @@ export function ProductEditor({ product, onBack }: Props) {
           sizes: cleanedSizes,
           active,
           rating: { ...product.rating, criteria },
-          ...(image ? { image } : {}),
+          ...(files.length ? { image: files.length === 1 ? files[0] : files } : {}),
+          ...(remove.length ? { imageRemove: remove } : {}),
         },
       })
       toast.success("Изменения сохранены")
+      onBack()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Не удалось сохранить")
     }
@@ -281,7 +312,20 @@ export function ProductEditor({ product, onBack }: Props) {
     setSizes((list) => [...list, { id: newId("s"), label: "M", price: 0 }])
   }
 
-  const previewImage = previewObjectUrl ?? product.image
+  function onCriterionDragStart(index: number) {
+    setDragIndex(index)
+  }
+
+  function onCriterionDragOver(e: DragEvent, index: number) {
+    e.preventDefault()
+    if (dragIndex === null || dragIndex === index) return
+    setCriteria((list) => moveCriterion(list, dragIndex, index))
+    setDragIndex(index)
+  }
+
+  function onCriterionDragEnd() {
+    setDragIndex(null)
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -316,11 +360,11 @@ export function ProductEditor({ product, onBack }: Props) {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-4">
           <AdminCard bodyClassName="grid gap-4 sm:grid-cols-[200px_minmax(0,1fr)]">
-            <Field label="Фото">
-              <ImageField
-                previewUrl={product.image || null}
-                value={image}
-                onChange={setImage}
+            <Field label="Фото" hint={`до ${MAX_PHOTOS}`}>
+              <MultiImageField
+                items={photoItems}
+                onChange={setPhotoItems}
+                maxCount={MAX_PHOTOS}
                 maxBytes={IMAGE_MAX_BYTES.product}
                 disabled={busy}
               />
@@ -351,45 +395,48 @@ export function ProductEditor({ product, onBack }: Props) {
               </Field>
 
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Эмодзи">
-                  <Input
-                    value={emoji}
-                    onChange={(e) => setEmoji(e.target.value.slice(0, 10))}
-                    disabled={busy}
-                    placeholder="🔥"
-                  />
-                </Field>
-                <Field label="Бейдж">
+                <Field label="Категория">
                   <Select
-                    value={badge}
-                    onChange={(e) => setBadge(e.target.value as "" | ProductBadge)}
+                    value={categoryId}
+                    onChange={(e) => {
+                      setCategoryId(e.target.value)
+                      setTags([])
+                    }}
                     disabled={busy}
                   >
-                    {BADGE_OPTIONS.map((opt) => (
-                      <option key={opt.value || "none"} value={opt.value}>
-                        {opt.label}
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
                       </option>
                     ))}
                   </Select>
                 </Field>
+                <Field label="Бейдж">
+                  <div className="flex flex-col gap-1.5">
+                    <Select
+                      value={badge}
+                      onChange={(e) => setBadge(e.target.value as "" | ProductBadge)}
+                      disabled={busy}
+                    >
+                      <option value="">Без бейджа</option>
+                      {badges.map((opt) => (
+                        <option key={opt.id} value={opt.slug}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Select>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setBadgeManagerOpen(true)}
+                      className="inline-flex h-8 cursor-pointer items-center justify-center gap-1 rounded-[var(--r-sm)] border border-dashed border-brand-border px-2 text-[11.5px] font-bold text-brand transition-colors hover:bg-brand-soft disabled:opacity-50"
+                    >
+                      <Plus size={13} strokeWidth={3} />
+                      Добавить
+                    </button>
+                  </div>
+                </Field>
               </div>
-
-              <Field label="Категория">
-                <Select
-                  value={categoryId}
-                  onChange={(e) => {
-                    setCategoryId(e.target.value)
-                    setTags([])
-                  }}
-                  disabled={busy}
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
 
               <Field label="Теги фильтра">
                 {categoryTags.length ? (
@@ -634,26 +681,72 @@ export function ProductEditor({ product, onBack }: Props) {
 
           <AdminCard title="Критерии оценки">
             <ul className="flex flex-col gap-2">
-              {criteria.map((criterion) => (
+              {criteria.map((criterion, index) => (
                 <li
                   key={criterion.id}
-                  className="flex items-center gap-2.5 rounded-[var(--r-md)] border border-line bg-surface px-3 py-2.5"
+                  onDragOver={(e) => onCriterionDragOver(e, index)}
+                  onDrop={onCriterionDragEnd}
+                  className={cn(
+                    "flex items-start gap-2.5 rounded-[var(--r-md)] border border-line bg-surface px-3 py-2.5",
+                    dragIndex === index && "border-brand bg-brand-soft/40",
+                  )}
                 >
-                  <GripVertical
-                    size={15}
-                    className="shrink-0 cursor-grab text-fg-faint"
-                    strokeWidth={2.2}
-                  />
-                  <span className="min-w-0 flex-1 leading-tight">
-                    <span className="block truncate text-[12.5px] font-bold text-fg">
-                      {criterion.label}
-                    </span>
-                    <span className="block truncate text-[10.5px] text-fg-muted">
-                      {criterion.hint}
-                    </span>
-                  </span>
+                  <button
+                    type="button"
+                    draggable={!busy}
+                    aria-label="Перетащить критерий"
+                    className="mt-2 shrink-0 cursor-grab touch-none text-fg-faint active:cursor-grabbing"
+                    onDragStart={() => onCriterionDragStart(index)}
+                    onDragEnd={onCriterionDragEnd}
+                  >
+                    <GripVertical size={15} strokeWidth={2.2} />
+                  </button>
+                  <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[1fr_1fr_88px]">
+                    <Field label="Заголовок">
+                      <Input
+                        value={criterion.label}
+                        disabled={busy}
+                        onChange={(e) =>
+                          setCriteria((list) =>
+                            list.map((c, i) =>
+                              i === index ? { ...c, label: e.target.value } : c,
+                            ),
+                          )
+                        }
+                      />
+                    </Field>
+                    <Field label="Подсказка">
+                      <Input
+                        value={criterion.hint}
+                        disabled={busy}
+                        onChange={(e) =>
+                          setCriteria((list) =>
+                            list.map((c, i) =>
+                              i === index ? { ...c, hint: e.target.value } : c,
+                            ),
+                          )
+                        }
+                      />
+                    </Field>
+                    <Field label="Оценка /5">
+                      <Input
+                        value={String(criterion.value)}
+                        inputMode="decimal"
+                        disabled={busy}
+                        onChange={(e) => {
+                          const n = Number(e.target.value.replace(",", "."))
+                          const clamped = Number.isFinite(n)
+                            ? Math.min(5, Math.max(0, Math.round(n * 2) / 2))
+                            : 0
+                          setCriteria((list) =>
+                            list.map((c, i) => (i === index ? { ...c, value: clamped } : c)),
+                          )
+                        }}
+                      />
+                    </Field>
+                  </div>
                   <span
-                    className="shrink-0 text-[12.5px] font-extrabold tabular-nums"
+                    className="mt-7 shrink-0 text-[12.5px] font-extrabold tabular-nums"
                     style={{ color: scoreColor(criterion.value * 2, 10) }}
                   >
                     {Number((criterion.value * 2).toFixed(1))}/10
@@ -664,7 +757,7 @@ export function ProductEditor({ product, onBack }: Props) {
                     onClick={() =>
                       setCriteria((list) => list.filter((c) => c.id !== criterion.id))
                     }
-                    className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-[var(--r-xs)] text-fg-faint transition-colors hover:bg-red-soft hover:text-red"
+                    className="mt-6 grid size-6 shrink-0 cursor-pointer place-items-center rounded-[var(--r-xs)] text-fg-faint transition-colors hover:bg-red-soft hover:text-red"
                   >
                     <X size={13} strokeWidth={2.6} />
                   </button>
@@ -673,6 +766,7 @@ export function ProductEditor({ product, onBack }: Props) {
             </ul>
             <button
               type="button"
+              disabled={busy}
               onClick={() =>
                 setCriteria((list) => [
                   ...list,
@@ -680,11 +774,11 @@ export function ProductEditor({ product, onBack }: Props) {
                     id: `c-${Date.now()}`,
                     label: "Новый критерий",
                     hint: "Опишите, что оценивают",
-                    value: 4,
+                    value: 0,
                   },
                 ])
               }
-              className="mt-2.5 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[var(--r-sm)] border border-dashed border-brand-border px-3 text-[11.5px] font-bold text-brand transition-colors hover:bg-brand-soft"
+              className="mt-2.5 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[var(--r-sm)] border border-dashed border-brand-border px-3 text-[11.5px] font-bold text-brand transition-colors hover:bg-brand-soft disabled:opacity-50"
             >
               <Plus size={13} strokeWidth={3} />
               Добавить критерий
@@ -751,19 +845,39 @@ export function ProductEditor({ product, onBack }: Props) {
             >
               <div className="relative aspect-[16/10] bg-surface-3">
                 {previewImage ? (
-                  <img src={previewImage} alt="" className="size-full object-cover" />
+                  <img
+                    src={previewImage}
+                    alt=""
+                    className="size-full object-cover transition-opacity duration-300"
+                  />
                 ) : null}
-                {badge === "hit" ? (
+                {badge && selectedBadgeLabel ? (
                   <Badge variant="brand" size="sm" className="absolute top-2 right-2">
-                    Хит продаж
+                    {selectedBadgeLabel}
                   </Badge>
+                ) : null}
+                {previewImages.length > 1 ? (
+                  <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-1.5">
+                    {previewImages.map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        aria-label={`Фото ${index + 1}`}
+                        aria-current={index === previewIndex}
+                        onClick={() => setPreviewIndex(index)}
+                        className={cn(
+                          "size-1.5 rounded-full transition-[transform,background-color] duration-200",
+                          index === previewIndex
+                            ? "scale-125 bg-brand"
+                            : "bg-white/55 hover:bg-white/80",
+                        )}
+                      />
+                    ))}
+                  </div>
                 ) : null}
               </div>
               <div className="flex flex-col gap-1.5 p-3">
-                <p className="text-[14px] leading-tight font-extrabold text-fg">
-                  {emoji ? `${emoji} ` : ""}
-                  {name}
-                </p>
+                <p className="text-[14px] leading-tight font-extrabold text-fg">{name}</p>
                 <p className="line-clamp-2 text-[10.5px] leading-[1.45] text-fg-muted">
                   {tagline || composition}
                 </p>
@@ -837,6 +951,7 @@ export function ProductEditor({ product, onBack }: Props) {
         </AdminCard>
       </div>
       {dialog}
+      <BadgeManagerDialog open={badgeManagerOpen} onOpenChange={setBadgeManagerOpen} />
     </div>
   )
 }

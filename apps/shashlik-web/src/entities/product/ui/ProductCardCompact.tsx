@@ -1,10 +1,11 @@
 import { Plus } from "lucide-react"
 import { Link } from "react-router-dom"
 
+import { useBadges } from "@/entities/badge/api"
+import { badgeLabel } from "@/entities/badge/model"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
 import { Badge } from "@/shared/ui/badge"
-import { BADGE_LABEL } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 import { scoreColor } from "@/shared/ui/rating"
@@ -17,6 +18,8 @@ type Props = {
 
 /** Компактная карточка для мобильных горизонтальных подборок. */
 export function ProductCardCompact({ product, onAdd, className }: Props) {
+  const { data: badges = [] } = useBadges()
+  const label = badgeLabel(product.badge, badges)
   const meta = [product.variants[0]?.label, product.sizes[0]?.label]
     .filter(Boolean)
     .join(" • ")
@@ -38,9 +41,9 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
           loading="lazy"
           className="size-full object-cover"
         />
-        {product.badge ? (
+        {product.badge && label ? (
           <Badge variant="brand" size="sm" className="absolute top-1.5 right-1.5">
-            {BADGE_LABEL[product.badge]}
+            {label}
           </Badge>
         ) : null}
       </Link>

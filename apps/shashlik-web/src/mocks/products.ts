@@ -93,6 +93,8 @@ function product(
     tagline: spec.tagline,
     composition: spec.composition,
     image: spec.image,
+    images: [spec.image],
+    imageFilenames: [],
     badge: spec.badge,
     nutrition:
       spec.nutrition ?? NUTRITION_BY_CATEGORY[spec.categoryId as KnownCategoryId],

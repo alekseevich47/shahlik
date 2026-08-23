@@ -28,6 +28,18 @@ export function toFormData(data: Record<string, unknown>): FormData {
       form.append(key, value)
       continue
     }
+    // Multi-file: File[] → несколько append одного ключа; string[] на `field-` → удаления.
+    if (Array.isArray(value)) {
+      if (value.length === 0) continue
+      if (value.every((item) => item instanceof File || item instanceof Blob)) {
+        for (const item of value) form.append(key, item)
+        continue
+      }
+      if (value.every((item) => typeof item === "string")) {
+        for (const item of value) form.append(key, item)
+        continue
+      }
+    }
     if (typeof value === "object") {
       form.append(key, JSON.stringify(value))
       continue
@@ -48,14 +60,42 @@ export async function toUploadFormData(
   for (const [key, value] of Object.entries(next)) {
     if (value instanceof File) {
       next[key] = await compressImage(value, { maxBytes })
+    } else if (
+      Array.isArray(value) &&
+      value.length > 0 &&
+      value.every((item) => item instanceof File)
+    ) {
+      next[key] = await Promise.all(
+        value.map((file) => compressImage(file, { maxBytes })),
+      )
     }
   }
   return toFormData(next)
 }
 
+function filenamesOf(record: FileRecord, field: string): string[] {
+  const raw = record[field]
+  if (Array.isArray(raw)) {
+    return raw.filter((name): name is string => typeof name === "string" && name.length > 0)
+  }
+  if (typeof raw === "string" && raw) return [raw]
+  return []
+}
+
 /** Абсолютный URL файла записи; `thumb` — например `"100x100"`. */
 export function imageUrl(record: FileRecord, field: string, thumb?: string): string {
-  const filename = record[field]
-  if (typeof filename !== "string" || !filename) return ""
+  const [filename] = filenamesOf(record, field)
+  if (!filename) return ""
   return pb.files.getURL(record, filename, thumb ? { thumb } : undefined)
+}
+
+/** Все URL multi-file поля (порядок как в PB). */
+export function imageUrls(record: FileRecord, field: string, thumb?: string): string[] {
+  return filenamesOf(record, field).map((filename) =>
+    pb.files.getURL(record, filename, thumb ? { thumb } : undefined),
+  )
+}
+
+export function imageFilenames(record: FileRecord, field: string): string[] {
+  return filenamesOf(record, field)
 }

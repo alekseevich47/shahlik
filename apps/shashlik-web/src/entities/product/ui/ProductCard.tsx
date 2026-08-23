@@ -1,12 +1,13 @@
 import { Star } from "lucide-react"
 import { Link } from "react-router-dom"
 
+import { useBadges } from "@/entities/badge/api"
+import { badgeLabel } from "@/entities/badge/model"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { scoreColor } from "@/shared/ui/rating"
-import { BADGE_LABEL } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 
@@ -17,8 +18,10 @@ type ProductCardProps = {
 }
 
 export function ProductCard({ product, onAdd, className }: ProductCardProps) {
+  const { data: badges = [] } = useBadges()
   const variantLabels = product.variants.map((v) => v.label)
   const sizeLabels = product.sizes.map((s) => s.label)
+  const label = badgeLabel(product.badge, badges)
 
   return (
     <article
@@ -39,9 +42,9 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
           loading="lazy"
           className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-[1.04]"
         />
-        {product.badge ? (
+        {product.badge && label ? (
           <Badge variant="brand" size="sm" className="absolute top-2.5 right-2.5">
-            {BADGE_LABEL[product.badge]}
+            {label}
           </Badge>
         ) : null}
       </Link>
