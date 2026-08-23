@@ -11,6 +11,7 @@ import {
 } from "@/entities/badge/api"
 import type { ProductBadgeDef } from "@/entities/badge/model"
 import { cn } from "@/shared/lib/cn"
+import { slugFromName } from "@/shared/lib/slug"
 import { Button } from "@/shared/ui/button"
 import { Field, Input } from "@/shared/ui/input"
 
@@ -19,16 +20,12 @@ type Props = {
   onOpenChange: (open: boolean) => void
 }
 
-function slugify(label: string): string {
-  return label
-    .trim()
-    .toLowerCase()
-    .replace(/ё/g, "e")
-    .replace(/[^a-z0-9а-я]+/gi, "-")
-    .replace(/[а-я]/gi, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40)
+function uniqueSlug(base: string, existing: string[]): string {
+  const root = base || "badge"
+  if (!existing.includes(root)) return root
+  let n = 2
+  while (existing.includes(`${root}-${n}`)) n += 1
+  return `${root}-${n}`.slice(0, 40)
 }
 
 export function BadgeManagerDialog({ open, onOpenChange }: Props) {
@@ -55,17 +52,11 @@ export function BadgeManagerDialog({ open, onOpenChange }: Props) {
     const original = badges.find((b) => b.id === id)
     if (!badge) return
     const label = badge.label.trim()
-    const slug = badge.slug.trim()
-    if (!label || !slug) {
-      toast.error("Укажите название и slug")
+    if (!label) {
+      toast.error("Укажите название")
       return
     }
-    if (
-      original &&
-      original.label === label &&
-      original.slug === slug &&
-      original.order === badge.order
-    ) {
+    if (original && original.label === label && original.order === badge.order) {
       return
     }
     if (badge.id.startsWith("local-")) {
@@ -75,7 +66,7 @@ export function BadgeManagerDialog({ open, onOpenChange }: Props) {
     try {
       await updateBadge.mutateAsync({
         id: badge.id,
-        data: { label, slug, order: badge.order },
+        data: { label, order: badge.order },
       })
       toast.success("Бейдж обновлён")
     } catch (err) {
@@ -103,13 +94,12 @@ export function BadgeManagerDialog({ open, onOpenChange }: Props) {
       toast.error("Укажите название")
       return
     }
-    const slug = slugify(label)
+    const slug = uniqueSlug(
+      slugFromName(label, 40),
+      drafts.map((b) => b.slug),
+    )
     if (!slug) {
-      toast.error("Slug: латиница и дефис")
-      return
-    }
-    if (drafts.some((b) => b.slug === slug)) {
-      toast.error("Такой slug уже есть")
+      toast.error("Не удалось собрать slug из названия")
       return
     }
     if (isLocalOnly) {
@@ -150,7 +140,7 @@ export function BadgeManagerDialog({ open, onOpenChange }: Props) {
                 Бейджи товаров
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-[12px] text-fg-muted">
-                Создайте, переименуйте или удалите метки на карточке.
+                Создайте, переименуйте или удалите метки на карточке. Slug — автоматически.
               </Dialog.Description>
             </div>
             <Dialog.Close
@@ -165,9 +155,9 @@ export function BadgeManagerDialog({ open, onOpenChange }: Props) {
             {drafts.map((badge) => (
               <div
                 key={badge.id}
-                className="grid gap-2 rounded-[var(--r-md)] border border-line bg-surface-2 p-2.5 sm:grid-cols-[1fr_100px_auto]"
+                className="flex items-end gap-2 rounded-[var(--r-md)] border border-line bg-surface-2 p-2.5"
               >
-                <Field label="Название">
+                <Field label="Название" className="min-w-0 flex-1">
                   <Input
                     value={badge.label}
                     disabled={busy}
@@ -181,33 +171,11 @@ export function BadgeManagerDialog({ open, onOpenChange }: Props) {
                     onBlur={() => void saveRow(badge.id)}
                   />
                 </Field>
-                <Field label="Slug">
-                  <Input
-                    value={badge.slug}
-                    disabled={busy}
-                    onChange={(e) =>
-                      setDrafts((list) =>
-                        list.map((b) =>
-                          b.id === badge.id
-                            ? {
-                                ...b,
-                                slug: e.target.value
-                                  .toLowerCase()
-                                  .replace(/[^a-z0-9-]/g, "")
-                                  .slice(0, 40),
-                              }
-                            : b,
-                        ),
-                      )
-                    }
-                    onBlur={() => void saveRow(badge.id)}
-                  />
-                </Field>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                  className="shrink-0 self-end text-fg-faint hover:bg-red-soft hover:text-red"
                   aria-label={`Удалить «${badge.label}»`}
                   disabled={busy}
                   onClick={() => void remove(badge)}

@@ -8,22 +8,21 @@ import {
   useAdminProducts,
   useDeleteProduct,
   useToggleProductActive,
+  useUpdateProduct,
 } from "@/entities/product/api"
 import { hasMissingArticle, minPrice } from "@/entities/product/lib"
 import type { Product } from "@/entities/product/model"
 import { ProductCreateForm } from "@/pages/admin/sections/products/ProductCreateForm"
-import { DataTable, type Column } from "@/pages/admin/ui/DataTable"
 import { EmptyState } from "@/pages/admin/ui/EmptyState"
 import { SectionShell } from "@/pages/admin/ui/SectionShell"
 import { SkeletonRows } from "@/pages/admin/ui/SkeletonRows"
+import { SortableList } from "@/pages/admin/ui/SortableList"
 import { Toolbar, type ToolbarFilter } from "@/pages/admin/ui/Toolbar"
 import { formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { useConfirm } from "@/shared/ui/confirm-dialog"
 import { Switch } from "@/shared/ui/switch"
-
-const PAGE_SIZE = 20
 
 const STATUS_FILTERS: ToolbarFilter[] = [
   { id: "all", label: "Все" },
@@ -32,22 +31,35 @@ const STATUS_FILTERS: ToolbarFilter[] = [
   { id: "no-article", label: "Без артикула" },
 ]
 
+/** Переставляет только отфильтрованные слоты в полном списке (по order). */
+function applyFilteredReorder(
+  all: Product[],
+  filtered: Product[],
+  nextFiltered: Product[],
+): Product[] {
+  if (filtered.length !== nextFiltered.length) return all
+  const queue = [...nextFiltered]
+  const filteredIds = new Set(filtered.map((p) => p.id))
+  return all.map((item) => (filteredIds.has(item.id) ? queue.shift()! : item))
+}
+
 export function ProductsSection() {
   const navigate = useNavigate()
   const { data: products = [], isPending: productsPending } = useAdminProducts()
   const { data: categories = [], isPending: categoriesPending } = useCategories()
   const deleteProduct = useDeleteProduct()
   const toggleActive = useToggleProductActive()
+  const updateProduct = useUpdateProduct()
   const { confirm, dialog } = useConfirm()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [page, setPage] = useState(0)
 
   const pending = productsPending || categoriesPending
-  const busy = deleteProduct.isPending || toggleActive.isPending
+  const busy =
+    deleteProduct.isPending || toggleActive.isPending || updateProduct.isPending
 
   const categoryFilters: ToolbarFilter[] = useMemo(
     () => [
@@ -57,9 +69,14 @@ export function ProductsSection() {
     [categories],
   )
 
+  const sorted = useMemo(
+    () => [...products].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, "ru")),
+    [products],
+  )
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return products.filter((item) => {
+    return sorted.filter((item) => {
       if (categoryFilter !== "all" && item.categoryId !== categoryFilter) return false
       if (statusFilter === "active" && !item.active) return false
       if (statusFilter === "hidden" && item.active) return false
@@ -77,13 +94,31 @@ export function ProductsSection() {
         )
       )
     })
-  }, [products, categories, query, statusFilter, categoryFilter])
+  }, [sorted, categories, query, statusFilter, categoryFilter])
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const safePage = Math.min(page, pageCount - 1)
-  const pageRows = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE)
+  const canReorder = !query.trim() && statusFilter === "all"
 
   const openEdit = (product: Product) => navigate(`/admin/products/${product.id}`)
+
+  const handleReorder = async (nextFiltered: Product[]) => {
+    if (!canReorder) return
+    const nextAll = applyFilteredReorder(sorted, filtered, nextFiltered)
+    const updates = nextAll
+      .map((item, index) => ({ item, order: index + 1 }))
+      .filter(({ item, order }) => item.order !== order)
+
+    if (!updates.length) return
+
+    try {
+      await Promise.all(
+        updates.map(({ item, order }) =>
+          updateProduct.mutateAsync({ id: item.id, data: { order } }),
+        ),
+      )
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось изменить порядок")
+    }
+  }
 
   const handleDelete = async (product: Product) => {
     const ok = await confirm({
@@ -102,121 +137,17 @@ export function ProductsSection() {
     }
   }
 
-  const columns: Column<Product>[] = [
-    {
-      key: "name",
-      header: "Товар",
-      render: (row) => (
-        <span className="flex items-center gap-2.5">
-          {row.image ? (
-            <img src={row.image} alt="" className="size-9 rounded-[var(--r-xs)] object-cover" />
-          ) : (
-            <span className="size-9 rounded-[var(--r-xs)] bg-surface-3" />
-          )}
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-[12.5px] font-bold text-fg">
-              {row.emoji ? `${row.emoji} ` : ""}
-              {row.name}
-            </span>
-            <span className="text-[10.5px] text-fg-faint">
-              {(row.variants.length || 1) * row.sizes.length} SKU
-              {hasMissingArticle(row) ? " · нет артикула" : ""}
-            </span>
-          </span>
-        </span>
-      ),
-    },
-    {
-      key: "category",
-      header: "Категория",
-      render: (row) => categories.find((c) => c.id === row.categoryId)?.name ?? "—",
-    },
-    {
-      key: "price",
-      header: "Цена от",
-      className: "tabular-nums",
-      render: (row) => (row.sizes.length ? formatPrice(minPrice(row)) : "—"),
-    },
-    {
-      key: "rating",
-      header: "Оценка",
-      className: "tabular-nums",
-      render: (row) => `${row.rating.overall}/10`,
-    },
-    {
-      key: "active",
-      header: "Витрина",
-      render: (row) => (
-        <span
-          className="inline-flex items-center gap-2"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-        >
-          <Switch
-            checked={row.active}
-            disabled={busy}
-            aria-label={row.active ? "Скрыть с витрины" : "Показать на витрине"}
-            onCheckedChange={(checked) => {
-              void toggleActive.mutateAsync({ id: row.id, active: checked }).catch((err) => {
-                toast.error(err instanceof Error ? err.message : "Не удалось сменить статус")
-              })
-            }}
-          />
-          <Badge variant={row.active ? "success" : "outline"}>
-            {row.active ? "Активен" : "Скрыт"}
-          </Badge>
-        </span>
-      ),
-    },
-    {
-      key: "actions",
-      header: "",
-      className: "w-[72px] text-right",
-      render: (row) => (
-        <span className="inline-flex gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Редактировать ${row.name}`}
-            disabled={busy}
-            onClick={() => openEdit(row)}
-          >
-            <Pencil size={14} strokeWidth={2.3} />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Удалить ${row.name}`}
-            disabled={busy}
-            className="text-fg-faint hover:bg-red-soft hover:text-red"
-            onClick={() => void handleDelete(row)}
-          >
-            <Trash2 size={14} strokeWidth={2.3} />
-          </Button>
-        </span>
-      ),
-    },
-  ]
-
   return (
     <SectionShell
       title="Товары"
-      description="Каталог витрины. Артикул — пара вариант × размер, уникальный по всей рознице."
+      description="Каталог витрины. Порядок — drag&drop (позиция на витрине). Артикул — пара вариант × размер."
     >
       <Toolbar
         searchPlaceholder="Поиск по названию, slug или артикулу…"
-        onSearchChange={(q) => {
-          setQuery(q)
-          setPage(0)
-        }}
+        onSearchChange={setQuery}
         filters={STATUS_FILTERS}
         activeFilter={statusFilter}
-        onFilterChange={(id) => {
-          setStatusFilter(id)
-          setPage(0)
-        }}
+        onFilterChange={setStatusFilter}
         createLabel="Товар"
         onCreate={() => setCreateOpen(true)}
       />
@@ -226,10 +157,7 @@ export function ProductsSection() {
           <button
             key={filter.id}
             type="button"
-            onClick={() => {
-              setCategoryFilter(filter.id)
-              setPage(0)
-            }}
+            onClick={() => setCategoryFilter(filter.id)}
             className={
               categoryFilter === filter.id
                 ? "rounded-[var(--r-xs)] bg-brand-soft px-2.5 py-1 text-[11.5px] font-bold text-brand"
@@ -240,6 +168,12 @@ export function ProductsSection() {
           </button>
         ))}
       </div>
+
+      {!canReorder && filtered.length ? (
+        <p className="text-[11.5px] text-fg-muted">
+          Drag&drop порядка доступен без поиска и фильтра статуса.
+        </p>
+      ) : null}
 
       {pending ? (
         <SkeletonRows rows={6} cols={5} />
@@ -253,44 +187,99 @@ export function ProductsSection() {
       ) : !filtered.length ? (
         <EmptyState title="Ничего не найдено" description="Сбросьте фильтр или измените запрос." />
       ) : (
-        <>
-          <div className="rounded-[var(--r-md)] border border-line bg-surface p-1">
-            <DataTable
-              columns={columns}
-              rows={pageRows}
-              rowKey={(p) => p.id}
-              busy={busy}
-              onRowClick={openEdit}
-            />
-          </div>
-          {pageCount > 1 ? (
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[12px] text-fg-muted">
-                {filtered.length} · стр. {safePage + 1}/{pageCount}
-              </p>
-              <div className="flex gap-2">
-                <Button
+        <SortableList
+          items={filtered}
+          keyOf={(p) => p.id}
+          disabled={busy || !canReorder}
+          onReorder={(next) => void handleReorder(next)}
+          renderItem={(product) => {
+            const categoryName =
+              categories.find((c) => c.id === product.categoryId)?.name ?? "—"
+            return (
+              <div className="flex items-center gap-2.5 py-0.5">
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={safePage <= 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+                  onClick={() => openEdit(product)}
                 >
-                  Назад
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={safePage >= pageCount - 1}
-                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt=""
+                      className="size-10 shrink-0 rounded-[var(--r-xs)] object-cover"
+                    />
+                  ) : (
+                    <span className="size-10 shrink-0 rounded-[var(--r-xs)] bg-surface-3" />
+                  )}
+                  <span className="flex min-w-0 flex-col leading-tight">
+                    <span className="truncate text-[13px] font-extrabold text-fg">
+                      {product.emoji ? `${product.emoji} ` : ""}
+                      {product.name}
+                    </span>
+                    <span className="mt-0.5 truncate text-[11.5px] text-fg-muted">
+                      {categoryName} ·{" "}
+                      {product.sizes.length ? formatPrice(minPrice(product)) : "—"} ·{" "}
+                      {(product.variants.length || 1) * product.sizes.length} SKU
+                      {hasMissingArticle(product) ? " · нет артикула" : ""}
+                    </span>
+                  </span>
+                </button>
+
+                <span
+                  className="hidden shrink-0 items-center gap-2 sm:inline-flex"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
                 >
-                  Далее
-                </Button>
+                  <Switch
+                    checked={product.active}
+                    disabled={busy}
+                    aria-label={
+                      product.active ? "Скрыть с витрины" : "Показать на витрине"
+                    }
+                    onCheckedChange={(checked) => {
+                      void toggleActive
+                        .mutateAsync({ id: product.id, active: checked })
+                        .catch((err) => {
+                          toast.error(
+                            err instanceof Error
+                              ? err.message
+                              : "Не удалось сменить статус",
+                          )
+                        })
+                    }}
+                  />
+                  <Badge variant={product.active ? "success" : "outline"}>
+                    {product.active ? "Активен" : "Скрыт"}
+                  </Badge>
+                </span>
+
+                <span className="flex shrink-0 gap-0.5" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Редактировать ${product.name}`}
+                    disabled={busy}
+                    onClick={() => openEdit(product)}
+                  >
+                    <Pencil size={14} strokeWidth={2.3} />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Удалить ${product.name}`}
+                    disabled={busy}
+                    className="text-fg-faint hover:bg-red-soft hover:text-red"
+                    onClick={() => void handleDelete(product)}
+                  >
+                    <Trash2 size={14} strokeWidth={2.3} />
+                  </Button>
+                </span>
               </div>
-            </div>
-          ) : null}
-        </>
+            )
+          }}
+        />
       )}
 
       <ProductCreateForm open={createOpen} onOpenChange={setCreateOpen} />

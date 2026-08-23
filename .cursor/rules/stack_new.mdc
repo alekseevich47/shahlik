@@ -230,7 +230,7 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 
 Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет.
 
-Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. До 5 фото (вертикальный ряд), в превью — точки-индикаторы. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка «+ Добавить».
+Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. Поле PB `tagline` в UI — **«Описание»** (создание и редактирование). До 5 фото: `MultiImageField` — **карусель в одном окне** (стрелки / точки / swipe), не ряд превью. При редактировании новые файлы **дозаписываются** через PB-модификатор `image+` (не затирают существующие); удаления — `image-`. Список «Товары» — `SortableList` с **drag&drop** (и стрелками) для `order` на витрине; DnD выключен при поиске/фильтре статуса. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка: поле slug в UI **нет**, slug = `slugFromName(label)` (`shared/lib/slug.ts`) при создании; при переименовании slug не трогаем.
 
 Layout-анимации (`layoutId`, перестановка строк) требуют `domMax` — включать **вложенным** `LazyMotion` внутри админского чанка (`app/motion-features-max.ts`). Витрина остаётся на `domAnimation`, где layout-фич нет.
 
@@ -272,9 +272,14 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | ProductPage / PDP | `pages/product/ProductPage.tsx` |
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` |
 | NutritionHint | `pages/product/ui/NutritionHint.tsx` |
-| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — мультифото, бейджи CRUD, критерии DnD |
-| BadgeManagerDialog | `pages/admin/sections/products/BadgeManagerDialog.tsx` |
+| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD |
+| ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — создание + карусель фото |
+| ProductsSection | `pages/admin/sections/products/ProductsSection.tsx` — список + DnD `order` |
+| SortableList | `pages/admin/ui/SortableList.tsx` — grip DnD + стрелки, layout spring (`domMax`) |
+| MultiImageField | `shared/ui/multi-image-field.tsx` — карусель 1…N, diff → `image+` / `image-` |
+| BadgeManagerDialog | `pages/admin/sections/products/BadgeManagerDialog.tsx` — авто-slug, без поля slug |
 | product_badges | `entities/badge` + `mocks/badges.ts` |
+| slugFromName | `shared/lib/slug.ts` — транслит для slug товара/бейджа |
 | AdminSidebar | `pages/admin/ui/AdminSidebar.tsx` — меню + счётчики + layout pill |
 | ADMIN_NAV | `pages/admin/model.ts` — порядок пунктов, `AdminSectionId`, минимальная роль |
 
@@ -348,7 +353,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
 - Frontpad: спецификация в `.cursor/rules/API.mdc`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
-- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`.
+- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`. Multi-file **update** (PB ≥0.23): дозапись — ключ `field+`, удаление — `field-` (имена файлов); голый `field` **заменяет** весь набор.
 - PB `required`: number = nonzero, bool = только `true`, json = не `[]`/`{}`. Допустимые пустые/false — `required: false` в `Tasks/schema.json` (+ sync `/_/` на проде). UI порядок 1-based.
 - Не плодить несколько независимых `useAdminAuth` с локальным `authRefresh().catch(clear)` — только `AdminAuthProvider`.
 - Клиентские суммы заказа недостоверны: деньги пересчитывает хук `onRecordCreateRequest("orders")`.

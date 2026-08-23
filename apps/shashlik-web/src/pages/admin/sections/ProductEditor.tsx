@@ -40,7 +40,7 @@ import {
 import { useCategoryTags } from "@/entities/tag/api"
 import { ArticleMatrix } from "@/pages/admin/sections/products/ArticleMatrix"
 import { BadgeManagerDialog } from "@/pages/admin/sections/products/BadgeManagerDialog"
-import { slugFromName } from "@/pages/admin/sections/products/ProductCreateForm"
+import { slugFromName } from "@/shared/lib/slug"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatPrice } from "@/shared/lib/format"
@@ -211,7 +211,7 @@ export function ProductEditor({ product, onBack }: Props) {
       return
     }
     if (!tagline.trim()) {
-      toast.error("Укажите tagline")
+      toast.error("Укажите описание")
       return
     }
     if (!composition.trim()) {
@@ -468,7 +468,7 @@ export function ProductEditor({ product, onBack }: Props) {
                 )}
               </Field>
 
-              <Field label="Tagline" hint={`${tagline.length}/500`}>
+              <Field label="Описание" hint={`${tagline.length}/500`}>
                 <Textarea
                   rows={2}
                   maxLength={500}

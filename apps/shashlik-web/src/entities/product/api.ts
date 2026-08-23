@@ -212,7 +212,7 @@ export type UpdateProductInput = {
   rating?: ProductRating
   order?: number
   active?: boolean
-  /** Новые файлы (append к multi-file). */
+  /** Новые файлы — дозапись через `image+` (PB ≥0.23; голый `image` затирает). */
   image?: File | File[] | null
   /** Имена файлов PB для удаления (`image-`). */
   imageRemove?: string[]
@@ -291,7 +291,12 @@ async function updateBody(input: UpdateProductInput): Promise<Record<string, unk
     order: input.order,
     active: input.active,
   }
-  if (input.image !== undefined) payload.image = input.image
+  // PB ≥0.23: ключ `image` заменяет multi-file; `image+` дозаписывает.
+  if (input.image !== undefined && input.image !== null) {
+    payload["image+"] = input.image
+  } else if (input.image === null) {
+    payload.image = null
+  }
   if (input.imageRemove?.length) payload["image-"] = input.imageRemove
   return (await toUploadFormData(payload, {
     maxBytes: PRODUCT_MAX_BYTES,

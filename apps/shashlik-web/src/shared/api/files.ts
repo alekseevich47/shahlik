@@ -28,7 +28,8 @@ export function toFormData(data: Record<string, unknown>): FormData {
       form.append(key, value)
       continue
     }
-    // Multi-file: File[] → несколько append одного ключа; string[] на `field-` → удаления.
+    // Multi-file: File[] → несколько append одного ключа.
+    // PB ≥0.23: `field+` = дозапись, `field-` = удаление по имени файла.
     if (Array.isArray(value)) {
       if (value.length === 0) continue
       if (value.every((item) => item instanceof File || item instanceof Blob)) {
