@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { ALL_CATEGORY } from "@/entities/category/model"
 import type { Product } from "@/entities/product/model"
 import type { TagFilterId } from "@/entities/tag/model"
 import { ProductCard } from "@/entities/product/ui/ProductCard"
@@ -18,6 +17,8 @@ import { Sidebar } from "@/widgets/sidebar/Sidebar"
 import { TagFilters } from "@/widgets/catalog/TagFilters"
 
 import { groupProductsByCategory } from "../lib/groupByCategory"
+import { useCatalogScrollSpy } from "../lib/useCatalogScrollSpy"
+import { CatalogCategorySection } from "./CatalogCategorySection"
 
 /** Маяк действий пропал под верхом плашки → плашка выезжает. */
 const ACTIONS_MARGIN = `-${STICKY_BAR.top}px 0px 0px 0px`
@@ -65,9 +66,22 @@ export function DesktopHome({
   // Треки, выезд панелей и геометрия плашки едут одним переходом — метим их
   // одним флагом, чтобы дорогие эффекты выключались ровно на эти кадры.
   const animating = useSettling(`${barVisible}|${barExpanded}|${cartState}`)
-  const allCategories = category === ALL_CATEGORY
-  const sections = allCategories ? groupProductsByCategory(items, categories) : null
-  const activeCategory = categories.find((c) => c.id === category)
+  const sections = useMemo(() => groupProductsByCategory(items, categories), [items, categories])
+  const sectionIds = useMemo(() => sections.map(({ category: section }) => section.id), [sections])
+
+  const { scrollToCategory } = useCatalogScrollSpy({
+    sectionIds,
+    activeCategory: category,
+    onCategoryChange,
+  })
+
+  const handleCategorySelect = useCallback(
+    (id: string) => {
+      onCategoryChange(id)
+      scrollToCategory(id)
+    },
+    [onCategoryChange, scrollToCategory],
+  )
 
   return (
     <div className="mx-auto w-full max-w-[1680px] px-5 py-5">
@@ -80,7 +94,7 @@ export function DesktopHome({
       >
         <Sidebar
           activeCategory={category}
-          onSelectCategory={onCategoryChange}
+          onSelectCategory={handleCategorySelect}
           collapsed={barExpanded}
         />
 
@@ -97,7 +111,7 @@ export function DesktopHome({
             expanded={barExpanded}
             animating={animating}
             category={category}
-            onCategoryChange={onCategoryChange}
+            onCategoryChange={handleCategorySelect}
             tag={tag}
             onTagChange={onTagChange}
             onSearch={onOpenSearch}
@@ -120,21 +134,20 @@ export function DesktopHome({
 
           <section className="mt-4">
             {items.length === 0 ? (
-              <EmptyCategory all={allCategories} />
-            ) : allCategories && sections ? (
+              <EmptyCategory />
+            ) : (
               <div className="flex flex-col gap-8">
                 {sections.map(({ category: section, items: sectionItems }) => (
-                  <div key={section.id}>
-                    <h2 className="mb-3 text-[18px] font-extrabold text-fg">{section.name}</h2>
+                  <CatalogCategorySection
+                    key={section.id}
+                    categoryId={section.id}
+                    title={section.name}
+                    headingClassName="mb-3 text-[18px] font-extrabold text-fg"
+                  >
                     <ProductGrid items={sectionItems} onAdd={addProduct} />
-                  </div>
+                  </CatalogCategorySection>
                 ))}
               </div>
-            ) : (
-              <>
-                <h2 className="sr-only">{activeCategory?.name}</h2>
-                <ProductGrid items={items} onAdd={addProduct} />
-              </>
             )}
           </section>
         </main>
@@ -155,17 +168,11 @@ function ProductGrid({ items, onAdd }: { items: Product[]; onAdd: (product: Prod
   )
 }
 
-function EmptyCategory({ all }: { all: boolean }) {
+function EmptyCategory() {
   return (
     <div className="grid place-items-center rounded-[var(--r-xl)] border border-dashed border-line-strong py-20 text-center">
-      <p className="text-[15px] font-bold text-fg-soft">
-        {all ? "В меню пока пусто" : "В этой категории пока пусто"}
-      </p>
-      <p className="mt-1 text-[13px] text-fg-muted">
-        {all
-          ? "Скоро добавим блюда — загляните позже"
-          : "Скоро добавим — загляните в «Шаурму» или «Шашлык»"}
-      </p>
+      <p className="text-[15px] font-bold text-fg-soft">В меню пока пусто</p>
+      <p className="mt-1 text-[13px] text-fg-muted">Скоро добавим блюда — загляните позже</p>
     </div>
   )
 }

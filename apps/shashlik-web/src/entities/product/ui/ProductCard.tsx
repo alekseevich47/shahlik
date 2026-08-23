@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 
 import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
+import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
 import { Badge } from "@/shared/ui/badge"
@@ -19,9 +20,8 @@ type ProductCardProps = {
 
 export function ProductCard({ product, onAdd, className }: ProductCardProps) {
   const { data: badges = [] } = useBadges()
-  const variantLabels = product.variants.map((v) => v.label)
-  const sizeLabels = product.sizes.map((s) => s.label)
   const label = badgeLabel(product.badge, badges)
+  const hasMeta = product.variants.length > 0 || product.sizes.length > 0
 
   return (
     <article
@@ -34,7 +34,8 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
     >
       <Link
         to={`/product/${product.slug}`}
-        className="relative block aspect-[16/10] overflow-hidden bg-surface-3"
+        className="relative block overflow-hidden bg-surface-3"
+        style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
         <img
           src={product.image}
@@ -58,16 +59,16 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
           {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
         </Link>
 
-        {variantLabels.length || sizeLabels.length ? (
-          <div className="flex h-5 gap-1.5 overflow-hidden">
-            {variantLabels.slice(0, 1).map((label) => (
-              <Badge key={label} size="sm">
-                {label}
+        {hasMeta ? (
+          <div className="flex flex-wrap gap-1.5">
+            {product.variants.map((variant) => (
+              <Badge key={variant.id} size="sm">
+                {variant.label}
               </Badge>
             ))}
-            {sizeLabels.slice(0, 1).map((label) => (
-              <Badge key={label} size="sm">
-                {label}
+            {product.sizes.map((size) => (
+              <Badge key={size.id} size="sm">
+                {size.label}
               </Badge>
             ))}
           </div>

@@ -9,6 +9,7 @@ import { useExtras, useSauces } from "@/entities/addon/api"
 import type { MeatIcon } from "@/entities/product/model"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
 import { useProductBySlug } from "@/entities/product/api"
+import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import { useCartStore } from "@/features/cart/model/store"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice, pluralize } from "@/shared/lib/format"
@@ -82,56 +83,61 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-dvh bg-canvas lg:p-5">
-      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:min-h-[calc(100dvh-40px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,620px)] xl:grid-cols-[minmax(0,1fr)_700px]">
-        {/* Левая половина: фото на всю высоту + оверлей-карточки */}
-        <section className="relative min-h-[300px] overflow-hidden bg-surface-3 lg:rounded-[var(--r-2xl)]">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="absolute inset-0 size-full object-cover"
-          />
-          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.35))] lg:hidden" />
-
-          <button
-            type="button"
-            onClick={goHome}
-            className="absolute top-4 left-4 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
+      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,620px)] lg:items-start xl:grid-cols-[minmax(0,1fr)_700px]">
+        {/* Левая колонка: фото фиксированного формата + оверлеи */}
+        <section className="relative overflow-hidden bg-surface-3 lg:rounded-[var(--r-2xl)]">
+          <div
+            className="relative w-full"
+            style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
           >
-            <ArrowLeft size={16} strokeWidth={2.6} />
-            Назад
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setLiked((v) => !v)}
-            aria-label={liked ? "Убрать из избранного" : "В избранное"}
-            aria-pressed={liked}
-            className={cn(
-              "absolute top-4 right-4 z-10 grid size-10 cursor-pointer place-items-center",
-              "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)] transition-colors duration-200",
-              liked ? "text-red" : "hover:text-red",
-            )}
-          >
-            <Heart size={22} strokeWidth={2.1} fill={liked ? "currentColor" : "none"} />
-          </button>
-
-          <div className="absolute inset-x-4 bottom-4 flex flex-col gap-2.5">
-            <RatingOverlay
-              overall={product.rating.overall}
-              votes={product.rating.votes}
-              criteria={product.rating.criteria}
+            <img
+              src={product.image}
+              alt={product.name}
+              className="size-full object-cover"
             />
-            {product.composition ? (
-              <div className="max-w-[420px] rounded-[var(--r-lg)] border border-line bg-surface/94 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md">
-                <div className="mb-1.5 flex items-center gap-1.5">
-                  <span className="text-[14px] font-extrabold text-fg">Состав</span>
-                  <Leaf size={14} className="text-success" strokeWidth={2.3} />
+            <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.35))] lg:hidden" />
+
+            <button
+              type="button"
+              onClick={goHome}
+              className="absolute top-4 left-4 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
+            >
+              <ArrowLeft size={16} strokeWidth={2.6} />
+              Назад
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLiked((v) => !v)}
+              aria-label={liked ? "Убрать из избранного" : "В избранное"}
+              aria-pressed={liked}
+              className={cn(
+                "absolute top-4 right-4 z-10 grid size-10 cursor-pointer place-items-center",
+                "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)] transition-colors duration-200",
+                liked ? "text-red" : "hover:text-red",
+              )}
+            >
+              <Heart size={22} strokeWidth={2.1} fill={liked ? "currentColor" : "none"} />
+            </button>
+
+            <div className="absolute inset-x-4 bottom-4 flex flex-col gap-2.5">
+              <RatingOverlay
+                overall={product.rating.overall}
+                votes={product.rating.votes}
+                criteria={product.rating.criteria}
+              />
+              {product.composition ? (
+                <div className="max-w-[420px] rounded-[var(--r-lg)] border border-line bg-surface/94 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md">
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <span className="text-[14px] font-extrabold text-fg">Состав</span>
+                    <Leaf size={14} className="text-success" strokeWidth={2.3} />
+                  </div>
+                  <p className="text-[11.5px] leading-[1.55] text-fg-muted">
+                    {product.composition}
+                  </p>
                 </div>
-                <p className="text-[11.5px] leading-[1.55] text-fg-muted">
-                  {product.composition}
-                </p>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
         </section>
 

@@ -21,6 +21,7 @@ import { badgeLabel } from "@/entities/badge/model"
 import { useCategories } from "@/entities/category/api"
 import { ARTICLE_PATTERN, articleConflictMessage } from "@/entities/product/lib/articles"
 import { minPrice, skuMatrix } from "@/entities/product/lib"
+import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type {
   MeatIcon,
   Product,
@@ -843,7 +844,7 @@ export function ProductEditor({ product, onBack }: Props) {
                 preview === "mobile" ? "max-w-[190px]" : "max-w-full",
               )}
             >
-              <div className="relative aspect-[16/10] bg-surface-3">
+              <div className="relative bg-surface-3" style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}>
                 {previewImage ? (
                   <img
                     src={previewImage}
@@ -878,6 +879,20 @@ export function ProductEditor({ product, onBack }: Props) {
               </div>
               <div className="flex flex-col gap-1.5 p-3">
                 <p className="text-[14px] leading-tight font-extrabold text-fg">{name}</p>
+                {variants.length || sizes.length ? (
+                  <div className="flex flex-wrap gap-1">
+                    {variants.map((variant) => (
+                      <Badge key={variant.id} size="sm">
+                        {variant.label}
+                      </Badge>
+                    ))}
+                    {sizes.map((size) => (
+                      <Badge key={size.id} size="sm">
+                        {size.label}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
                 <p className="line-clamp-2 text-[10.5px] leading-[1.45] text-fg-muted">
                   {tagline || composition}
                 </p>

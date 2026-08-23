@@ -434,7 +434,7 @@
   .product-card {
     contain: layout paint style;
     content-visibility: auto;
-    contain-intrinsic-size: auto 520px;
+    contain-intrinsic-size: auto 545px;
   }
 
   /* Карточка витрины: «Добавить» схлапывается 0fr → 1fr, без сдвига */

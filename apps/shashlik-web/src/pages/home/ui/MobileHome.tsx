@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react"
+import { useCallback, useMemo } from "react"
 
-import { ALL_CATEGORY } from "@/entities/category/model"
 import type { Product } from "@/entities/product/model"
 import type { TagFilterId } from "@/entities/tag/model"
 import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
@@ -14,6 +14,8 @@ import { AddressBar } from "@/widgets/mobile/AddressBar"
 import { PromoBanner } from "@/widgets/promo/PromoBanner"
 
 import { groupProductsByCategory } from "../lib/groupByCategory"
+import { useCatalogScrollSpy } from "../lib/useCatalogScrollSpy"
+import { CatalogCategorySection } from "./CatalogCategorySection"
 
 type Props = {
   category: string
@@ -37,15 +39,28 @@ export function MobileHome({
 
   const popular = [...catalog].sort((a, b) => b.rating.overall - a.rating.overall).slice(0, 6)
   const combo = catalog.filter((p) => p.categoryId === "combo")
-  const allCategories = category === ALL_CATEGORY
-  const sections = allCategories ? groupProductsByCategory(items, categories) : null
-  const activeCategory = categories.find((c) => c.id === category)
+  const sections = useMemo(() => groupProductsByCategory(items, categories), [items, categories])
+  const sectionIds = useMemo(() => sections.map(({ category: section }) => section.id), [sections])
+
+  const { scrollToCategory } = useCatalogScrollSpy({
+    sectionIds,
+    activeCategory: category,
+    onCategoryChange,
+  })
+
+  const handleCategorySelect = useCallback(
+    (id: string) => {
+      onCategoryChange(id)
+      scrollToCategory(id)
+    },
+    [onCategoryChange, scrollToCategory],
+  )
 
   return (
     <div className="flex flex-col gap-4 px-4 pt-3 pb-24">
       <AddressBar />
       <HeroBanner />
-      <CategoryTiles value={category} onChange={onCategoryChange} />
+      <CategoryTiles value={category} onChange={handleCategorySelect} />
 
       <ScrollSection title="Популярное" items={popular} onAdd={addProduct} />
 
@@ -56,35 +71,26 @@ export function MobileHome({
       ) : null}
 
       <section>
-        {!allCategories ? (
-          <div className="mb-2.5 flex items-center justify-between gap-3">
-            <h2 className="text-[18px] leading-none font-extrabold text-fg">{activeCategory?.name}</h2>
-          </div>
-        ) : null}
         <TagFilters categoryId={category} value={tag} onChange={onTagChange} className="mb-3" />
         {items.length === 0 ? (
           <p className="rounded-[var(--r-lg)] border border-dashed border-line-strong py-10 text-center text-[13px] font-semibold text-fg-muted">
-            {allCategories ? "В меню пока пусто" : "В этой категории пока пусто"}
+            В меню пока пусто
           </p>
-        ) : allCategories && sections ? (
+        ) : (
           <div className="flex flex-col gap-6">
             {sections.map(({ category: section, items: sectionItems }) => (
-              <div key={section.id}>
-                <h2 className="mb-2.5 text-[18px] leading-none font-extrabold text-fg">
-                  {section.name}
-                </h2>
+              <CatalogCategorySection
+                key={section.id}
+                categoryId={section.id}
+                title={section.name}
+                headingClassName="mb-2.5 text-[18px] leading-none font-extrabold text-fg"
+              >
                 <div className="grid grid-cols-2 gap-3">
                   {sectionItems.map((product) => (
                     <ProductCardCompact key={product.id} product={product} onAdd={addProduct} />
                   ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {items.map((product) => (
-              <ProductCardCompact key={product.id} product={product} onAdd={addProduct} />
+              </CatalogCategorySection>
             ))}
           </div>
         )}

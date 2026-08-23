@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 
 import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
+import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
 import { Badge } from "@/shared/ui/badge"
@@ -20,9 +21,10 @@ type Props = {
 export function ProductCardCompact({ product, onAdd, className }: Props) {
   const { data: badges = [] } = useBadges()
   const label = badgeLabel(product.badge, badges)
-  const meta = [product.variants[0]?.label, product.sizes[0]?.label]
-    .filter(Boolean)
-    .join(" • ")
+  const meta = [
+    ...product.variants.map((v) => v.label),
+    ...product.sizes.map((s) => s.label),
+  ].join(" • ")
 
   return (
     <article
@@ -33,7 +35,8 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
     >
       <Link
         to={`/product/${product.slug}`}
-        className="relative block aspect-[4/3] bg-surface-3"
+        className="relative block bg-surface-3"
+        style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
         <img
           src={product.image}

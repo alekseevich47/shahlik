@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, ImagePlus, X } from "lucide-react"
 import { AnimatePresence } from "motion/react"
 import * as m from "motion/react-m"
 import {
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -10,8 +11,21 @@ import {
   type DragEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react"
+import Cropper, { type Area } from "react-easy-crop"
+import "react-easy-crop/react-easy-crop.css"
 
+import {
+  PRODUCT_ASPECT,
+  PRODUCT_ASPECT_RATIO,
+  PRODUCT_FORMAT_LABEL,
+  PRODUCT_HEIGHT,
+  PRODUCT_MIN_SOURCE_HEIGHT,
+  PRODUCT_MIN_SOURCE_WIDTH,
+  PRODUCT_WIDTH,
+} from "@/entities/product/format"
 import { cn } from "@/shared/lib/cn"
+import { compressImage } from "@/shared/lib/compress-image"
+import { cropImageToFile, readImageSize } from "@/shared/lib/crop-image"
 import { Button } from "@/shared/ui/button"
 import { IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
 
@@ -54,6 +68,14 @@ export function MultiImageField({
   const pointerRef = useRef<{ x: number; id: number } | null>(null)
   const urlsRef = useRef<Set<string>>(new Set())
 
+  const [cropQueue, setCropQueue] = useState<File[]>([])
+  const [cropSource, setCropSource] = useState<File | null>(null)
+  const [cropUrl, setCropUrl] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [cropPixels, setCropPixels] = useState<Area | null>(null)
+  const [processing, setProcessing] = useState(false)
+
   useEffect(() => {
     const next = new Set(
       items.filter((i): i is Extract<MultiImageItem, { kind: "new" }> => i.kind === "new").map(
@@ -74,6 +96,16 @@ export function MultiImageField({
   }, [])
 
   useEffect(() => {
+    if (!cropSource) {
+      setCropUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(cropSource)
+    setCropUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [cropSource])
+
+  useEffect(() => {
     if (!items.length) {
       setIndex(0)
       return
@@ -81,19 +113,69 @@ export function MultiImageField({
     if (index >= items.length) setIndex(items.length - 1)
   }, [items.length, index])
 
-  const canAdd = items.length < maxCount && !disabled
+  const cropping = Boolean(cropSource && cropUrl)
+  const fieldDisabled = disabled || processing || cropping
+  const canAdd = items.length < maxCount && !fieldDisabled
   const current = items[index]
+  const cropIndex = cropSource ? cropQueue.indexOf(cropSource) : -1
 
-  function go(next: number) {
-    if (!items.length) return
-    const clamped = Math.max(0, Math.min(items.length - 1, next))
-    if (clamped === index) return
-    setDir(clamped > index ? 1 : -1)
-    setIndex(clamped)
+  const onCropComplete = useCallback((_area: Area, pixels: Area) => {
+    setCropPixels(pixels)
+  }, [])
+
+  function resetCrop() {
+    setCropSource(null)
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setCropPixels(null)
   }
 
-  function applyFiles(fileList: FileList | File[] | null) {
-    if (!fileList || disabled) return
+  function skipCrop() {
+    resetCrop()
+    setCropQueue((queue) => queue.slice(1))
+  }
+
+  async function beginCrop(file: File) {
+    if (!ALLOWED.has(file.type)) {
+      setError("Только JPEG, PNG или WebP")
+      return false
+    }
+    if (file.size > maxBytes) {
+      setError(`Файл больше ${formatMb(maxBytes)}`)
+      return false
+    }
+
+    try {
+      const { width, height } = await readImageSize(file)
+      if (width < PRODUCT_MIN_SOURCE_WIDTH || height < PRODUCT_MIN_SOURCE_HEIGHT) {
+        setError(
+          `Слишком маленькое фото (мин. ${PRODUCT_MIN_SOURCE_WIDTH}×${PRODUCT_MIN_SOURCE_HEIGHT}). Загрузите крупнее.`,
+        )
+        return false
+      }
+      setError(null)
+      setCropSource(file)
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
+      setCropPixels(null)
+      return true
+    } catch {
+      setError("Не удалось прочитать изображение")
+      return false
+    }
+  }
+
+  useEffect(() => {
+    if (cropSource || !cropQueue.length || disabled) return
+    void (async () => {
+      const ok = await beginCrop(cropQueue[0])
+      if (!ok) setCropQueue((queue) => queue.slice(1))
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cropSource gates the queue
+  }, [cropQueue, cropSource, disabled])
+
+  function queueFiles(fileList: FileList | File[] | null) {
+    if (!fileList || disabled || processing) return
     const incoming = Array.from(fileList)
     const room = maxCount - items.length
     if (room <= 0) {
@@ -101,8 +183,7 @@ export function MultiImageField({
       return
     }
 
-    const next = [...items]
-    let added = 0
+    const valid: File[] = []
     for (const file of incoming.slice(0, room)) {
       if (!ALLOWED.has(file.type)) {
         setError("Только JPEG, PNG или WebP")
@@ -112,19 +193,58 @@ export function MultiImageField({
         setError(`Файл больше ${formatMb(maxBytes)}`)
         continue
       }
-      next.push({
-        kind: "new",
-        key: `new-${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2, 7)}`,
-        file,
-        url: URL.createObjectURL(file),
-      })
-      added += 1
+      valid.push(file)
     }
-    if (!added) return
+    if (!valid.length) return
     setError(null)
-    onChange(next)
-    setDir(1)
-    setIndex(items.length)
+    setCropQueue((queue) => [...queue, ...valid])
+  }
+
+  async function confirmCrop() {
+    if (!cropUrl || !cropPixels || !cropSource) return
+    setProcessing(true)
+    setError(null)
+    try {
+      const baseName = cropSource.name.replace(/\.[^.]+$/, "") || "product"
+      const cropped = await cropImageToFile(
+        cropUrl,
+        cropPixels,
+        PRODUCT_WIDTH,
+        PRODUCT_HEIGHT,
+        baseName,
+      )
+      const compressed = await compressImage(cropped, {
+        maxBytes,
+        maxEdge: PRODUCT_WIDTH,
+      })
+      const url = URL.createObjectURL(compressed)
+      const next = [
+        ...items,
+        {
+          kind: "new" as const,
+          key: `new-${compressed.name}-${compressed.size}-${compressed.lastModified}-${Math.random().toString(36).slice(2, 7)}`,
+          file: compressed,
+          url,
+        },
+      ]
+      onChange(next)
+      setDir(1)
+      setIndex(items.length)
+      resetCrop()
+      setCropQueue((queue) => queue.slice(1))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось обрезать")
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  function go(next: number) {
+    if (!items.length) return
+    const clamped = Math.max(0, Math.min(items.length - 1, next))
+    if (clamped === index) return
+    setDir(clamped > index ? 1 : -1)
+    setIndex(clamped)
   }
 
   function removeAt(at: number) {
@@ -141,18 +261,18 @@ export function MultiImageField({
   }
 
   function onInputChange(e: ChangeEvent<HTMLInputElement>) {
-    applyFiles(e.target.files)
+    queueFiles(e.target.files)
     e.target.value = ""
   }
 
   function onDrop(e: DragEvent) {
     e.preventDefault()
     setDragging(false)
-    applyFiles(e.dataTransfer.files)
+    queueFiles(e.dataTransfer.files)
   }
 
   function onPointerDown(e: ReactPointerEvent) {
-    if (disabled || items.length < 2) return
+    if (fieldDisabled || items.length < 2) return
     pointerRef.current = { x: e.clientX, id: e.pointerId }
   }
 
@@ -167,10 +287,71 @@ export function MultiImageField({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
+      {cropping && cropUrl ? (
+        <div className="flex flex-col gap-3">
+          <div
+            className="relative overflow-hidden rounded-[var(--r-md)] border border-line bg-surface-3"
+            style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
+          >
+            <Cropper
+              image={cropUrl}
+              crop={crop}
+              zoom={zoom}
+              aspect={PRODUCT_ASPECT}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              objectFit="contain"
+            />
+          </div>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-bold text-fg-muted">Масштаб</span>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              disabled={processing}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full accent-brand"
+            />
+          </label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              disabled={processing}
+              onClick={skipCrop}
+            >
+              {cropQueue.length > 1 ? "Пропустить" : "Отмена"}
+            </Button>
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              className="flex-1"
+              disabled={processing || !cropPixels}
+              onClick={() => void confirmCrop()}
+            >
+              {processing ? "Обработка…" : "Применить обрезку"}
+            </Button>
+          </div>
+          {cropQueue.length > 1 && cropIndex >= 0 ? (
+            <p className="text-center text-[11px] text-fg-muted">
+              Фото {cropIndex + 1} из {cropQueue.length}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {items.length ? (
         <div className="relative overflow-hidden rounded-[var(--r-md)] border border-line bg-surface-3">
           <div
-            className="relative aspect-[3/2] touch-pan-y select-none"
+            className="relative touch-pan-y select-none"
+            style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
             onPointerCancel={() => {
@@ -264,19 +445,24 @@ export function MultiImageField({
         <div
           onDragOver={(e) => {
             e.preventDefault()
-            setDragging(true)
+            if (!fieldDisabled) setDragging(true)
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           className={cn(
             "relative flex items-center justify-center overflow-hidden rounded-[var(--r-md)] border border-dashed",
-            items.length ? "min-h-14 py-3" : "aspect-[3/2]",
+            items.length ? "min-h-14 py-3" : "",
             dragging ? "border-brand bg-brand-soft" : "border-line bg-surface-3",
+            fieldDisabled && "opacity-50",
           )}
+          style={items.length ? undefined : { aspectRatio: PRODUCT_ASPECT_RATIO }}
         >
           <label
             htmlFor={inputId}
-            className="flex cursor-pointer flex-col items-center gap-1.5 px-4 text-center"
+            className={cn(
+              "flex cursor-pointer flex-col items-center gap-1.5 px-4 text-center",
+              fieldDisabled && "pointer-events-none",
+            )}
           >
             <ImagePlus
               size={items.length ? 20 : 28}
@@ -287,7 +473,8 @@ export function MultiImageField({
               {items.length ? "Добавить ещё фото" : "Перетащите или выберите файл"}
             </span>
             <span className="text-[11px] text-fg-faint">
-              JPEG, PNG, WebP · до {formatMb(maxBytes)} · {items.length}/{maxCount}
+              {PRODUCT_FORMAT_LABEL} · JPEG, PNG, WebP · до {formatMb(maxBytes)} · {items.length}/
+              {maxCount}
             </span>
           </label>
           <input
@@ -296,7 +483,7 @@ export function MultiImageField({
             type="file"
             accept={ACCEPT}
             multiple
-            disabled={disabled}
+            disabled={fieldDisabled}
             className="sr-only"
             onChange={onInputChange}
           />

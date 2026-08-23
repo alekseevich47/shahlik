@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/category/model.ts": {
-    "mtime": 1787231212.6545672,
-    "ast_hash": "7fc2aeb5c6933a4bb85b716e3ea78b86",
+    "mtime": 1787473129.0893319,
+    "ast_hash": "57c6dba60c5cabc34cfbb8fd0865b19e",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/order/model.ts": {
@@ -315,18 +315,18 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/HomePage.tsx": {
-    "mtime": 1787201145.0102737,
-    "ast_hash": "4df39a5070dd361d2706ebd02da86e56",
+    "mtime": 1787493258.3618124,
+    "ast_hash": "c74785ae06c53f4966411fcebba6ba88",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/DesktopHome.tsx": {
-    "mtime": 1787201147.8749473,
-    "ast_hash": "c15c24e4bb90e548c483921a56a26992",
+    "mtime": 1787493304.966722,
+    "ast_hash": "4ef46387412b09e9675466a1d3ddf937",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/MobileHome.tsx": {
-    "mtime": 1787201152.7672927,
-    "ast_hash": "71df3a614193cd0af137161171126000",
+    "mtime": 1787493305.117886,
+    "ast_hash": "9e3156bc1bd295ae9f6946cabbecaf13",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ProductPage.tsx": {
@@ -1052,6 +1052,26 @@
   "apps/shashlik-web/src/shared/ui/banner-image-field.tsx": {
     "mtime": 1787472309.393634,
     "ast_hash": "3e17710ac4af32f6f5dc179c16656555",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/home/lib/groupByCategory.ts": {
+    "mtime": 1787473133.8083935,
+    "ast_hash": "67729e9ac9554d1b92b508100f71ef30",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/home/lib/catalogSection.ts": {
+    "mtime": 1787493253.7718349,
+    "ast_hash": "04420c6293f13f771f4b82095a3cf557",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/home/lib/useCatalogScrollSpy.ts": {
+    "mtime": 1787493304.7754636,
+    "ast_hash": "be87de0c27a14a11e5eba515bfdceec6",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/home/ui/CatalogCategorySection.tsx": {
+    "mtime": 1787493255.6967626,
+    "ast_hash": "b81a9395df9b51498e8096167aca6eac",
     "semantic_hash": ""
   }
 }
