@@ -234,84 +234,134 @@ function loadAddon(addonId) {
   }
 }
 
-function normalizeLines(raw, parseJsonField) {
-  var parsed = raw
-  if (typeof raw === "string") {
-    parsed = parseJsonField(raw, null)
-  }
-
-  if (parsed === undefined || parsed === null) {
+/**
+ * Приводит значение из JSVM (Go slice / JSONRaw / string / object) к JS-массиву.
+ * JSON.stringify в Goja для Go-значений часто даёт "{}"/null — не использовать.
+ */
+function toArrayLike(value, parseJsonField) {
+  if (value === undefined || value === null || value === "") {
     return []
   }
 
-  try {
-    parsed = JSON.parse(JSON.stringify(parsed))
-  } catch (err) {
-    // оставляем как есть
+  if (typeof value === "string") {
+    var fromStr = parseJsonField(value, null)
+    if (fromStr === null || fromStr === undefined) {
+      return []
+    }
+    value = fromStr
+  } else if (typeof value !== "object") {
+    return []
+  } else {
+    // types.JSONRaw и аналоги: String(value) → сырой JSON
+    try {
+      var asText = String(value)
+      if (
+        asText &&
+        asText !== "[object Object]" &&
+        (asText.charAt(0) === "[" || asText.charAt(0) === "{")
+      ) {
+        var fromRaw = parseJsonField(asText, null)
+        if (fromRaw !== null && fromRaw !== undefined) {
+          value = fromRaw
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
   }
 
-  if (parsed && typeof parsed === "object" && typeof parsed.length !== "number") {
+  if (typeof value.length === "number" && typeof value !== "string") {
+    var arr = []
+    for (var i = 0; i < value.length; i++) {
+      arr.push(value[i])
+    }
+    return arr
+  }
+
+  if (typeof value === "object") {
     var keys = []
-    for (var key in parsed) {
-      if (parsed.hasOwnProperty(key)) {
+    for (var key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
         keys.push(key)
       }
+    }
+    if (!keys.length) {
+      return []
     }
     keys.sort(function (a, b) {
       return Number(a) - Number(b)
     })
-    var asArray = []
+    var out = []
     for (var k = 0; k < keys.length; k++) {
-      asArray.push(parsed[keys[k]])
+      out.push(value[keys[k]])
     }
-    parsed = asArray
+    return out
   }
 
-  if (!parsed || typeof parsed.length !== "number" || parsed.length < 1) {
-    return []
-  }
+  return []
+}
 
+function plainObject(value, parseJsonField) {
+  if (value === undefined || value === null) {
+    return null
+  }
+  if (typeof value === "string") {
+    value = parseJsonField(value, null)
+  }
+  if (!value || typeof value !== "object") {
+    return null
+  }
+  // массив — не строка заказа
+  if (typeof value.length === "number" && value.productId === undefined && value.sizeId === undefined) {
+    return null
+  }
+  return value
+}
+
+function normalizeLines(raw, parseJsonField) {
+  var parsed = toArrayLike(raw, parseJsonField)
   var out = []
   for (var i = 0; i < parsed.length; i++) {
-    var line = parsed[i]
-    if (typeof line === "string") {
-      line = parseJsonField(line, null)
+    var line = plainObject(parsed[i], parseJsonField)
+    if (line) {
+      out.push(line)
     }
-    if (line && typeof line === "object") {
-      try {
-        line = JSON.parse(JSON.stringify(line))
-      } catch (err2) {
-        // keep line
-      }
-    }
-    if (!line || typeof line !== "object" || typeof line.length === "number") {
-      continue
-    }
-    out.push(line)
   }
   return out
 }
 
 function readOrderLinesFromEvent(e, parseJsonField) {
-  var fromRecord = normalizeLines(e.record.get("lines"), parseJsonField)
-  if (fromRecord.length) {
-    return fromRecord
+  var candidates = []
+
+  try {
+    candidates.push(e.record.get("lines"))
+  } catch (err1) {
+    // ignore
   }
 
   try {
     var info = e.requestInfo()
-    if (info && info.body && info.body.lines !== undefined) {
-      return normalizeLines(info.body.lines, parseJsonField)
+    if (info && info.body) {
+      candidates.push(info.body.lines)
+      // на всякий случай — тело целиком как строка не трогаем
     }
-  } catch (err) {
+  } catch (err2) {
     // ignore
   }
 
-  return fromRecord
+  for (var i = 0; i < candidates.length; i++) {
+    var lines = normalizeLines(candidates[i], parseJsonField)
+    if (lines.length) {
+      return lines
+    }
+  }
+
+  return []
 }
 
 function resolveLine(line, parseJsonField) {
-  if (!line || typeof line !== "object" || typeof line.length === "number") {
+  line = plainObject(line, parseJsonField)
+  if (!line) {
     throw new BadRequestError("Некорректный состав заказа")
   }
 
@@ -436,7 +486,14 @@ function validateAndRecalculateOrder(e) {
 
   var rawLines = readOrderLinesFromEvent(e, parseJsonField)
   if (!rawLines.length) {
-    throw new BadRequestError("Добавьте позиции в заказ")
+    var debugHint = ""
+    try {
+      var raw = e.record.get("lines")
+      debugHint = " (lines type=" + typeof raw + ")"
+    } catch (err) {
+      debugHint = " (lines unavailable)"
+    }
+    throw new BadRequestError("Добавьте позиции в заказ" + debugHint)
   }
 
   var resolvedLines = []
