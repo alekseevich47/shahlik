@@ -661,28 +661,30 @@ function buildNewOrderPayload(order, fpSettings) {
 
   for (var li = 0; li < lines.length; li++) {
     var line = lines[li]
-    if (!line || !line.article) {
+    var article = getField(line, "article")
+    if (!line || !article) {
       continue
     }
     var parentIdx = products.length
-    products.push(String(line.article))
-    productKol.push(line.quantity)
+    products.push(String(article))
+    productKol.push(Number(getField(line, "quantity")) || 1)
     if (fpSettings.sendPrices) {
-      productPrices.push(line.unitPrice)
+      productPrices.push(Number(getField(line, "unitPrice")) || 0)
     }
 
-    var addons = line.addons || []
+    var addons = toArrayLike(getField(line, "addons"), config.parseJsonField)
     for (var ai = 0; ai < addons.length; ai++) {
       var addon = addons[ai]
-      if (!addon || !addon.article) {
+      var addonArticle = getField(addon, "article")
+      if (!addon || !addonArticle) {
         continue
       }
       var addonIdx = products.length
-      products.push(String(addon.article))
-      productKol.push(addon.quantity)
+      products.push(String(addonArticle))
+      productKol.push(Number(getField(addon, "quantity")) || 1)
       productMod[String(addonIdx)] = parentIdx
       if (fpSettings.sendPrices) {
-        productPrices.push(addon.price)
+        productPrices.push(Number(getField(addon, "price")) || 0)
       }
     }
   }
@@ -806,8 +808,17 @@ function buildNewOrderPayload(order, fpSettings) {
   return payload
 }
 
+function readStoredLines(record, parseJsonField) {
+  try {
+    return normalizeLines(record.get("lines"), parseJsonField)
+  } catch (err) {
+    return []
+  }
+}
+
 module.exports = {
   validateAndRecalculateOrder: validateAndRecalculateOrder,
   buildNewOrderPayload: buildNewOrderPayload,
   checkPromo: checkPromo,
+  readStoredLines: readStoredLines,
 }

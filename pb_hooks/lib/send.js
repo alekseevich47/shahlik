@@ -23,6 +23,7 @@ function isSentAtSet(raw) {
 }
 
 function recordToOrder(record, parseJsonField) {
+  var orderLib = require(__hooks + "/lib/order.js")
   return {
     id: record.id,
     number: record.getString("number"),
@@ -31,7 +32,7 @@ function recordToOrder(record, parseJsonField) {
     mode: record.getString("mode"),
     comment: record.getString("comment") || "",
     couponCode: record.getString("couponCode") || "",
-    lines: parseJsonField(record.get("lines"), []),
+    lines: orderLib.readStoredLines(record, parseJsonField),
     goods: record.getFloat("goods") || 0,
     packFee: record.getFloat("packFee") || 0,
     deliveryFee: record.getFloat("deliveryFee") || 0,
@@ -139,6 +140,21 @@ function sendOrder(orderId, options) {
   var order = recordToOrder(record, config.parseJsonField)
   var payload = orderLib.buildNewOrderPayload(order, fpSettings)
   var maskedPayload = http.maskSecret(payload)
+
+  if (!payload.product || !payload.product.length) {
+    patchOrder(orderId, {
+      frontpadError: "Нет позиций для кассы (lines не прочитались из записи)",
+      sentAt: null,
+    })
+    logger.error(
+      "frontpad send skipped: empty product[]",
+      "orderId",
+      orderId,
+      "linesCount",
+      order.lines ? order.lines.length : 0,
+    )
+    return { sent: false, error: "empty payload" }
+  }
 
   if (!fpSettings.sendEnabled) {
     createDryRunJob(orderId, maskedPayload)
