@@ -46,6 +46,14 @@ onRecordAfterCreateSuccess(function (e) {
     send.sendOrder(record.id)
   } catch (err) {
     logger.error("order send failed", "orderId", record.id, "error", String(err))
+    try {
+      var orderRecord = $app.findRecordById("orders", record.id)
+      orderRecord.set("frontpadError", String(err))
+      orderRecord.set("sentAt", null)
+      $app.save(orderRecord)
+    } catch (patchErr) {
+      logger.error("order send patch failed", "orderId", record.id, "error", String(patchErr))
+    }
   }
 }, "orders")
 

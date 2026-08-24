@@ -24,6 +24,12 @@ function isSentAtSet(raw) {
 
 function recordToOrder(record, parseJsonField) {
   var orderLib = require(__hooks + "/lib/order.js")
+  var lines = []
+  if (typeof orderLib.readStoredLines === "function") {
+    lines = orderLib.readStoredLines(record, parseJsonField)
+  } else {
+    lines = parseJsonField(record.get("lines"), [])
+  }
   return {
     id: record.id,
     number: record.getString("number"),
@@ -32,7 +38,7 @@ function recordToOrder(record, parseJsonField) {
     mode: record.getString("mode"),
     comment: record.getString("comment") || "",
     couponCode: record.getString("couponCode") || "",
-    lines: orderLib.readStoredLines(record, parseJsonField),
+    lines: lines,
     goods: record.getFloat("goods") || 0,
     packFee: record.getFloat("packFee") || 0,
     deliveryFee: record.getFloat("deliveryFee") || 0,
@@ -106,7 +112,7 @@ function claimOrderSend(orderId) {
     var fpOrderId = record.get("frontpadOrderId")
     var sentAt = record.get("sentAt")
 
-    if (fpOrderId || isSentAtSet(sentAt)) {
+    if ((fpOrderId && Number(fpOrderId) !== 0) || isSentAtSet(sentAt)) {
       return
     }
 
@@ -115,6 +121,17 @@ function claimOrderSend(orderId) {
     claimed = true
   })
   return claimed
+}
+
+function patchSendFailure(orderId, message) {
+  try {
+    patchOrder(orderId, {
+      frontpadError: message,
+      sentAt: null,
+    })
+  } catch (err) {
+    // ignore
+  }
 }
 
 /**
@@ -132,93 +149,109 @@ function sendOrder(orderId, options) {
   var logger = $app.logger()
 
   if (!claimOrderSend(orderId)) {
+    logger.warn("frontpad send skipped: already claimed", "orderId", orderId)
     return { sent: false, skipped: true }
   }
 
-  var fpSettings = config.loadFrontpadSettings()
-  var record = $app.findRecordById("orders", orderId)
-  var order = recordToOrder(record, config.parseJsonField)
-  var payload = orderLib.buildNewOrderPayload(order, fpSettings)
-  var maskedPayload = http.maskSecret(payload)
+  try {
+    var fpSettings = config.loadFrontpadSettings()
+    var record = $app.findRecordById("orders", orderId)
+    var order = recordToOrder(record, config.parseJsonField)
+    var payload = orderLib.buildNewOrderPayload(order, fpSettings)
+    var maskedPayload = http.maskSecret(payload)
 
-  if (!payload.product || !payload.product.length) {
-    patchOrder(orderId, {
-      frontpadError: "Нет позиций для кассы (lines не прочитались из записи)",
-      sentAt: null,
-    })
-    logger.error(
-      "frontpad send skipped: empty product[]",
-      "orderId",
-      orderId,
-      "linesCount",
-      order.lines ? order.lines.length : 0,
-    )
-    return { sent: false, error: "empty payload" }
-  }
+    if (!payload.product || !payload.product.length) {
+      patchSendFailure(
+        orderId,
+        "Нет позиций для кассы (lines=" + (order.lines ? order.lines.length : 0) + ")",
+      )
+      logger.error(
+        "frontpad send skipped: empty product[]",
+        "orderId",
+        orderId,
+        "linesCount",
+        order.lines ? order.lines.length : 0,
+      )
+      return { sent: false, error: "empty payload" }
+    }
 
-  if (!fpSettings.sendEnabled) {
-    createDryRunJob(orderId, maskedPayload)
-    patchOrder(orderId, { frontpadError: "dry-run" })
-    return { sent: false, dryRun: true }
-  }
+    if (!fpSettings.sendEnabled) {
+      createDryRunJob(orderId, maskedPayload)
+      patchOrder(orderId, { frontpadError: "dry-run" })
+      logger.info("frontpad dry-run job saved", "orderId", orderId)
+      return { sent: false, dryRun: true }
+    }
 
-  var response = http.call("new_order", payload)
+    var response = http.call("new_order", payload)
 
-  if (response.ok) {
-    var warningsText = http.warningsToText(response.warnings)
-    var data = response.data || {}
-    patchOrder(orderId, {
-      frontpadOrderId: data.order_id ? Number(data.order_id) : null,
-      frontpadOrderNumber: data.order_number ? String(data.order_number) : "",
-      frontpadError: warningsText,
-    })
-    patchFrontpadSettings({
-      lastOrderSentAt: formatPbDateTime(new Date()),
-      lastError: warningsText,
-    })
-    return { sent: true }
-  }
+    if (response.ok) {
+      var warningsText = http.warningsToText(response.warnings)
+      var data = response.data || {}
+      patchOrder(orderId, {
+        frontpadOrderId: data.order_id ? Number(data.order_id) : null,
+        frontpadOrderNumber: data.order_number ? String(data.order_number) : "",
+        frontpadError: warningsText,
+      })
+      patchFrontpadSettings({
+        lastOrderSentAt: formatPbDateTime(new Date()),
+        lastError: warningsText,
+      })
+      logger.info(
+        "frontpad order sent",
+        "orderId",
+        orderId,
+        "fpOrderId",
+        data.order_id,
+      )
+      return { sent: true }
+    }
 
-  var error = response.error || { code: "unknown", message: "Ошибка кассы" }
-  var errorText = error.message || error.code || "Ошибка кассы"
+    var error = response.error || { code: "unknown", message: "Ошибка кассы" }
+    var errorText = error.message || error.code || "Ошибка кассы"
 
-  if (shouldEnqueueResend(error)) {
+    if (shouldEnqueueResend(error)) {
+      patchOrder(orderId, {
+        frontpadError: errorText,
+        sentAt: null,
+      })
+      if (!options.noEnqueue) {
+        var jobs = require(__hooks + "/lib/jobs.js")
+        jobs.enqueueJob("resend_order", { orderId: orderId })
+      }
+      patchFrontpadSettings({ lastError: errorText })
+      logger.warn(
+        "frontpad send failed, resend queued",
+        "orderId",
+        orderId,
+        "code",
+        error.code,
+      )
+      return { sent: false, error: errorText, retryable: true }
+    }
+
+    if (error.code === "network" || error.code === "http_error") {
+      patchOrder(orderId, {
+        frontpadError: "Ответ кассы не получен, проверьте заказ вручную",
+      })
+      patchFrontpadSettings({
+        lastError: "Ответ кассы не получен, проверьте заказ вручную",
+      })
+      logger.warn("frontpad send unknown result", "orderId", orderId, "code", error.code)
+      return { sent: false, error: errorText }
+    }
+
     patchOrder(orderId, {
       frontpadError: errorText,
       sentAt: null,
     })
-    if (!options.noEnqueue) {
-      var jobs = require(__hooks + "/lib/jobs.js")
-      jobs.enqueueJob("resend_order", { orderId: orderId })
-    }
     patchFrontpadSettings({ lastError: errorText })
-    logger.warn(
-      "frontpad send failed, resend queued",
-      "orderId",
-      orderId,
-      "code",
-      error.code,
-    )
-    return { sent: false, error: errorText, retryable: true }
-  }
-
-  if (error.code === "network" || error.code === "http_error") {
-    patchOrder(orderId, {
-      frontpadError: "Ответ кассы не получен, проверьте заказ вручную",
-    })
-    patchFrontpadSettings({
-      lastError: "Ответ кассы не получен, проверьте заказ вручную",
-    })
-    logger.warn("frontpad send unknown result", "orderId", orderId, "code", error.code)
     return { sent: false, error: errorText }
+  } catch (err) {
+    var msg = String(err)
+    patchSendFailure(orderId, msg)
+    logger.error("frontpad send crashed", "orderId", orderId, "error", msg)
+    return { sent: false, error: msg }
   }
-
-  patchOrder(orderId, {
-    frontpadError: errorText,
-    sentAt: null,
-  })
-  patchFrontpadSettings({ lastError: errorText })
-  return { sent: false, error: errorText }
 }
 
 module.exports = {
