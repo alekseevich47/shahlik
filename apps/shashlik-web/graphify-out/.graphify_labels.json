@@ -36,8 +36,6 @@
   "34": "AddonForm.tsx",
   "35": "cn.ts",
   "36": "ProductCard.tsx",
-  "37": "files.ts",
-  "39": "articles.ts",
   "41": "lucide-react",
   "42": "react-dom",
   "44": "category/api.ts",
@@ -45,7 +43,5 @@
   "46": "compress-image.ts",
   "47": "lucide-react",
   "48": "react-easy-crop",
-  "49": "sonner",
-  "52": "banner/model.ts",
-  "55": "orders.ts"
+  "49": "sonner"
 }

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { ClientResponseError } from "pocketbase"
 
 import { loginWithOAuth } from "@/entities/account/api"
 import type { OAuthProvider } from "@/entities/account/model"
@@ -10,6 +11,20 @@ const PROVIDERS: ReadonlyArray<{ id: OAuthProvider; label: string }> = [
   { id: "yandex", label: "Войти через Яндекс" },
 ]
 
+function oauthErrorMessage(err: unknown): string {
+  if (err instanceof ClientResponseError) {
+    const msg = String(err.response?.message || err.message || "").trim()
+    if (err.status === 0 || /realtime|abort|interrupted/i.test(msg)) {
+      return "Связь с сервером оборвалась (часто WebSocket /api/). Проверь Nginx Upgrade."
+    }
+    if (msg && msg !== "Something went wrong.") return msg
+    if (err.status) return `Ошибка входа (${err.status})`
+    return "Не удалось завершить вход"
+  }
+  if (err instanceof Error && err.message) return err.message
+  return "Не удалось войти"
+}
+
 export function LoginPanel() {
   const [pending, setPending] = useState<OAuthProvider | null>(null)
   const [error, setError] = useState("")
@@ -20,7 +35,7 @@ export function LoginPanel() {
     try {
       await loginWithOAuth(provider)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось войти")
+      setError(oauthErrorMessage(err))
     } finally {
       setPending(null)
     }
@@ -28,7 +43,7 @@ export function LoginPanel() {
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-4 rounded-[var(--r-2xl)] border border-line bg-surface p-6 shadow-card">
-      <div className="flex flex-col items-center gap-1 text-center">
+      <div className="flex flex-col gap-1 text-center items-center">
         <img src={SITE.brandLogo} alt={SITE.name} className="h-14 w-auto object-contain" />
         <h1 className="text-[18px] font-extrabold text-fg">Личный кабинет</h1>
         <p className="text-[12.5px] leading-[1.45] text-fg-muted">
