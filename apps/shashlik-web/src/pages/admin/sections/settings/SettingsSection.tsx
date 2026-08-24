@@ -10,6 +10,7 @@ import {
 import { settingsFallback, type Settings } from "@/entities/settings/model"
 import { FrontpadPanel } from "@/pages/admin/sections/settings/FrontpadPanel"
 import { SectionShell } from "@/pages/admin/ui/SectionShell"
+import { can } from "@/shared/api/auth"
 import { useCollectionRealtime } from "@/shared/api/realtime"
 import { Button } from "@/shared/ui/button"
 import { Field, Input, Textarea } from "@/shared/ui/input"
@@ -34,10 +35,12 @@ function parseNonNeg(raw: string, label: string): number | null {
 }
 
 export function SettingsSection() {
-  const { data: settings = settingsFallback(), isPending } = useSettings()
+  const { data: settings = { ...settingsFallback(), missing: false }, isPending } = useSettings()
   const updateSettings = useUpdateSettings()
   const [tab, setTab] = useState<TabId>("venue")
   const [draft, setDraft] = useState<Settings>(settings)
+
+  const canUpdate = can("settings", "update")
 
   useCollectionRealtime("settings", [settingsKeys.all])
   useCollectionRealtime("frontpad_settings", [frontpadSettingsKeys.all], tab === "cashier")
@@ -104,6 +107,13 @@ export function SettingsSection() {
       description="Заведение, экономика заказа и параметры кассы. Секрет Frontpad только на сервере."
     >
       <Segmented value={tab} onChange={setTab} options={TABS} ariaLabel="Разделы настроек" />
+
+      {settings.missing ? (
+        <p className="mt-3 rounded-[var(--r-sm)] bg-warning/15 px-3 py-2 text-[12.5px] leading-snug font-medium text-fg">
+          Настройки ещё не инициализированы в PocketBase. Сохранение может быть недоступно до появления
+          записей.
+        </p>
+      ) : null}
 
       {isPending ? (
         <p className="text-[13px] text-fg-muted">Загрузка…</p>
@@ -204,9 +214,13 @@ export function SettingsSection() {
           </div>
 
           <div className="flex justify-end">
-            <Button type="button" disabled={busy} onClick={() => void saveVenue()}>
-              Сохранить
-            </Button>
+            {canUpdate ? (
+              <Button type="button" disabled={busy} onClick={() => void saveVenue()}>
+                Сохранить
+              </Button>
+            ) : (
+              <p className="text-[13px] text-fg-muted">Недостаточно прав</p>
+            )}
           </div>
         </div>
       ) : tab === "economy" ? (
@@ -254,9 +268,13 @@ export function SettingsSection() {
             </Field>
           </div>
           <div className="flex justify-end">
-            <Button type="button" disabled={busy} onClick={() => void saveEconomy()}>
-              Сохранить
-            </Button>
+            {canUpdate ? (
+              <Button type="button" disabled={busy} onClick={() => void saveEconomy()}>
+                Сохранить
+              </Button>
+            ) : (
+              <p className="text-[13px] text-fg-muted">Недостаточно прав</p>
+            )}
           </div>
         </div>
       ) : (

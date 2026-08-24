@@ -9,7 +9,7 @@ var JOB_STATUS = {
 }
 
 var SEND_KINDS = ["send_order", "resend_order"]
-var SYNC_KINDS = ["sync_products", "sync_stops"]
+var SYNC_KINDS = ["sync_products", "sync_stops", "apply_prices"]
 
 var MAX_SEND_PER_TICK = 2
 var MAX_SYNC_PER_TICK = 1
@@ -236,6 +236,9 @@ function processSyncJob(job) {
       outcome = sync.syncProducts()
     } else if (job.kind === "sync_stops") {
       outcome = sync.syncStops()
+    } else if (job.kind === "apply_prices") {
+      var prices = require(__hooks + "/lib/prices.js")
+      outcome = prices.applyPrices()
     } else {
       failJob(job.id, "Неизвестный kind синхронизации: " + job.kind)
       return

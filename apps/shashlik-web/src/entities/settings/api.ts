@@ -1,5 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 
+import { ClientResponseError } from "pocketbase"
+
 import type {
   FrontpadJob,
   FrontpadJobKind,
@@ -59,6 +61,7 @@ type FrontpadSettingsRecord = {
   syncEnabled?: boolean
   lastProductsSyncAt?: string | null
   lastStopsSyncAt?: string | null
+  priceSource?: string
 }
 
 type FrontpadStockRecord = {
@@ -75,11 +78,14 @@ type FrontpadJobRecord = {
   kind: FrontpadJobKind
   status: FrontpadJobStatus
   error?: string
+  result?: unknown
   created: string
 }
 
 export type UpdateSettingsInput = Partial<Omit<Settings, "id">>
 export type UpdateFrontpadSettingsInput = Partial<Omit<FrontpadSettings, "id">>
+
+export type SettingsQuery = Settings & { missing?: boolean }
 
 export const settingsKeys = {
   all: ["settings"] as const,
@@ -93,11 +99,16 @@ export const frontpadSettingsKeys = {
 
 export const stoppedStockKeys = {
   all: ["frontpad_stock"] as const,
+  list: ["frontpad_stock", "full"] as const,
   stopped: ["frontpad_stock", "stopped"] as const,
 }
 
 export const syncJobKeys = {
   all: ["frontpad_jobs", "sync"] as const,
+}
+
+export const applyPricesJobKeys = {
+  all: ["frontpad_jobs", "apply_prices"] as const,
 }
 
 const ORDER_STATUSES = new Set<OrderStatus>([
@@ -184,6 +195,7 @@ function mapFrontpadSettings(record: FrontpadSettingsRecord): FrontpadSettings {
     syncEnabled: Boolean(record.syncEnabled),
     lastProductsSyncAt: record.lastProductsSyncAt ?? null,
     lastStopsSyncAt: record.lastStopsSyncAt ?? null,
+    priceSource: record.priceSource === "frontpad" ? "frontpad" : "site",
   }
 }
 
@@ -204,16 +216,20 @@ function mapJob(record: FrontpadJobRecord): FrontpadJob {
     kind: record.kind,
     status: record.status,
     error: record.error || undefined,
+    result: record.result,
     createdAt: record.created,
   }
 }
 
-export async function fetchSettings(): Promise<Settings> {
+export async function fetchSettings(): Promise<SettingsQuery> {
   try {
     const record = await pb.collection("settings").getOne<SettingsRecord>(SETTINGS_ID)
-    return mapSettings(record)
-  } catch {
-    return settingsFallback()
+    return { ...mapSettings(record), missing: false }
+  } catch (err) {
+    if (err instanceof ClientResponseError && err.status === 404) {
+      return { ...settingsFallback(), missing: true }
+    }
+    return { ...settingsFallback(), missing: false }
   }
 }
 
@@ -250,7 +266,7 @@ export function useSettings() {
     queryKey: settingsKeys.detail(SETTINGS_ID),
     queryFn: fetchSettings,
     staleTime: 5 * 60 * 1000,
-    placeholderData: settingsFallback(),
+    placeholderData: { ...settingsFallback(), missing: false },
   })
 }
 
@@ -280,13 +296,16 @@ export function useActiveSyncJobs(enabled = true) {
   })
 }
 
-export async function updateSettings(data: UpdateSettingsInput): Promise<Settings> {
+export async function updateSettings(data: UpdateSettingsInput): Promise<SettingsQuery> {
   try {
     const record = await pb
       .collection("settings")
       .update<SettingsRecord>(SETTINGS_ID, data)
-    return mapSettings(record)
+    return { ...mapSettings(record), missing: false }
   } catch (err) {
+    if (err instanceof ClientResponseError && err.status === 404) {
+      throw new Error("Нет записи настроек или недостаточно прав")
+    }
     throw new Error(pbErrorMessage(err, "Не удалось сохранить настройки"))
   }
 }
@@ -310,6 +329,9 @@ export async function updateFrontpadSettings(
       .update<FrontpadSettingsRecord>(SETTINGS_ID, data)
     return mapFrontpadSettings(record)
   } catch (err) {
+    if (err instanceof ClientResponseError && err.status === 404) {
+      throw new Error("Нет записи настроек или недостаточно прав")
+    }
     throw new Error(pbErrorMessage(err, "Не удалось сохранить настройки кассы"))
   }
 }
@@ -345,6 +367,69 @@ export function useEnqueueSyncJob() {
     mutationFn: enqueueSyncJob,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: syncJobKeys.all })
+    },
+  })
+}
+
+export async function fetchFrontpadStock(): Promise<FrontpadStockItem[]> {
+  const records = await pb.collection("frontpad_stock").getFullList<FrontpadStockRecord>({
+    sort: "article",
+  })
+  return records.map(mapStock)
+}
+
+export function useFrontpadStock(enabled = true) {
+  return useQuery({
+    queryKey: stoppedStockKeys.list,
+    queryFn: fetchFrontpadStock,
+    enabled,
+  })
+}
+
+export async function fetchApplyPricesJobs(): Promise<FrontpadJob[]> {
+  try {
+    const records = await pb.collection("frontpad_jobs").getList<FrontpadJobRecord>(1, 8, {
+      filter: 'kind = "apply_prices"',
+      sort: "-created",
+    })
+    return records.items.map(mapJob)
+  } catch {
+    return []
+  }
+}
+
+export function useApplyPricesJobs(enabled = true) {
+  return useQuery({
+    queryKey: applyPricesJobKeys.all,
+    queryFn: fetchApplyPricesJobs,
+    enabled,
+  })
+}
+
+export async function enqueueApplyPricesJob(): Promise<FrontpadJob> {
+  try {
+    const record = await pb.collection("frontpad_jobs").create<FrontpadJobRecord>({
+      kind: "apply_prices" satisfies FrontpadJobKind,
+      payload: {},
+      status: "queued" satisfies FrontpadJobStatus,
+      attempts: 0,
+    })
+    try {
+      const fresh = await pb.collection("frontpad_jobs").getOne<FrontpadJobRecord>(record.id)
+      return mapJob(fresh)
+    } catch {
+      return mapJob(record)
+    }
+  } catch (err) {
+    throw new Error(pbErrorMessage(err, "Не удалось поставить применение цен"))
+  }
+}
+
+export function useEnqueueApplyPricesJob() {
+  return useMutation({
+    mutationFn: enqueueApplyPricesJob,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: applyPricesJobKeys.all })
     },
   })
 }

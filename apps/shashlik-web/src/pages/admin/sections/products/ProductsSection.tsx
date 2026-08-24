@@ -13,6 +13,7 @@ import {
 import { hasMissingArticle, minPrice } from "@/entities/product/lib"
 import type { Product } from "@/entities/product/model"
 import { ProductCreateForm } from "@/pages/admin/sections/products/ProductCreateForm"
+import { CashPricesPanel } from "@/pages/admin/sections/products/CashPricesPanel"
 import { EmptyState } from "@/pages/admin/ui/EmptyState"
 import { SectionShell } from "@/pages/admin/ui/SectionShell"
 import { SkeletonRows } from "@/pages/admin/ui/SkeletonRows"
@@ -21,6 +22,7 @@ import { Toolbar, type ToolbarFilter } from "@/pages/admin/ui/Toolbar"
 import { formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
+import { Chip } from "@/shared/ui/chip"
 import { useConfirm } from "@/shared/ui/confirm-dialog"
 import { Switch } from "@/shared/ui/switch"
 
@@ -53,6 +55,7 @@ export function ProductsSection() {
   const { confirm, dialog } = useConfirm()
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [view, setView] = useState<"catalog" | "prices">("catalog")
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
@@ -141,7 +144,21 @@ export function ProductsSection() {
     <SectionShell
       title="Товары"
       description="Каталог витрины. Порядок — drag&drop (позиция на витрине). Артикул — пара вариант × размер."
+      actions={
+        <div className="flex flex-wrap gap-1.5">
+          <Chip active={view === "catalog"} onClick={() => setView("catalog")}>
+            Каталог
+          </Chip>
+          <Chip active={view === "prices"} onClick={() => setView("prices")}>
+            Цены кассы
+          </Chip>
+        </div>
+      }
     >
+      {view === "prices" ? (
+        <CashPricesPanel />
+      ) : (
+        <>
       <Toolbar
         searchPlaceholder="Поиск по названию, slug или артикулу…"
         onSearchChange={setQuery}
@@ -284,6 +301,8 @@ export function ProductsSection() {
 
       <ProductCreateForm open={createOpen} onOpenChange={setCreateOpen} />
       {dialog}
+        </>
+      )}
     </SectionShell>
   )
 }

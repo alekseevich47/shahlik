@@ -19,15 +19,64 @@ import {
 import {
   MAX_HOOK_STATUSES,
   MAX_ORDER_TAGS,
+  PRODUCTS_SYNC_INTERVAL_MS,
   type FrontpadSettings,
+  type PriceSource,
 } from "@/entities/settings/model"
 import { useCollectionRealtime } from "@/shared/api/realtime"
 import { formatDateTime, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Field, Input } from "@/shared/ui/input"
+import { Segmented } from "@/shared/ui/segmented"
 import { Select } from "@/shared/ui/select"
 import { Switch } from "@/shared/ui/switch"
+
+const DIGITS = /^\d+$/
+
+const PRICE_SOURCE_OPTIONS: { value: PriceSource; label: string }[] = [
+  { value: "site", label: "Сайт" },
+  { value: "frontpad", label: "Касса" },
+]
+
+function splitTokens(raw: string): string[] {
+  return raw
+    .split(/[\s,;]+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+}
+
+function parseDigitCodes(raw: string): { kept: string[]; discarded: string[] } {
+  const kept: string[] = []
+  const discarded: string[] = []
+  for (const token of splitTokens(raw)) {
+    if (DIGITS.test(token)) kept.push(token)
+    else discarded.push(token)
+  }
+  return { kept, discarded }
+}
+
+function toastDiscarded(label: string, discarded: string[]) {
+  if (discarded.length === 0) return
+  toast.error(`${label}: ${discarded.join(", ")}`)
+}
+
+function productsSyncGate(lastAt: string | null, now: number) {
+  if (!lastAt) return { allowed: true, remainingMs: 0 }
+  const last = new Date(lastAt).getTime()
+  if (!Number.isFinite(last)) return { allowed: true, remainingMs: 0 }
+  const remainingMs = PRODUCTS_SYNC_INTERVAL_MS - (now - last)
+  if (remainingMs <= 0) return { allowed: true, remainingMs: 0 }
+  return { allowed: false, remainingMs }
+}
+
+function formatRemaining(ms: number): string {
+  const minutes = Math.max(1, Math.ceil(ms / 60_000))
+  if (minutes < 60) return `${minutes} мин`
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return rest ? `${hours} ч ${rest} мин` : `${hours} ч`
+}
 
 const STATUS_OPTIONS = (Object.keys(ORDER_STATUS_LABEL) as OrderStatus[]).map((value) => ({
   value,
@@ -54,10 +103,16 @@ export function FrontpadPanel({ enabled }: Props) {
   const [statusInput, setStatusInput] = useState("")
   const [mapKey, setMapKey] = useState("")
   const [mapValue, setMapValue] = useState<OrderStatus>("cooking")
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     if (settings) setDraft(settings)
   }, [settings])
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
 
   const busy = updateSettings.isPending || enqueueSync.isPending
   const productsBusy = syncJobs.some((j) => j.kind === "sync_products")
@@ -67,44 +122,60 @@ export function FrontpadPanel({ enabled }: Props) {
     return <p className="text-[13px] text-fg-muted">Загрузка настроек кассы…</p>
   }
 
+  const productsGate = productsSyncGate(draft.lastProductsSyncAt, now)
+
   const patch = <K extends keyof FrontpadSettings>(key: K, value: FrontpadSettings[K]) => {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev))
   }
 
   const addTag = () => {
-    const tag = tagInput.trim()
-    if (!tag) return
-    if (!/^\d+$/.test(tag)) {
-      toast.error("Отметка — числовой код из справочника Frontpad")
+    const { kept, discarded } = parseDigitCodes(tagInput)
+    toastDiscarded("Отброшены нечисловые отметки", discarded)
+    if (kept.length === 0) {
+      if (discarded.length === 0) toast.error("Введите числовой код из справочника Frontpad")
       return
     }
-    if (draft.orderTags.includes(tag)) {
-      toast.error("Такой тег уже есть")
+    const unique = kept.filter((tag) => !draft.orderTags.includes(tag))
+    if (unique.length === 0) {
+      toast.error("Такие отметки уже есть")
+      setTagInput("")
       return
     }
-    if (draft.orderTags.length >= MAX_ORDER_TAGS) {
-      toast.error(`Не больше ${MAX_ORDER_TAGS} тегов`)
+    const room = MAX_ORDER_TAGS - draft.orderTags.length
+    if (room <= 0) {
+      toast.error(`Не больше ${MAX_ORDER_TAGS} отметок`)
       return
     }
-    patch("orderTags", [...draft.orderTags, tag])
+    const accepted = unique.slice(0, room)
+    const overflow = unique.slice(room)
+    toastDiscarded(`Лимит ${MAX_ORDER_TAGS}, не добавлено`, overflow)
+    patch("orderTags", [...draft.orderTags, ...accepted])
     setTagInput("")
   }
 
   const addHookStatus = () => {
-    const n = Number(statusInput.trim())
-    if (!Number.isFinite(n)) {
-      toast.error("Код статуса — число")
+    const { kept, discarded } = parseDigitCodes(statusInput)
+    toastDiscarded("Отброшены нечисловые коды webhook", discarded)
+    if (kept.length === 0) {
+      if (discarded.length === 0) toast.error("Введите числовой код статуса кассы")
       return
     }
-    if (draft.hookStatuses.includes(n)) {
-      toast.error("Такой статус уже есть")
+    const numbers = kept.map((t) => Number(t))
+    const unique = numbers.filter((n) => !draft.hookStatuses.includes(n))
+    if (unique.length === 0) {
+      toast.error("Такие статусы уже есть")
+      setStatusInput("")
       return
     }
-    if (draft.hookStatuses.length >= MAX_HOOK_STATUSES) {
+    const room = MAX_HOOK_STATUSES - draft.hookStatuses.length
+    if (room <= 0) {
       toast.error(`Не больше ${MAX_HOOK_STATUSES} статусов webhook`)
       return
     }
-    patch("hookStatuses", [...draft.hookStatuses, n])
+    const accepted = unique.slice(0, room)
+    const overflow = unique.slice(room).map(String)
+    toastDiscarded(`Лимит ${MAX_HOOK_STATUSES}, не добавлено`, overflow)
+    patch("hookStatuses", [...draft.hookStatuses, ...accepted])
     setStatusInput("")
   }
 
@@ -114,24 +185,53 @@ export function FrontpadPanel({ enabled }: Props) {
       toast.error("Укажите код статуса кассы")
       return
     }
+    if (!DIGITS.test(key)) {
+      toast.error(`Отброшен нечисловой код: ${key}`)
+      return
+    }
     patch("statusMap", { ...draft.statusMap, [key]: mapValue })
     setMapKey("")
   }
 
   const save = async () => {
+    const badTags = draft.orderTags.filter((t) => !DIGITS.test(t))
+    const goodTags = draft.orderTags.filter((t) => DIGITS.test(t)).slice(0, MAX_ORDER_TAGS)
+    toastDiscarded("Отброшены нечисловые отметки", badTags)
     if (draft.orderTags.length > MAX_ORDER_TAGS) {
-      toast.error(`Тегов не больше ${MAX_ORDER_TAGS}`)
-      return
+      toastDiscarded(
+        `Лимит ${MAX_ORDER_TAGS}, лишние отметки`,
+        draft.orderTags.filter((t) => DIGITS.test(t)).slice(MAX_ORDER_TAGS),
+      )
     }
+
+    const goodHooks = draft.hookStatuses
+      .filter((n) => Number.isInteger(n) && n >= 0)
+      .slice(0, MAX_HOOK_STATUSES)
+    const badHooks = draft.hookStatuses
+      .filter((n) => !Number.isInteger(n) || n < 0)
+      .map(String)
+    toastDiscarded("Отброшены некорректные webhook-статусы", badHooks)
     if (draft.hookStatuses.length > MAX_HOOK_STATUSES) {
-      toast.error(`Статусов webhook не больше ${MAX_HOOK_STATUSES}`)
-      return
+      toastDiscarded(
+        `Лимит ${MAX_HOOK_STATUSES}, лишние статусы`,
+        draft.hookStatuses.slice(MAX_HOOK_STATUSES).map(String),
+      )
     }
+
+    const cleanedMap: Record<string, OrderStatus> = {}
+    const badMapKeys: string[] = []
+    for (const [code, status] of Object.entries(draft.statusMap)) {
+      if (DIGITS.test(code)) cleanedMap[code] = status
+      else badMapKeys.push(code)
+    }
+    toastDiscarded("Отброшены нечисловые ключи statusMap", badMapKeys)
+
     try {
       await updateSettings.mutateAsync({
         sendEnabled: draft.sendEnabled,
         hookUrl: draft.hookUrl.trim(),
         sendPrices: draft.sendPrices,
+        priceSource: draft.priceSource,
         articlePack: draft.articlePack.trim(),
         articleDelivery: draft.articleDelivery.trim(),
         retryLimit: Math.max(1, draft.retryLimit),
@@ -141,10 +241,20 @@ export function FrontpadPanel({ enabled }: Props) {
         channel: draft.channel.trim(),
         affiliate: draft.affiliate.trim(),
         point: draft.point.trim(),
-        orderTags: draft.orderTags.filter((t) => /^\d+$/.test(t)),
-        hookStatuses: draft.hookStatuses,
-        statusMap: draft.statusMap,
+        orderTags: goodTags,
+        hookStatuses: goodHooks,
+        statusMap: cleanedMap,
       })
+      setDraft((prev) =>
+        prev
+          ? {
+              ...prev,
+              orderTags: goodTags,
+              hookStatuses: goodHooks,
+              statusMap: cleanedMap,
+            }
+          : prev,
+      )
       toast.success("Настройки кассы сохранены")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Не удалось сохранить")
@@ -197,7 +307,11 @@ export function FrontpadPanel({ enabled }: Props) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="URL вебхука (без токена)" className="sm:col-span-2">
+        <Field
+          label="URL вебхука (без токена)"
+          hint="Токен подставит сервер из env. Пустой hook_status — касса webhook не вызовет."
+          className="sm:col-span-2"
+        >
           <Input
             value={draft.hookUrl}
             onChange={(e) => patch("hookUrl", e.target.value)}
@@ -205,14 +319,33 @@ export function FrontpadPanel({ enabled }: Props) {
             disabled={busy}
           />
         </Field>
-        <label className="flex items-center gap-2.5 text-[13px] font-bold text-fg">
-          <Switch
-            checked={draft.sendPrices}
-            onCheckedChange={(v) => patch("sendPrices", v)}
-            disabled={busy}
+        <Field
+          label="Передавать цены в кассу"
+          hint="Добавляет product_price[] в new_order. Включать только если в кассе разрешено изменение цены — иначе касса игнорирует цены или вернёт ошибку."
+          className="sm:col-span-2"
+        >
+          <label className="flex items-center gap-2.5 text-[13px] font-bold text-fg">
+            <Switch
+              checked={draft.sendPrices}
+              onCheckedChange={(v) => patch("sendPrices", v)}
+              disabled={busy}
+            />
+            product_price в заказе
+          </label>
+        </Field>
+        <Field
+          label="Источник справочника цен"
+          hint="Касса не принимает запись цен в свой каталог. «Касса» — джоб apply_prices пишет цены в products; «Сайт» — только отчёт расхождений."
+          className="sm:col-span-2"
+        >
+          <Segmented
+            value={draft.priceSource}
+            onChange={(v) => patch("priceSource", v)}
+            options={PRICE_SOURCE_OPTIONS}
+            ariaLabel="Источник цен"
+            className={busy ? "pointer-events-none opacity-50" : undefined}
           />
-          Передавать цены в кассу (product_price)
-        </label>
+        </Field>
         <Field label="Попыток переотправки (retryLimit)">
           <Input
             value={String(draft.retryLimit)}
@@ -304,15 +437,24 @@ export function FrontpadPanel({ enabled }: Props) {
             </span>
           </div>
           <p className="mb-2 text-[11px] leading-snug text-fg-muted">
-            Числовые коды API из справочника Frontpad, не названия.
+            Параметр <code className="font-mono text-[10px]">tags[]</code> в{" "}
+            <code className="font-mono text-[10px]">new_order</code> — числовые коды из Frontpad →
+            Настройки → Отметки заказа, не более {MAX_ORDER_TAGS}. Нечисловые значения сервер
+            отбрасывает — UI покажет их явно.
           </p>
           <div className="mb-2 flex flex-wrap gap-1.5">
             {draft.orderTags.length === 0 ? (
               <span className="text-[12px] text-fg-muted">Пусто</span>
             ) : (
               draft.orderTags.map((tag) => (
-                <Badge key={tag} className="gap-1 pr-1">
+                <Badge
+                  key={tag}
+                  className={`gap-1 pr-1 ${DIGITS.test(tag) ? "" : "border-red/40 text-red"}`}
+                >
                   {tag}
+                  {!DIGITS.test(tag) ? (
+                    <span className="text-[9px] font-bold uppercase">не число</span>
+                  ) : null}
                   <button
                     type="button"
                     aria-label={`Удалить ${tag}`}
@@ -334,10 +476,16 @@ export function FrontpadPanel({ enabled }: Props) {
             <Input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              placeholder="Код из справочника"
-              maxLength={32}
+              placeholder="Код или несколько через запятую"
+              maxLength={64}
               disabled={busy || draft.orderTags.length >= MAX_ORDER_TAGS}
               className="h-9"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  addTag()
+                }
+              }}
             />
             <Button
               type="button"
@@ -358,9 +506,14 @@ export function FrontpadPanel({ enabled }: Props) {
               {draft.hookStatuses.length}/{MAX_HOOK_STATUSES}
             </span>
           </div>
+          <p className="mb-2 text-[11px] leading-snug text-fg-muted">
+            <code className="font-mono text-[10px]">hook_status[]</code> — коды статусов кассы, при
+            которых она дернёт наш webhook (≤ {MAX_HOOK_STATUSES}). Пусто = webhook не придёт.
+            Перевод кода в наш статус — таблица ниже.
+          </p>
           <div className="mb-2 flex flex-wrap gap-1.5">
             {draft.hookStatuses.length === 0 ? (
-              <span className="text-[12px] text-fg-muted">Пусто</span>
+              <span className="text-[12px] text-fg-muted">Пусто — webhook не придёт</span>
             ) : (
               draft.hookStatuses.map((code) => (
                 <Badge key={code} className="gap-1 pr-1">
@@ -386,10 +539,16 @@ export function FrontpadPanel({ enabled }: Props) {
             <Input
               value={statusInput}
               onChange={(e) => setStatusInput(e.target.value)}
-              placeholder="Код"
+              placeholder="Код или несколько через запятую"
               inputMode="numeric"
               disabled={busy || draft.hookStatuses.length >= MAX_HOOK_STATUSES}
               className="h-9"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  addHookStatus()
+                }
+              }}
             />
             <Button
               type="button"
@@ -405,11 +564,21 @@ export function FrontpadPanel({ enabled }: Props) {
       </div>
 
       <div className="rounded-[var(--r-md)] border border-line p-4">
-        <h3 className="mb-3 text-[13px] font-extrabold text-fg">Маппинг статусов кассы</h3>
+        <h3 className="mb-1 text-[13px] font-extrabold text-fg">Маппинг статусов кассы</h3>
+        <p className="mb-3 text-[11px] leading-snug text-fg-muted">
+          Код статуса из webhook → наш статус заказа. Дефолт: 1→готовится, 3→в доставке, 5→выполнен,
+          9→отменён.
+        </p>
         <ul className="mb-3 divide-y divide-line">
           {Object.entries(draft.statusMap).map(([code, status]) => (
             <li key={code} className="flex items-center gap-2 py-2">
-              <span className="w-12 text-[13px] font-extrabold tabular-nums text-fg">{code}</span>
+              <span
+                className={`w-12 text-[13px] font-extrabold tabular-nums ${
+                  DIGITS.test(code) ? "text-fg" : "text-red"
+                }`}
+              >
+                {code}
+              </span>
               <Select
                 value={status}
                 onChange={(e) =>
@@ -472,12 +641,18 @@ export function FrontpadPanel({ enabled }: Props) {
       </div>
 
       <div className="rounded-[var(--r-md)] border border-line p-4">
-        <h3 className="mb-3 text-[13px] font-extrabold text-fg">Синхронизация</h3>
+        <h3 className="mb-1 text-[13px] font-extrabold text-fg">Синхронизация</h3>
+        <p className="mb-3 text-[11px] leading-snug text-fg-muted">
+          «Товары» — <code className="font-mono text-[10px]">get_products</code> →{" "}
+          <code className="font-mono text-[10px]">frontpad_stock</code>, жёсткий гейт{" "}
+          <strong>1 раз в час</strong> (иначе касса банит IP). «Стоп-лист» —{" "}
+          <code className="font-mono text-[10px]">get_stops</code>, авто раз в 15 мин.
+        </p>
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant="soft"
-            disabled={busy || productsBusy || !draft.syncEnabled}
+            disabled={busy || productsBusy || !draft.syncEnabled || !productsGate.allowed}
             onClick={() => void sync("sync_products")}
           >
             Обновить товары кассы
@@ -491,13 +666,25 @@ export function FrontpadPanel({ enabled }: Props) {
             Обновить стоп-лист
           </Button>
         </div>
-        <p className="mt-2 text-[11px] text-fg-muted">
-          Товары:{" "}
-          {draft.lastProductsSyncAt ? formatDateTime(draft.lastProductsSyncAt) : "ещё не было"}
-          {" · "}
-          Стоп-лист:{" "}
-          {draft.lastStopsSyncAt ? formatDateTime(draft.lastStopsSyncAt) : "ещё не было"}
-        </p>
+        <ul className="mt-2 space-y-1 text-[11px] text-fg-muted">
+          <li>
+            Товары:{" "}
+            {draft.lastProductsSyncAt ? formatDateTime(draft.lastProductsSyncAt) : "ещё не было"}
+            {productsGate.allowed ? (
+              <span className="font-bold text-fg"> · гейт свободен</span>
+            ) : (
+              <span className="font-bold text-brand">
+                {" "}
+                · доступно через {formatRemaining(productsGate.remainingMs)}
+              </span>
+            )}
+          </li>
+          <li>
+            Стоп-лист:{" "}
+            {draft.lastStopsSyncAt ? formatDateTime(draft.lastStopsSyncAt) : "ещё не было"}
+            <span className="text-fg-faint"> · авто каждые 15 мин</span>
+          </li>
+        </ul>
         {(productsBusy || stopsBusy) && (
           <p className="mt-1 text-[11px] font-bold text-brand">Синхронизация в очереди…</p>
         )}

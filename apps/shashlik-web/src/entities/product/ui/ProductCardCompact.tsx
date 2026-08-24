@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
@@ -7,6 +7,7 @@ import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
 import { isProductStopped, useStoppedArticles } from "@/entities/product/lib/stock"
+import { withBackground } from "@/shared/lib/background-location"
 import { Badge } from "@/shared/ui/badge"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
@@ -20,6 +21,8 @@ type Props = {
 
 /** Компактная карточка для мобильных горизонтальных подборок. */
 export function ProductCardCompact({ product, onAdd, className }: Props) {
+  const location = useLocation()
+  const productState = withBackground(location)
   const { data: badges = [] } = useBadges()
   const { data: stopped = new Set<string>() } = useStoppedArticles()
   const label = badgeLabel(product.badge, badges)
@@ -38,6 +41,7 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
     >
       <Link
         to={`/product/${product.slug}`}
+        state={productState}
         className="relative block bg-surface-3"
         style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
@@ -57,6 +61,7 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
       <div className="flex flex-1 flex-col gap-1 p-2.5">
         <Link
           to={`/product/${product.slug}`}
+          state={productState}
           className="text-[13.5px] leading-tight font-extrabold text-fg"
         >
           {product.name}

@@ -1,6 +1,12 @@
 export type DeliveryMode = "pickup" | "delivery"
 
-export type OrderStatus = "new" | "cooking" | "delivering" | "done" | "canceled"
+export type OrderStatus =
+  | "pending"
+  | "new"
+  | "cooking"
+  | "delivering"
+  | "done"
+  | "canceled"
 
 export type OrderStatusSource = "client" | "hook" | "manual"
 
@@ -42,6 +48,7 @@ export type Order = {
   customer: string
   phone: string
   customerId?: string | null
+  userId?: string | null
   mode: DeliveryMode
   address?: string
   addressParts?: OrderAddressParts | null
@@ -69,6 +76,7 @@ export function isFrontpadWarning(order: Pick<Order, "frontpadOrderId" | "frontp
 }
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: "Ожидает подтверждения",
   new: "Новый",
   cooking: "Готовится",
   delivering: "В доставке",
@@ -84,11 +92,17 @@ export const ORDER_STATUS_SOURCE_LABEL: Record<OrderStatusSource, string> = {
 
 /** Допустимые переходы статуса из текущего. */
 export const ORDER_STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
+  pending: ["new", "canceled"],
   new: ["cooking", "canceled"],
   cooking: ["delivering", "done", "canceled"],
   delivering: ["done", "canceled"],
   done: [],
   canceled: [],
+}
+
+/** Заказ ещё в работе (для «Текущий заказ» и гостевого трекинга). */
+export function isActiveOrderStatus(status: OrderStatus): boolean {
+  return status !== "done" && status !== "canceled"
 }
 
 export type Review = {
@@ -105,7 +119,13 @@ export type Review = {
 
 export type FrontpadJobStatus = "queued" | "running" | "done" | "error"
 
-export type FrontpadJobKind = "sync_products" | "sync_stops" | "resend_order" | "check_client"
+export type FrontpadJobKind =
+  | "sync_products"
+  | "sync_stops"
+  | "send_order"
+  | "resend_order"
+  | "check_client"
+  | "apply_prices"
 
 export type FrontpadJob = {
   id: string
@@ -113,5 +133,6 @@ export type FrontpadJob = {
   payload?: { orderId?: string } | null
   status: FrontpadJobStatus
   error?: string
+  result?: unknown
   createdAt: string
 }

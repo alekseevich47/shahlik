@@ -41,7 +41,7 @@ export function FloatingActions({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       {showAccount ? (
-        <NavLink to="/admin" aria-label="Войти" className={cn(ICON_BTN, skin)}>
+        <NavLink to="/profile" aria-label="Профиль" className={cn(ICON_BTN, skin)}>
           <User size={18} strokeWidth={2.4} />
         </NavLink>
       ) : null}

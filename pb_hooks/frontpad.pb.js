@@ -14,6 +14,32 @@ function frontpadCronEnabled() {
   return $os.getenv("FRONTPAD_CRON") !== "0"
 }
 
+// Шаг 1: на старте создаём singleton-записи, чтобы фронт не ловил 404.
+// Важно: `e.next()` первым, иначе системная инициализация прервётся.
+onBootstrap(function (e) {
+  e.next()
+
+  var config = require(__hooks + "/lib/config.js")
+  var singletonId = config.SETTINGS_ID
+
+  function ensureSingleton(collectionName) {
+    try {
+      $app.findRecordById(collectionName, singletonId)
+      return
+    } catch (err) {
+      // singleton может отсутствовать (dev/переезд базы)
+    }
+
+    var collection = $app.findCollectionByNameOrId(collectionName)
+    var record = new Record(collection)
+    record.id = singletonId
+    $app.save(record)
+  }
+
+  ensureSingleton("settings")
+  ensureSingleton("frontpad_settings")
+})
+
 onRecordCreateRequest(function (e) {
   var order = require(__hooks + "/lib/order.js")
   order.validateAndRecalculateOrder(e)
@@ -111,13 +137,13 @@ if (frontpadCronEnabled()) {
   })
 }
 
-// Джобы переотправки обрабатываются сразу при создании, чтобы кнопка в админке
+// Джобы из админки исполняются сразу при создании, чтобы кнопка
 // работала независимо от cron (в т.ч. при FRONTPAD_CRON=0).
 onRecordAfterCreateSuccess(function (e) {
   var logger = $app.logger()
   var kind = e.record.getString("kind")
 
-  if (kind === "resend_order" || kind === "send_order") {
+  if (kind === "resend_order" || kind === "send_order" || kind === "apply_prices") {
     try {
       var jobs = require(__hooks + "/lib/jobs.js")
       jobs.runJobById(e.record.id)

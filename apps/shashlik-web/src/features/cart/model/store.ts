@@ -44,6 +44,7 @@ type CartState = {
   setMode: (mode: DeliveryMode) => void
   setAddress: (address: string) => void
   setAddressPart: (key: keyof OrderAddressParts, value: string) => void
+  setAddressParts: (parts: OrderAddressParts) => void
   setComment: (comment: string) => void
   setCustomer: (customer: string) => void
   setPhone: (phone: string) => void
@@ -133,6 +134,7 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           addressParts: { ...state.addressParts, [key]: value },
         })),
+      setAddressParts: (parts) => set({ addressParts: { ...EMPTY_ADDRESS_PARTS, ...parts } }),
       setComment: (comment) => set({ comment }),
       setCustomer: (customer) => set({ customer }),
       setPhone: (phone) => set({ phone }),

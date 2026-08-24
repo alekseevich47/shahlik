@@ -1,11 +1,18 @@
 import { useEffect } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigationType } from "react-router-dom"
 
-/** Сброс скролла при смене маршрута. */
+import { backgroundOf } from "@/shared/lib/background-location"
+
+/** Сброс скролла при смене маршрута. Модалка PDP и POP не трогают позицию. */
 export function ScrollToTop() {
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const navigationType = useNavigationType()
+
   useEffect(() => {
+    if (backgroundOf(location)) return
+    if (navigationType === "POP") return
     window.scrollTo({ top: 0 })
-  }, [pathname])
+  }, [location, navigationType])
+
   return null
 }

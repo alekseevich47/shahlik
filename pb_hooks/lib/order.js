@@ -554,7 +554,26 @@ function validateAndRecalculateOrder(e) {
     )
   }
 
+  var userId = ""
+  try {
+    if (e.auth && e.auth.collection().name === "app_users") {
+      userId = e.auth.id
+    }
+  } catch (err) {
+    userId = ""
+  }
+  // Клиентскому userId не верим — как суммам: только auth app_users.
+  record.set("userId", userId)
+
   var phone = trimStr(record.getString("phone"), 50)
+  if (!phone && userId) {
+    try {
+      var profile = $app.findRecordById("app_users", userId)
+      phone = trimStr(profile.getString("phone"), 50)
+    } catch (err) {
+      phone = ""
+    }
+  }
   if (!phone) {
     throw new BadRequestError("Укажите телефон")
   }
@@ -820,4 +839,7 @@ module.exports = {
   buildNewOrderPayload: buildNewOrderPayload,
   checkPromo: checkPromo,
   readStoredLines: readStoredLines,
+  getField: getField,
+  toArrayLike: toArrayLike,
+  articleFor: articleFor,
 }

@@ -1,3 +1,4 @@
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { ArrowLeft, Drumstick, Ham, Heart, Leaf, Star, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
@@ -33,9 +34,14 @@ import { AddonRow } from "./ui/AddonRow"
 import { FreshStamp } from "./ui/FreshStamp"
 import { NutritionHint } from "./ui/NutritionHint"
 
-export default function ProductPage() {
+type ProductViewProps = {
+  onClose: () => void
+  className?: string
+}
+
+/** Содержимое PDP без page-shell и без Navigate — для страницы и модалки. */
+export function ProductView({ onClose, className }: ProductViewProps) {
   const { slug = "" } = useParams()
-  const navigate = useNavigate()
   useFrontpadStockRealtime()
   const { data: product, isPending } = useProductBySlug(slug)
   const { data: stopped = new Set<string>() } = useStoppedArticles()
@@ -70,15 +76,14 @@ export default function ProductPage() {
     return (base + addonsSum) * quantity
   }, [product, resolvedSizeId, resolvedVariantId, picked, quantity, sauces, extras])
 
-  if (!slug || (!isPending && !product)) return <Navigate to="/" replace />
-  if (!product) return <div className="min-h-dvh bg-canvas" />
+  if (!slug || (!isPending && !product)) return null
+  if (!product) return <div className={cn("bg-canvas", className)} />
 
   const size = findSize(product, resolvedSizeId)
   const variant = findVariant(product, resolvedVariantId)
   const skuStopped = isSkuStopped(product, size.id, variant?.id, stopped)
   const visibleSauces = sauces.filter((addon) => !isAddonStopped(addon, stopped))
   const visibleExtras = extras.filter((addon) => !isAddonStopped(addon, stopped))
-  const goHome = () => navigate("/")
 
   const submit = () => {
     add({
@@ -91,18 +96,14 @@ export default function ProductPage() {
         .map(([addonId, qty]) => ({ addonId, quantity: qty })),
     })
     toast.success(`«${product.name}» в заказе`)
-    goHome()
+    onClose()
   }
 
   return (
-    <div className="min-h-dvh bg-canvas lg:p-5">
+    <div className={cn("bg-canvas", className)}>
       <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,620px)] lg:items-start xl:grid-cols-[minmax(0,1fr)_700px]">
-        {/* Левая колонка: фото фиксированного формата + оверлеи */}
         <section className="relative overflow-hidden bg-surface-3 lg:rounded-[var(--r-2xl)]">
-          <div
-            className="relative w-full"
-            style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
-          >
+          <div className="relative w-full" style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}>
             <img
               src={product.image}
               alt={product.name}
@@ -112,7 +113,7 @@ export default function ProductPage() {
 
             <button
               type="button"
-              onClick={goHome}
+              onClick={onClose}
               className="absolute top-4 left-4 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
             >
               <ArrowLeft size={16} strokeWidth={2.6} />
@@ -154,7 +155,6 @@ export default function ProductPage() {
           </div>
         </section>
 
-        {/* Правая половина: выбор и добавление в заказ */}
         <section className="flex flex-col gap-5 border border-line bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6 lg:rounded-[var(--r-2xl)]">
           <header className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
@@ -178,7 +178,7 @@ export default function ProductPage() {
 
             <button
               type="button"
-              onClick={goHome}
+              onClick={onClose}
               aria-label="Закрыть карточку"
               className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-[var(--r-md)] border border-line text-fg-faint transition-colors duration-200 hover:text-red"
             >
@@ -294,6 +294,68 @@ export default function ProductPage() {
         </section>
       </div>
     </div>
+  )
+}
+
+export default function ProductPage() {
+  const { slug = "" } = useParams()
+  const navigate = useNavigate()
+  const { data: product, isPending } = useProductBySlug(slug)
+
+  if (!slug || (!isPending && !product)) return <Navigate to="/" replace />
+
+  return (
+    <div className="min-h-dvh bg-canvas lg:p-5">
+      <ProductView onClose={() => navigate("/")} />
+    </div>
+  )
+}
+
+/** PDP поверх витрины: Portal в body, закрытие — history.back. */
+export function ProductModal() {
+  const { slug = "" } = useParams()
+  const navigate = useNavigate()
+  const { data: product, isPending } = useProductBySlug(slug)
+
+  const close = () => navigate(-1)
+
+  if (!slug || (!isPending && !product)) {
+    return <Navigate to="/" replace />
+  }
+
+  return (
+    <DialogPrimitive.Root
+      open
+      onOpenChange={(next) => {
+        if (!next) close()
+      }}
+    >
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay
+          className={cn(
+            "fixed inset-0 z-300 bg-black/45",
+            "data-[state=open]:animate-in data-[state=open]:fade-in-0",
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+          )}
+        />
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          className={cn(
+            "fixed top-1/2 left-1/2 z-301 flex w-[min(1200px,calc(100vw-1rem))] max-h-[94vh] -translate-x-1/2 -translate-y-1/2 flex-col",
+            "overflow-y-auto rounded-[var(--r-2xl)] border border-line bg-canvas shadow-[var(--shadow-panel)] outline-none",
+            "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+            "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+            "p-0 sm:p-4 lg:p-5",
+          )}
+        >
+          <DialogPrimitive.Title className="sr-only">
+            {product?.name ?? "Товар"}
+          </DialogPrimitive.Title>
+          <ProductView onClose={close} />
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }
 

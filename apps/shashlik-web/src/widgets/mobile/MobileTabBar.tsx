@@ -1,5 +1,6 @@
 import { Heart, Home, ShoppingCart, User, UtensilsCrossed } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { useCartTotals } from "@/features/cart/model/selectors"
 import { cn } from "@/shared/lib/cn"
@@ -20,6 +21,7 @@ type Props = {
 }
 
 export function MobileTabBar({ value, onChange }: Props) {
+  const navigate = useNavigate()
   const { count } = useCartTotals()
 
   return (
@@ -31,7 +33,13 @@ export function MobileTabBar({ value, onChange }: Props) {
           <button
             key={tab.id}
             type="button"
-            onClick={() => onChange(tab.id)}
+            onClick={() => {
+              if (tab.id === "profile") {
+                navigate("/profile")
+                return
+              }
+              onChange(tab.id)
+            }}
             aria-current={active ? "page" : undefined}
             className={cn(
               "relative flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 transition-colors",

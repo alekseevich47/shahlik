@@ -9,6 +9,7 @@ import { formatPrice } from "@/shared/lib/format"
 export function CartLineRow({ line }: { line: ResolvedLine }) {
   const setQuantity = useCartStore((s) => s.setQuantity)
   const remove = useCartStore((s) => s.remove)
+  const bumpAddon = useCartStore((s) => s.bumpAddon)
   const { data: stopped = new Set<string>() } = useStoppedArticles()
 
   const title = [line.product.name, line.variantLabel, line.sizeLabel]
@@ -60,13 +61,30 @@ export function CartLineRow({ line }: { line: ResolvedLine }) {
               key={addon.id}
               className="flex items-center justify-between gap-2 text-[11px] text-fg-muted"
             >
-              <span className="truncate">
-                + {addon.name}
-                {quantity > 1 ? ` ×${quantity}` : ""}
-              </span>
-              <span className="shrink-0 font-bold tabular-nums">
-                {formatPrice(addon.price * quantity)}
-              </span>
+              <span className="truncate">+ {addon.name}</span>
+              <div className="flex items-center gap-2">
+                <Stepper
+                  size="sm"
+                  value={quantity}
+                  min={1}
+                  max={99}
+                  onChange={(next) =>
+                    bumpAddon(addon.id, next - quantity, line.line.id)
+                  }
+                  ariaLabel={`Количество добавки: ${addon.name}`}
+                />
+                <span className="shrink-0 font-bold tabular-nums">
+                  {formatPrice(addon.price * quantity)}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Убрать добавку ${addon.name}`}
+                  onClick={() => bumpAddon(addon.id, -quantity, line.line.id)}
+                  className="grid size-5 shrink-0 cursor-pointer place-items-center rounded-[var(--r-xs)] text-fg-faint transition-colors hover:bg-surface-3 hover:text-red"
+                >
+                  <X size={12} strokeWidth={2.6} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

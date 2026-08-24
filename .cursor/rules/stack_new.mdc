@@ -30,7 +30,7 @@ alwaysApply: false
 | UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
 | Роутер | `react-router-dom` v7. Home/Product — eager (анимация карточки), Admin — lazy. `BrowserRouter` |
 | Анимации маршрутов | `motion` v13 через `LazyMotion` + `m` из `motion/react-m`. Движок фич — асинхронный чанк (`app/motion-features.ts`). Режим `strict`: компонент `motion.*` использовать **нельзя**, только `m.*` |
-| Состояние | Zustand + persist **только корзина** (`shashlik:cart:v1`). Тема — React context + `localStorage` (`shashlik:theme`) |
+| Состояние | Zustand + persist **только корзина** (`shashlik:cart:v2`). Тема — React context + `localStorage` (`shashlik:theme`) |
 | Данные | PocketBase JS SDK (`shared/api/pb.ts`) + `@tanstack/react-query` (`shared/api/query-client.ts`). Прод — same-origin (`/api/` через Nginx), dev — `VITE_PB_URL` |
 | Тосты | `sonner` |
 | Шрифт | Self-hosted **Nunito** 400–800 (`src/assets/fonts/nunito` + `src/styles/fonts.css`). Google Fonts / CDN **запрещены** |
@@ -181,7 +181,7 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 - Строка: `{ id, productId, variantId?, sizeId, quantity, addons[] }`
 - Мерж: тот же product+variant+size **и обе стороны без добавок** → `quantity++`. С добавками — новая строка
 - `bumpAddon(addonId, delta)` — к **последней** товарной строке (или к явному `lineId`), не отдельной позицией
-- Persist: `localStorage` ключ `shashlik:cart:v1`
+- Persist: `localStorage` ключ `shashlik:cart:v2`. Меняешь форму `CartItem` — поднимай версию ключа, иначе у пользователей падает гидратация стора
 - Колонка витрины ≥1280: `useCartPanelStore` (`features/cart/model/panel.ts`), дефолт открыта, без persist. Пока кнопка открытия активна (`open`) — панель sticky на всю высоту вьюпорта и едет со скроллом; открытие не с верха страницы — тот же выезд справа налево
 
 Итоги — `useCartTotals()`:
@@ -252,13 +252,19 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 
 Действия с кассой из админки — **только запись в `frontpad_jobs`**; сам Frontpad зовёт `pb_hooks`. Статус в кассе по API не меняется: наш `status` — зеркало, ручная правка помечается `statusSource="manual"`.
 
-Экономика заказа, контакты и промо-текст — коллекция `settings` (`entities/settings/api.ts`); `ORDER_RULES` / `SITE` в `shared/config/site.ts` остаются fallback-константами. Купоны — коллекция `coupons`, наружу не читается: проверка кода через хук-роут `POST /api/promo/check`.
+Экономика заказа, контакты и промо-текст — коллекция `settings` (`entities/settings/api.ts`); `ORDER_RULES` / `SITE` в `shared/config/site.ts` остаются fallback-константами. `settings` и `frontpad_settings` — **синглтоны с id `main`** и `createRule: null`: из клиента запись не создать, а `fetchSettings` при её отсутствии молча отдаёт `settingsFallback()`. Поэтому форма выглядит живой, а «Сохранить» отвечает **404** — PB так же отвечает и когда не проходит `updateRule` (`role = "admin"`, менеджер получит 404, а не 403). Обе записи заводит `onBootstrap` в `pb_hooks`; наличие проверять в `/_/`. Купоны — коллекция `coupons`, наружу не читается: проверка кода через хук-роут `POST /api/promo/check`.
 
 Ссылка «На сайт» / логотип → `/`.
 
 ## Касса (Frontpad)
 
-План интеграции — **`Tasks/TASK_inter.md`** (шаги, зона БД, карта файлов). Спека API — `.cursor/rules/API.mdc`.
+План интеграции — **`Tasks/TASK_inter.md`** (шаги, зона БД, карта файлов). Клиентская часть поверх интеграции (профиль, трекинг заказа, новое оформление, цены) — **`Tasks/TASK_order.md`**. Спека API — `.cursor/rules/API.mdc`.
+
+**Чего в API кассы нет** (не изобретать обходных путей):
+
+- **Получить заказ по id нельзя.** Наружу Frontpad отдаёт только вебхук `change_status`, поэтому правка состава/сумм в кассе до сайта не доезжает. `orders.lines` — снапшот, зафиксированный сервером при создании; пользователю показываем его + живой статус.
+- **Записать цену в справочник кассы нельзя.** `product_price[]` в `new_order` действует только внутри одного заказа и только если в кассе разрешено изменение цены (тумблер `sendPrices`). Синхронизация цен возможна лишь односторонняя: касса → сайт, через `get_products` → `frontpad_stock.price`.
+- **Начислением бонусов через API не управлять.** Заказ, принятый `new_order`, для кассы уже существует, бонус начисляется по её настройке. Отложить начисление можно только тем, что мы позже отправляем заказ (`sendMode`), либо настройкой начисления в самой кассе.
 
 Мост к кассе — только `pb_hooks` (каталог `pb_hooks/` в корне репозитория, деплой в `/opt/pocketbase/pb_hooks`). Ни витрина, ни админка Frontpad не зовут и секрета не видят.
 
@@ -336,6 +342,23 @@ Env процесса `pocketbase`:
 | slugFromName | `shared/lib/slug.ts` — транслит для slug товара/бейджа |
 | AdminSidebar | `pages/admin/ui/AdminSidebar.tsx` — меню + счётчики + layout pill |
 | ADMIN_NAV | `pages/admin/model.ts` — порядок пунктов, `AdminSectionId`, минимальная роль |
+
+## Аккаунты и сессии
+
+Две независимые роли, две коллекции, **два экземпляра PocketBase-клиента**:
+
+| Кто | Коллекция | Клиент | Вход |
+|---|---|---|---|
+| Персонал | `users` (`role: admin \| manager`) | `shared/api/pb.ts` | email + пароль, гейт `/admin/*` |
+| Клиенты витрины | `app_users` | `shared/api/pb-client.ts` (свой `LocalAuthStore`) | OAuth2 `vk` / `yandex` |
+
+`pb.authStore` один на экземпляр: если пустить клиента и админа через один `pb`, вход клиента затрёт сессию админки. Клиентов в `users` не заводить — гейт `/admin/*` смотрит `role`, а OAuth2 создаёт запись в той коллекции, через которую авторизуется.
+
+Заказ можно оформить гостем по телефону; баллы, история и адреса — только после входа. Текущий заказ виден и гостю: `orders.viewRule` пустой (просмотр по id, id PB — 15 случайных символов), список заказов — по `userId`. `userId` в заказе ставит **хук**, из запроса он затирается.
+
+Публичный UI на `/admin` не ссылается: вход в админку — вводом адреса. Кнопка «Войти» на витрине ведёт в профиль.
+
+Шаги реализации — `Tasks/TASK_order.md`.
 
 ## Производительность
 
@@ -457,6 +480,10 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не менять глобальный webhook URL в настройках кассы: свой адрес передаём через `hook_url` в заказе.
 - Не доверять суммам, `number` и артикулам из клиентского запроса на создание заказа.
 - Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
+- Не держать сессию клиента и сессию персонала в одном экземпляре `pb` и не смешивать их в коллекции `users`.
+- Не доверять `userId` из клиентского запроса на создание заказа — его ставит хук из `e.auth`.
+- Не пытаться записать цену в справочник кассы и не показывать «состав из кассы»: ни того, ни другого API не отдаёт.
+- Не вешать `backdrop-filter` на полноэкранный оверлей модалки: размывать статичный фон через `filter` на витрине и гасить преломление `StickyBar` на это время.
 - Не включать `domMax` на витрине и не оставлять кнопок-заглушек (`toast("…заглушка")`) в админке.
 - Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.
 - Не вешать витрину на `loomixx.ru`: канон — `shashlik.loomixx.ru`.

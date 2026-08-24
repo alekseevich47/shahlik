@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { useProducts } from "@/entities/product/api"
 import { useFrontpadStockRealtime } from "@/entities/product/lib/stock"
 import { ALL_TAG, type TagFilterId } from "@/entities/tag/model"
 import { CartPanel } from "@/features/cart/ui/CartPanel"
+import { useCheckoutDialogStore } from "@/features/checkout/model/dialog"
+import { CheckoutDialog } from "@/features/checkout/ui/CheckoutDialog"
 import { SearchDialog } from "@/features/search/SearchDialog"
 import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
@@ -24,6 +26,12 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [tab, setTab] = useState<MobileTab>("home")
   const isDesktop = useIsDesktop()
+  const checkoutOpen = useCheckoutDialogStore((s) => s.open)
+  const setCheckoutOpen = useCheckoutDialogStore((s) => s.setOpen)
+
+  useEffect(() => {
+    if (checkoutOpen) setCartOpen(false)
+  }, [checkoutOpen])
 
   const items = useMemo(() => {
     return products.filter((p) => {
@@ -75,6 +83,7 @@ export default function HomePage() {
       {!isDesktop ? <MobileTabBar value={tab} onChange={handleTab} /> : null}
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
 
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
         <SheetContent side="right" className="p-0">

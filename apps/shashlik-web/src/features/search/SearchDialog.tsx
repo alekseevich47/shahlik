@@ -1,11 +1,12 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Search } from "lucide-react"
 import { useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import { useCategories } from "@/entities/category/api"
 import { minPrice } from "@/entities/product/lib"
 import { useProducts } from "@/entities/product/api"
+import { withBackground } from "@/shared/lib/background-location"
 import { formatPrice } from "@/shared/lib/format"
 
 type SearchDialogProps = {
@@ -16,6 +17,7 @@ type SearchDialogProps = {
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const [query, setQuery] = useState("")
   const navigate = useNavigate()
+  const location = useLocation()
   const { data: products = [] } = useProducts()
   const { data: categories = [] } = useCategories()
 
@@ -36,7 +38,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const openProduct = (slug: string) => {
     onOpenChange(false)
     setQuery("")
-    navigate(`/product/${slug}`)
+    navigate(`/product/${slug}`, { state: withBackground(location) })
   }
 
   return (

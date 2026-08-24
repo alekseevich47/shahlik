@@ -1,9 +1,11 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query"
 
+import { useAccount } from "@/entities/account/api"
 import { adminProductKeys, productKeys } from "@/entities/product/api"
 import { adminCountKeys } from "@/shared/api/counts"
 import { collectionMutations, pbErrorMessage } from "@/shared/api/crud"
 import { pb } from "@/shared/api/pb"
+import { pbClient } from "@/shared/api/pb-client"
 import { queryClient } from "@/shared/api/query-client"
 
 import type {
@@ -65,6 +67,7 @@ type OrderRecord = {
   customer: string
   phone: string
   customerId?: string | null
+  userId?: string | null
   mode: DeliveryMode
   address?: string
   addressParts?: OrderAddressParts | null
@@ -137,6 +140,7 @@ function mapOrder(record: OrderRecord): Order {
     customer: record.customer,
     phone: record.phone,
     customerId: record.customerId ?? null,
+    userId: record.userId ?? null,
     mode: record.mode,
     address: record.address,
     addressParts: record.addressParts ?? null,
@@ -224,8 +228,10 @@ function buildOrdersFilter(params: OrdersPageParams): string {
 
 export const orderKeys = {
   all: ["orders"] as const,
+  mine: ["orders", "mine"] as const,
   page: (params: OrdersPageParams) => ["orders", "page", params] as const,
   detail: (id: string) => ["orders", id] as const,
+  public: (id: string) => ["orders", "public", id] as const,
 }
 
 export const reviewKeys = {
@@ -291,6 +297,21 @@ export async function fetchOrderById(id: string): Promise<Order | null> {
   }
 }
 
+/** Публичный просмотр по id (viewRule пустой). Для трекинга гостя. */
+export async function fetchPublicOrder(id: string): Promise<Order | null> {
+  return fetchOrderById(id)
+}
+
+export async function fetchMyOrders(): Promise<Order[]> {
+  const userId = pbClient.authStore.record?.id
+  if (!userId || !pbClient.authStore.isValid) return []
+  const records = await pbClient.collection("orders").getFullList<OrderRecord>({
+    filter: pb.filter("userId = {:userId}", { userId }),
+    sort: "-created",
+  })
+  return records.map(mapOrder)
+}
+
 export async function fetchReviews(): Promise<Review[]> {
   const records = await pb.collection("reviews").getFullList<ReviewRecord>({
     filter: "published = true",
@@ -347,6 +368,23 @@ export function useOrder(id: string) {
   })
 }
 
+export function usePublicOrder(id: string) {
+  return useQuery({
+    queryKey: orderKeys.public(id),
+    queryFn: () => fetchPublicOrder(id),
+    enabled: Boolean(id),
+  })
+}
+
+export function useMyOrders(enabled = true) {
+  const account = useAccount()
+  return useQuery({
+    queryKey: [...orderKeys.mine, account?.id ?? ""],
+    queryFn: fetchMyOrders,
+    enabled: enabled && Boolean(account),
+  })
+}
+
 export function useReviews() {
   return useQuery({
     queryKey: reviewKeys.all,
@@ -378,7 +416,7 @@ export function useOrderJobs(enabled = true) {
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  const record = await pb.collection("orders").create<OrderRecord>({
+  const record = await pbClient.collection("orders").create<OrderRecord>({
     customer: input.customer,
     phone: input.phone,
     mode: input.mode,
@@ -403,6 +441,7 @@ export function useCreateOrder() {
     onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: orderKeys.all })
       queryClient.setQueryData(orderKeys.detail(order.id), order)
+      queryClient.setQueryData(orderKeys.public(order.id), order)
     },
   })
 }

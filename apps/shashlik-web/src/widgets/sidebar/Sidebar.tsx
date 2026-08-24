@@ -1,6 +1,7 @@
-import { Gift, LogIn } from "lucide-react"
+import { Gift, LogIn, User } from "lucide-react"
 import { NavLink, useNavigate } from "react-router-dom"
 
+import { useAccount, useProfileBonus } from "@/entities/account/api"
 import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
 import { useSettings } from "@/entities/settings/api"
@@ -25,6 +26,10 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
   const navigate = useNavigate()
   const { data: categories = [] } = useCategories()
   const { data: settings = settingsFallback() } = useSettings()
+  const account = useAccount()
+  const { data: bonus } = useProfileBonus(Boolean(account))
+  const displayName =
+    [account?.firstName, account?.lastName].filter(Boolean).join(" ") || account?.phone || "Профиль"
 
   return (
     <aside
@@ -89,13 +94,24 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
           </div>
 
           <NavLink
-            to="/admin"
+            to="/profile"
             className="flex items-center gap-2.5 rounded-[var(--r-md)] px-2.5 py-2 text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
           >
-            <LogIn size={17} strokeWidth={2.2} />
-            <span className="flex flex-col leading-tight">
-              <span className="text-[12.5px] font-bold">Войти</span>
-              <span className="text-[10px] text-fg-faint">для бонусов</span>
+            {account ? <User size={17} strokeWidth={2.2} /> : <LogIn size={17} strokeWidth={2.2} />}
+            <span className="flex min-w-0 flex-col leading-tight">
+              {account ? (
+                <>
+                  <span className="truncate text-[12.5px] font-bold">{displayName}</span>
+                  <span className="text-[10px] text-fg-faint">
+                    {bonus ? `${bonus.score} баллов` : "баллы…"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-[12.5px] font-bold">Войти</span>
+                  <span className="text-[10px] text-fg-faint">для бонусов</span>
+                </>
+              )}
             </span>
           </NavLink>
         </div>

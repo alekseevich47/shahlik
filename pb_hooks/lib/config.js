@@ -29,6 +29,7 @@
 /// @property {string|null} lastProductsSyncAt
 /// @property {string|null} lastStopsSyncAt
 /// @property {string|null} lastOrderSentAt
+/// @property {"site"|"frontpad"} priceSource
 
 var SETTINGS_ID = "main"
 
@@ -255,6 +256,17 @@ function readDateField(record, name) {
   return value ? value : null
 }
 
+function readPriceSource(record) {
+  try {
+    if (record.getString("priceSource") === "frontpad") {
+      return "frontpad"
+    }
+  } catch (err) {
+    // поле ещё не заведено в /_/
+  }
+  return "site"
+}
+
 /** @returns {SiteSettings} */
 function loadSettings() {
   try {
@@ -312,6 +324,7 @@ function loadFrontpadSettings() {
       lastProductsSyncAt: readDateField(record, "lastProductsSyncAt"),
       lastStopsSyncAt: readDateField(record, "lastStopsSyncAt"),
       lastOrderSentAt: readDateField(record, "lastOrderSentAt"),
+      priceSource: readPriceSource(record),
     }
   } catch (err) {
     return {
@@ -335,6 +348,7 @@ function loadFrontpadSettings() {
       lastProductsSyncAt: null,
       lastStopsSyncAt: null,
       lastOrderSentAt: null,
+      priceSource: "site",
     }
   }
 }

@@ -1,0 +1,39 @@
+export type OAuthProvider = "vk" | "yandex"
+
+export type SavedAddress = {
+  id: string
+  label: string
+  street: string
+  home: string
+  pod: string
+  et: string
+  apart: string
+  isDefault: boolean
+}
+
+export type ProfileBonus = {
+  score: number
+  sale: number
+  card: string
+}
+
+export type AppUser = {
+  id: string
+  email: string
+  phone: string
+  firstName: string
+  lastName: string
+  birthday: string | null
+  addresses: SavedAddress[]
+  customerId: string | null
+  blocked: boolean
+}
+
+export type UpdateAccountInput = {
+  firstName?: string
+  lastName?: string
+  phone?: string
+  birthday?: string | null
+}
+
+export type NewSavedAddress = Omit<SavedAddress, "id">

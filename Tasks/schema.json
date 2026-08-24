@@ -1024,11 +1024,245 @@
     ]
   },
   {
+    "id": "pbc_shahlik_app_users",
+    "name": "app_users",
+    "type": "auth",
+    "system": false,
+    "listRule": "id = @request.auth.id",
+    "viewRule": "id = @request.auth.id",
+    "createRule": "",
+    "updateRule": "id = @request.auth.id",
+    "deleteRule": null,
+    "authRule": "",
+    "manageRule": null,
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_app_users_tokenKey` ON `app_users` (`tokenKey`)",
+      "CREATE UNIQUE INDEX `idx_app_users_email` ON `app_users` (`email`) WHERE `email` != ''",
+      "CREATE UNIQUE INDEX `idx_app_users_phone` ON `app_users` (`phone`) WHERE `phone` != ''"
+    ],
+    "passwordAuth": {
+      "enabled": false,
+      "identityFields": ["email"]
+    },
+    "oauth2": {
+      "enabled": true,
+      "mappedFields": {
+        "id": "",
+        "name": "firstName",
+        "username": "",
+        "avatarURL": ""
+      },
+      "providers": []
+    },
+    "mfa": {
+      "enabled": false,
+      "duration": 1800,
+      "rule": ""
+    },
+    "otp": {
+      "enabled": false,
+      "duration": 180,
+      "length": 8
+    },
+    "authToken": {
+      "duration": 604800
+    },
+    "passwordResetToken": {
+      "duration": 1800
+    },
+    "emailChangeToken": {
+      "duration": 1800
+    },
+    "verificationToken": {
+      "duration": 259200
+    },
+    "fileToken": {
+      "duration": 180
+    },
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "cost": 0,
+        "hidden": true,
+        "id": "password_app_users",
+        "max": 0,
+        "min": 8,
+        "name": "password",
+        "pattern": "",
+        "presentable": false,
+        "required": true,
+        "system": true,
+        "type": "password"
+      },
+      {
+        "autogeneratePattern": "[a-zA-Z0-9]{50}",
+        "hidden": true,
+        "id": "text_app_users_tokenKey",
+        "max": 60,
+        "min": 30,
+        "name": "tokenKey",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "exceptDomains": null,
+        "hidden": false,
+        "id": "email_app_users",
+        "name": "email",
+        "onlyDomains": null,
+        "presentable": false,
+        "required": false,
+        "system": true,
+        "type": "email"
+      },
+      {
+        "hidden": false,
+        "id": "bool_app_users_emailVisibility",
+        "name": "emailVisibility",
+        "presentable": false,
+        "required": false,
+        "system": true,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
+        "id": "bool_app_users_verified",
+        "name": "verified",
+        "presentable": false,
+        "required": false,
+        "system": true,
+        "type": "bool"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_app_users_phone",
+        "max": 20,
+        "min": 0,
+        "name": "phone",
+        "pattern": "^(\\+7\\d{10})?$",
+        "presentable": true,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_app_users_firstName",
+        "max": 50,
+        "min": 0,
+        "name": "firstName",
+        "pattern": "",
+        "presentable": true,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_app_users_lastName",
+        "max": 50,
+        "min": 0,
+        "name": "lastName",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "date_app_users_birthday",
+        "max": "",
+        "min": "",
+        "name": "birthday",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "date"
+      },
+      {
+        "hidden": false,
+        "id": "json_app_users_addresses",
+        "maxSize": 0,
+        "name": "addresses",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "cascadeDelete": false,
+        "collectionId": "pbc_shahlik_customers",
+        "hidden": false,
+        "id": "rel_app_users_customer",
+        "maxSelect": 1,
+        "minSelect": 0,
+        "name": "customerId",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "relation"
+      },
+      {
+        "hidden": false,
+        "id": "bool_app_users_blocked",
+        "name": "blocked",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      }
+    ]
+  },
+  {
     "id": "pbc_shahlik_orders",
     "name": "orders",
     "type": "base",
     "system": false,
-    "listRule": "@request.auth.role = \"admin\" || @request.auth.role = \"manager\"",
+    "listRule": "@request.auth.collectionName = \"app_users\" && userId = @request.auth.id || @request.auth.role = \"admin\" || @request.auth.role = \"manager\"",
     "viewRule": "",
     "createRule": "",
     "updateRule": "@request.auth.role = \"admin\" || @request.auth.role = \"manager\"",
@@ -1037,7 +1271,8 @@
       "CREATE INDEX `idx_orders_number` ON `orders` (`number`)",
       "CREATE INDEX `idx_orders_status` ON `orders` (`status`)",
       "CREATE INDEX `idx_orders_frontpad` ON `orders` (`frontpadOrderId`)",
-      "CREATE INDEX `idx_orders_created` ON `orders` (`created`)"
+      "CREATE INDEX `idx_orders_created` ON `orders` (`created`)",
+      "CREATE INDEX `idx_orders_userId` ON `orders` (`userId`)"
     ],
     "fields": [
       {
@@ -1134,6 +1369,7 @@
         "system": false,
         "type": "select",
         "values": [
+          "pending",
           "new",
           "cooking",
           "delivering",
@@ -1402,6 +1638,34 @@
         "required": false,
         "system": false,
         "type": "date"
+      },
+      {
+        "cascadeDelete": false,
+        "collectionId": "pbc_shahlik_app_users",
+        "hidden": false,
+        "id": "rel_order_user",
+        "maxSelect": 1,
+        "minSelect": 0,
+        "name": "userId",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "relation"
+      },
+      {
+        "hidden": false,
+        "id": "sel_order_payment_status",
+        "maxSelect": 1,
+        "name": "paymentStatus",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "select",
+        "values": [
+          "unpaid",
+          "paid",
+          "refunded"
+        ]
       },
       {
         "hidden": false,
@@ -2249,6 +2513,43 @@
       },
       {
         "hidden": false,
+        "id": "sel_fps_price_source",
+        "maxSelect": 1,
+        "name": "priceSource",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "select",
+        "values": [
+          "site",
+          "frontpad"
+        ]
+      },
+      {
+        "hidden": false,
+        "id": "sel_fps_send_mode",
+        "maxSelect": 1,
+        "name": "sendMode",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "select",
+        "values": [
+          "immediate",
+          "on_confirm"
+        ]
+      },
+      {
+        "hidden": false,
+        "id": "bool_fps_client_lookup",
+        "name": "clientLookupEnabled",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
         "id": "autodate2990389176",
         "name": "created",
         "onCreate": true,
@@ -2419,7 +2720,8 @@
           "sync_stops",
           "send_order",
           "resend_order",
-          "check_client"
+          "check_client",
+          "apply_prices"
         ]
       },
       {

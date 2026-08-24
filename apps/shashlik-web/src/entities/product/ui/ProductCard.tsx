@@ -1,5 +1,5 @@
 import { Star } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
@@ -7,6 +7,7 @@ import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type { Product } from "@/entities/product/model"
 import { minPrice } from "@/entities/product/lib"
 import { isProductStopped, useStoppedArticles } from "@/entities/product/lib/stock"
+import { withBackground } from "@/shared/lib/background-location"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { scoreColor } from "@/shared/ui/rating"
@@ -20,6 +21,8 @@ type ProductCardProps = {
 }
 
 export function ProductCard({ product, onAdd, className }: ProductCardProps) {
+  const location = useLocation()
+  const productState = withBackground(location)
   const { data: badges = [] } = useBadges()
   const { data: stopped = new Set<string>() } = useStoppedArticles()
   const label = badgeLabel(product.badge, badges)
@@ -37,6 +40,7 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
     >
       <Link
         to={`/product/${product.slug}`}
+        state={productState}
         className="relative block overflow-hidden bg-surface-3"
         style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
@@ -56,6 +60,7 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
       <div className="flex flex-1 flex-col gap-2.5 p-3.5">
         <Link
           to={`/product/${product.slug}`}
+          state={productState}
           className="line-clamp-2 min-h-[2lh] text-[17px] leading-tight font-extrabold tracking-[-0.01em] text-fg transition-colors hover:text-brand"
         >
           {product.name}

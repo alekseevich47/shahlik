@@ -1,6 +1,6 @@
 import PocketBase from "pocketbase"
 
-function resolvePbBaseUrl(): string {
+export function resolvePbBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_PB_URL?.trim()
   if (fromEnv) return fromEnv.replace(/\/$/, "")
   // Прод: same-origin через Nginx `/api/` → PB. SDK сам добавляет `/api/` к base —
@@ -9,5 +9,5 @@ function resolvePbBaseUrl(): string {
   return ""
 }
 
-/** Прод: same-origin. Dev: `VITE_PB_URL` в `.env.local`. */
+/** Сессия персонала (`users`). Прод: same-origin. Dev: `VITE_PB_URL` в `.env.local`. */
 export const pb = new PocketBase(resolvePbBaseUrl())

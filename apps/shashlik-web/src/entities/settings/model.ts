@@ -5,6 +5,8 @@ export const SETTINGS_ID = "main"
 
 export const MAX_HOOK_STATUSES = 5
 export const MAX_ORDER_TAGS = 10
+/** Лимит Frontpad на get_products — UI гейта и pb_hooks/lib/sync.js должны совпадать. */
+export const PRODUCTS_SYNC_INTERVAL_MS = 60 * 60 * 1000
 
 export type Settings = {
   id: string
@@ -23,6 +25,8 @@ export type Settings = {
   acceptingOrders: boolean
   stopMessage: string
 }
+
+export type PriceSource = "site" | "frontpad"
 
 export type FrontpadSettings = {
   id: string
@@ -55,6 +59,8 @@ export type FrontpadSettings = {
   syncEnabled: boolean
   lastProductsSyncAt: string | null
   lastStopsSyncAt: string | null
+  /** Откуда брать справочник цен: сайт или касса. Запись в products — только `frontpad`. */
+  priceSource: PriceSource
 }
 
 export type FrontpadStockItem = {
@@ -116,5 +122,6 @@ export function frontpadSettingsFallback(): FrontpadSettings {
     syncEnabled: false,
     lastProductsSyncAt: null,
     lastStopsSyncAt: null,
+    priceSource: "site",
   }
 }

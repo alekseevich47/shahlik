@@ -326,6 +326,16 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* PDP-модалка: стоп скролла и размытие самой витрины (не backdrop-filter
+     на оверлее — иначе композитор пересобирает подложку каждый кадр). */
+  body:has([data-modal-open="1"]) {
+    overflow: hidden;
+  }
+
+  [data-modal-open="1"] {
+    filter: blur(10px);
+  }
+
   ::selection {
     background: var(--brand);
     color: #fff;
@@ -574,8 +584,11 @@
     }
     /* Пока плашка меняет размер, растеризация фильтра идёт заново каждый кадр
        на новой геометрии. Блюр остаётся, преломление гасим на время перехода —
-       на движении рисунок смещения всё равно не читается. */
-    .sticky-bar[data-animating="1"] .glass-refract {
+       на движении рисунок смещения всё равно не читается.
+       То же под PDP-модалкой: SVG-фильтр внутри размытого поддерева даёт
+       двойную растеризацию на CPU. */
+    .sticky-bar[data-animating="1"] .glass-refract,
+    [data-modal-open="1"] .sticky-bar .glass-refract {
       filter: none;
     }
   }
