@@ -40,13 +40,33 @@ function parsePbDate(raw) {
   return new Date(s.replace(" ", "T"))
 }
 
+function getField(obj, name) {
+  if (!obj || typeof obj !== "object") {
+    return undefined
+  }
+  var value = obj[name]
+  if (value !== undefined) {
+    return value
+  }
+  try {
+    return obj[String(name)]
+  } catch (err) {
+    return undefined
+  }
+}
+
 function findSize(sizes, sizeId) {
-  if (!sizes || !sizes.length || !sizeId) {
+  if (!sizes || !sizeId) {
     return null
   }
+  var want = String(sizeId)
   for (var i = 0; i < sizes.length; i++) {
-    if (sizes[i] && sizes[i].id === sizeId) {
-      return sizes[i]
+    var item = sizes[i]
+    if (!item) {
+      continue
+    }
+    if (String(getField(item, "id")) === want) {
+      return item
     }
   }
   return null
@@ -59,28 +79,37 @@ function findVariant(variants, variantId) {
   if (!variantId) {
     return variants[0]
   }
+  var want = String(variantId)
   for (var i = 0; i < variants.length; i++) {
-    if (variants[i] && variants[i].id === variantId) {
-      return variants[i]
+    var item = variants[i]
+    if (!item) {
+      continue
+    }
+    if (String(getField(item, "id")) === want) {
+      return item
     }
   }
   return null
 }
 
 function priceOf(size, variant) {
-  var delta = variant ? Number(variant.priceDelta) || 0 : 0
-  return (Number(size.price) || 0) + delta
+  var delta = variant ? Number(getField(variant, "priceDelta")) || 0 : 0
+  return (Number(getField(size, "price")) || 0) + delta
 }
 
 function articleFor(size, variantId) {
-  if (variantId && size.articleByVariant) {
-    var override = size.articleByVariant[variantId]
-    if (override !== undefined && override !== null && String(override).trim()) {
-      return String(override).trim()
+  if (variantId) {
+    var byVariant = getField(size, "articleByVariant")
+    if (byVariant && typeof byVariant === "object") {
+      var override = getField(byVariant, variantId)
+      if (override !== undefined && override !== null && String(override).trim()) {
+        return String(override).trim()
+      }
     }
   }
-  if (size.article !== undefined && size.article !== null && String(size.article).trim()) {
-    return String(size.article).trim()
+  var article = getField(size, "article")
+  if (article !== undefined && article !== null && String(article).trim()) {
+    return String(article).trim()
   }
   return ""
 }
@@ -385,11 +414,25 @@ function resolveLine(line, parseJsonField) {
     throw new BadRequestError("Товар недоступен")
   }
 
-  var variants = parseJsonField(productRecord.get("variants"), [])
-  var sizes = parseJsonField(productRecord.get("sizes"), [])
+  var variants = toArrayLike(productRecord.get("variants"), parseJsonField)
+  var sizes = toArrayLike(productRecord.get("sizes"), parseJsonField)
   var size = findSize(sizes, sizeId)
   if (!size) {
-    throw new BadRequestError("Размер недоступен")
+    var available = []
+    for (var si = 0; si < sizes.length; si++) {
+      if (sizes[si]) {
+        available.push(String(getField(sizes[si], "id") || "?"))
+      }
+    }
+    throw new BadRequestError(
+      "Размер недоступен (" +
+        sizeId +
+        "; sizes=" +
+        sizes.length +
+        "; ids=" +
+        available.join(",") +
+        ")",
+    )
   }
 
   var variant = findVariant(variants, variantId)
@@ -399,7 +442,7 @@ function resolveLine(line, parseJsonField) {
 
   var productName = productRecord.getString("name")
   var unitPrice = priceOf(size, variant)
-  var article = articleFor(size, variant ? variant.id : variantId)
+  var article = articleFor(size, variant ? getField(variant, "id") : variantId)
   assertArticleAvailable(article, productName)
 
   var resolvedAddons = []
@@ -442,13 +485,13 @@ function resolveLine(line, parseJsonField) {
 
   return {
     productId: productId,
-    variantId: variant ? variant.id : variantId || undefined,
-    sizeId: size.id,
+    variantId: variant ? getField(variant, "id") : variantId || undefined,
+    sizeId: getField(size, "id"),
     article: article,
     quantity: quantity,
     name: productName,
-    variantLabel: variant ? variant.label : undefined,
-    sizeLabel: size.label,
+    variantLabel: variant ? getField(variant, "label") : undefined,
+    sizeLabel: getField(size, "label"),
     unitPrice: unitPrice,
     addons: resolvedAddons,
     total: lineTotal,
