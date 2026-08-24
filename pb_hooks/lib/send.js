@@ -1,28 +1,13 @@
-function pad2(n) {
-  return n < 10 ? "0" + n : String(n)
-}
+/** Пустое значение для datetime-поля PB — именно "", не null. */
+var EMPTY_DATETIME = ""
 
-function formatPbDateTime(d) {
-  return (
-    d.getFullYear() +
-    "-" +
-    pad2(d.getMonth() + 1) +
-    "-" +
-    pad2(d.getDate()) +
-    " " +
-    pad2(d.getHours()) +
-    ":" +
-    pad2(d.getMinutes()) +
-    ":" +
-    pad2(d.getSeconds())
-  )
-}
-
-function isSentAtSet(raw) {
-  return raw !== undefined && raw !== null && raw !== ""
+function nowPb() {
+  var config = require(__hooks + "/lib/config.js")
+  return config.toPbDateTime(new Date())
 }
 
 function recordToOrder(record, parseJsonField) {
+  var config = require(__hooks + "/lib/config.js")
   var orderLib = require(__hooks + "/lib/order.js")
   var lines = []
   if (typeof orderLib.readStoredLines === "function") {
@@ -46,7 +31,7 @@ function recordToOrder(record, parseJsonField) {
     total: record.getFloat("total") || 0,
     addressParts: parseJsonField(record.get("addressParts"), null),
     personCount: record.getFloat("personCount") || 0,
-    preorderAt: record.get("preorderAt") ? String(record.get("preorderAt")) : null,
+    preorderAt: config.readPbDateTime(record, "preorderAt") || null,
   }
 }
 
@@ -105,29 +90,44 @@ function shouldEnqueueResend(error) {
   return true
 }
 
-function claimOrderSend(orderId) {
+/**
+ * Ставит метку отправки, если заказ ещё не уходил в кассу.
+ *
+ * Транзакция обязана работать через txApp: обращение к внешнему $app внутри
+ * runInTransaction идёт по другому соединению и упирается в write-lock,
+ * который держит эта же транзакция — запрос висит до busy timeout.
+ *
+ * @param {string} orderId
+ * @param {boolean} force ручная переотправка: блокирует только заполненный frontpadOrderId
+ */
+function claimOrderSend(orderId, force) {
+  var config = require(__hooks + "/lib/config.js")
   var claimed = false
-  $app.runInTransaction(function () {
-    var record = $app.findRecordById("orders", orderId)
-    var fpOrderId = record.get("frontpadOrderId")
-    var sentAt = record.get("sentAt")
 
-    if ((fpOrderId && Number(fpOrderId) !== 0) || isSentAtSet(sentAt)) {
+  $app.runInTransaction(function (txApp) {
+    var record = txApp.findRecordById("orders", orderId)
+
+    if (record.getFloat("frontpadOrderId")) {
+      return
+    }
+    if (!force && config.readPbDateTime(record, "sentAt")) {
       return
     }
 
-    record.set("sentAt", formatPbDateTime(new Date()))
-    $app.save(record)
+    record.set("sentAt", config.toPbDateTime(new Date()))
+    txApp.save(record)
     claimed = true
   })
+
   return claimed
 }
 
+/** Снимает метку отправки, чтобы заказ можно было отправить повторно. */
 function patchSendFailure(orderId, message) {
   try {
     patchOrder(orderId, {
       frontpadError: message,
-      sentAt: null,
+      sentAt: EMPTY_DATETIME,
     })
   } catch (err) {
     // ignore
@@ -138,7 +138,7 @@ function patchSendFailure(orderId, message) {
  * Идемпотентная отправка одного заказа в кассу.
  *
  * @param {string} orderId
- * @param {{ noEnqueue?: boolean }} [options]
+ * @param {{ noEnqueue?: boolean, force?: boolean }} [options]
  * @returns {{ sent: boolean, skipped?: boolean, dryRun?: boolean, error?: string, retryable?: boolean }}
  */
 function sendOrder(orderId, options) {
@@ -148,7 +148,7 @@ function sendOrder(orderId, options) {
   var orderLib = require(__hooks + "/lib/order.js")
   var logger = $app.logger()
 
-  if (!claimOrderSend(orderId)) {
+  if (!claimOrderSend(orderId, !!options.force)) {
     logger.warn("frontpad send skipped: already claimed", "orderId", orderId)
     return { sent: false, skipped: true }
   }
@@ -176,9 +176,23 @@ function sendOrder(orderId, options) {
     }
 
     if (!fpSettings.sendEnabled) {
-      createDryRunJob(orderId, maskedPayload)
-      patchOrder(orderId, { frontpadError: "dry-run" })
-      logger.info("frontpad dry-run job saved", "orderId", orderId)
+      var dryRunNote = "dry-run"
+      try {
+        createDryRunJob(orderId, maskedPayload)
+      } catch (jobErr) {
+        // не роняем dry-run из-за коллекции джобов — payload всё равно виден в логе
+        dryRunNote = "dry-run (джоб не создан: " + String(jobErr) + ")"
+        logger.error("frontpad dry-run job save failed", "orderId", orderId, "error", String(jobErr))
+      }
+      // sentAt снимаем: dry-run не должен блокировать реальную отправку потом
+      patchOrder(orderId, { frontpadError: dryRunNote, sentAt: EMPTY_DATETIME })
+      logger.info(
+        "frontpad dry-run",
+        "orderId",
+        orderId,
+        "payload",
+        JSON.stringify(maskedPayload),
+      )
       return { sent: false, dryRun: true }
     }
 
@@ -188,12 +202,12 @@ function sendOrder(orderId, options) {
       var warningsText = http.warningsToText(response.warnings)
       var data = response.data || {}
       patchOrder(orderId, {
-        frontpadOrderId: data.order_id ? Number(data.order_id) : null,
+        frontpadOrderId: data.order_id ? Number(data.order_id) : 0,
         frontpadOrderNumber: data.order_number ? String(data.order_number) : "",
         frontpadError: warningsText,
       })
       patchFrontpadSettings({
-        lastOrderSentAt: formatPbDateTime(new Date()),
+        lastOrderSentAt: nowPb(),
         lastError: warningsText,
       })
       logger.info(
@@ -212,11 +226,13 @@ function sendOrder(orderId, options) {
     if (shouldEnqueueResend(error)) {
       patchOrder(orderId, {
         frontpadError: errorText,
-        sentAt: null,
+        sentAt: EMPTY_DATETIME,
       })
       if (!options.noEnqueue) {
         var jobs = require(__hooks + "/lib/jobs.js")
-        jobs.enqueueJob("resend_order", { orderId: orderId })
+        // auto: джоб поставлен хуком после неудачной попытки — его берёт cron
+        // по бэкоффу, а не немедленный прогон при создании записи
+        jobs.enqueueJob("resend_order", { orderId: orderId, auto: true })
       }
       patchFrontpadSettings({ lastError: errorText })
       logger.warn(
@@ -242,7 +258,7 @@ function sendOrder(orderId, options) {
 
     patchOrder(orderId, {
       frontpadError: errorText,
-      sentAt: null,
+      sentAt: EMPTY_DATETIME,
     })
     patchFrontpadSettings({ lastError: errorText })
     return { sent: false, error: errorText }

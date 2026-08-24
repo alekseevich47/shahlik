@@ -131,12 +131,84 @@ function toStatusMap(raw) {
   return map
 }
 
-function readDateField(record, name) {
-  var raw = record.get(name)
+function pad2(n) {
+  return n < 10 ? "0" + n : String(n)
+}
+
+/**
+ * Дата → строка для datetime-поля PocketBase.
+ * PB парсит "YYYY-MM-DD HH:MM:SS" как UTC, поэтому берём UTC-компоненты:
+ * с локальными зона уезжает и фильтры по created/updated врут.
+ */
+function toPbDateTime(d) {
+  return (
+    d.getUTCFullYear() +
+    "-" +
+    pad2(d.getUTCMonth() + 1) +
+    "-" +
+    pad2(d.getUTCDate()) +
+    " " +
+    pad2(d.getUTCHours()) +
+    ":" +
+    pad2(d.getUTCMinutes()) +
+    ":" +
+    pad2(d.getUTCSeconds())
+  )
+}
+
+/**
+ * Чтение datetime-поля записи.
+ * record.get() для datetime отдаёт Go-объект types.DateTime — он truthy даже
+ * когда пустой, поэтому сравнивать с "" / null нельзя. getString() у нулевого
+ * DateTime даёт "".
+ */
+function readPbDateTime(record, name) {
+  try {
+    var s = record.getString(name)
+    if (s !== undefined && s !== null && String(s) !== "") {
+      return String(s)
+    }
+  } catch (err) {
+    // поле может быть не datetime
+  }
+  try {
+    var raw = record.get(name)
+    if (raw === undefined || raw === null) {
+      return ""
+    }
+    var text = String(raw)
+    if (text === "" || text === "[object Object]" || text.indexOf("0001-01-01") === 0) {
+      return ""
+    }
+    return text
+  } catch (err2) {
+    return ""
+  }
+}
+
+/**
+ * "YYYY-MM-DD HH:MM:SS[.mmm]Z" → ms.
+ * Такой формат отдаёт PocketBase, но не парсит new Date() в Goja — нужен ISO.
+ */
+function parsePbDateTimeMs(raw) {
   if (raw === undefined || raw === null || raw === "") {
     return null
   }
-  return String(raw)
+  var s = String(raw).trim()
+  if (s === "" || s === "[object Object]" || s.indexOf("0001-01-01") === 0) {
+    return null
+  }
+  s = s.replace(" ", "T")
+  if (s.charAt(s.length - 1) !== "Z" && s.indexOf("+") < 0) {
+    s = s + "Z"
+  }
+  var ms = new Date(s).getTime()
+  return isNaN(ms) ? null : ms
+}
+
+function readDateField(record, name) {
+  var value = readPbDateTime(record, name)
+  return value ? value : null
 }
 
 /** @returns {SiteSettings} */
@@ -244,4 +316,7 @@ module.exports = {
   loadFrontpadSettings: loadFrontpadSettings,
   buildHookUrl: buildHookUrl,
   parseJsonField: parseJsonField,
+  toPbDateTime: toPbDateTime,
+  readPbDateTime: readPbDateTime,
+  parsePbDateTimeMs: parsePbDateTimeMs,
 }

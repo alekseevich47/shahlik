@@ -1,23 +1,8 @@
 var PRODUCTS_MIN_INTERVAL_MS = 60 * 60 * 1000
 
-function pad2(n) {
-  return n < 10 ? "0" + n : String(n)
-}
-
 function formatPbDateTime(d) {
-  return (
-    d.getFullYear() +
-    "-" +
-    pad2(d.getMonth() + 1) +
-    "-" +
-    pad2(d.getDate()) +
-    " " +
-    pad2(d.getHours()) +
-    ":" +
-    pad2(d.getMinutes()) +
-    ":" +
-    pad2(d.getSeconds())
-  )
+  var config = require(__hooks + "/lib/config.js")
+  return config.toPbDateTime(d)
 }
 
 function patchFrontpadSettings(fields) {
@@ -36,11 +21,8 @@ function patchFrontpadSettings(fields) {
 }
 
 function parseSyncDate(raw) {
-  if (!raw) {
-    return null
-  }
-  var ms = new Date(String(raw)).getTime()
-  return isNaN(ms) ? null : ms
+  var config = require(__hooks + "/lib/config.js")
+  return config.parsePbDateTimeMs(raw)
 }
 
 function isProductsSyncAllowed(lastProductsSyncAt) {
@@ -213,7 +195,13 @@ function syncProducts() {
  * @returns {{ ok: boolean, error?: string, stopped?: number, cleared?: boolean }}
  */
 function syncStops() {
+  var config = require(__hooks + "/lib/config.js")
   var http = require(__hooks + "/lib/http.js")
+
+  if (!config.loadFrontpadSettings().syncEnabled) {
+    return { ok: true, skipped: true, message: "синхронизация каталога отключена" }
+  }
+
   var response = http.call("get_stops", {}, { timeout: 15000 })
 
   if (!response.ok) {

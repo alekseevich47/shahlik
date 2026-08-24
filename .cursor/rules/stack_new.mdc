@@ -264,20 +264,40 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 
 | Файл | Роль |
 |---|---|
-| `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, роут вебхука, `cronAdd` |
+| `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, `onRecordAfterCreateSuccess("frontpad_jobs")`, роуты вебхука и диагностики, `cronAdd` |
 | `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
-| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` — модули, автозагрузку не проходят (нет `.pb.js`) |
+| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` — модули, автозагрузку не проходят (нет `.pb.js`) |
 
-Env процесса `pocketbase`: `FRONTPAD_SECRET`, `FRONTPAD_HOOK_TOKEN`, `FRONTPAD_API_URL`. В git и в бандл не попадают.
+Env процесса `pocketbase`:
+
+| Переменная | Что это |
+|---|---|
+| `FRONTPAD_SECRET` | секрет API кассы |
+| `FRONTPAD_HOOK_TOKEN` | **наша** случайная строка ≥32 символов, ею подписан `hook_url` и роут диагностики. Не URL сторонней интеграции |
+| `FRONTPAD_API_URL` | необязательно, по умолчанию `https://app.frontpad.ru/api/index.php` |
+| `FRONTPAD_CRON` | `0` отключает все `cronAdd`. Держать **включённым**: без cron не работает бэкофф и авто-синхронизация |
+
+В git и в бандл env не попадают.
 
 - **Деньги считает сервер.** `onRecordCreateRequest("orders")` пересчитывает строки/упаковку/доставку/скидку из БД, валидирует стоп-лист и артикулы, генерирует `number`. Клиентские суммы затираются.
-- **Отправка идемпотентна.** Перед `new_order` в транзакции ставится `sentAt`; повторно уходит только заказ с пустым `frontpadOrderId`. Неизвестный результат (таймаут) — `frontpadError` **без автоповтора**, дальше только ручная переотправка из админки.
-- **Очередь `frontpad_jobs` + cron-воркер** (раз в минуту, ≤2 отправки и ≤1 синхронизация за тик — лимиты кассы 30/мин, 2/сек). Бэкофф по `attempts`: 1/2/5/15/60 мин. `get_products` — жёсткий гейт 1/час по `lastProductsSyncAt`.
+- **Отправка идемпотентна.** Перед `new_order` в транзакции ставится `sentAt`; повторно уходит только заказ с пустым `frontpadOrderId`. Неизвестный результат (таймаут) — `frontpadError` **без автоповтора**, дальше только ручная переотправка из админки. Ручной `resend_order` идёт с `force: true` — его блокирует только заполненный `frontpadOrderId`, но не `sentAt`.
+- **Очередь `frontpad_jobs` + cron-воркер** (раз в минуту, ≤2 отправки и ≤1 синхронизация за тик — лимиты кассы 30/мин, 2/сек). Бэкофф по `attempts`: 1/2/5/15/60 мин. `get_products` — жёсткий гейт 1/час по `lastProductsSyncAt`. Чистка старых джобов — отдельный суточный cron, не каждый тик.
+- **Джоб из админки исполняется сразу.** `onRecordAfterCreateSuccess("frontpad_jobs")` → `jobs.runJobById`, поэтому кнопка «Переотправить» не ждёт тика. Джобы, поставленные самими хуками после сбоя, помечаются `payload.auto = true` и немедленный прогон пропускают — иначе повтор уходит в кассу дважды в одном запросе.
 - **`hook_url` — пер-заказный:** глобальный webhook в настройках кассы занят сторонней интеграцией (FoodSoul) и не меняется; наши заказы передают свой `hook_url` + токен и `hook_status[]`. Роут `POST /api/webhooks/frontpad/status` сверяет токен, отвечает **всегда 200**, не понижает терминальные статусы, ставит `statusSource="hook"`.
-- **Dry-run:** `frontpad_settings.sendEnabled = false` — payload пишется в `frontpad_jobs.result`, запроса в кассу нет. Первая приёмка — так.
+- **Dry-run:** `frontpad_settings.sendEnabled = false` — payload пишется в `frontpad_jobs.result` и в лог, запроса в кассу нет. Dry-run **снимает `sentAt`**, чтобы заказ можно было отправить по-настоящему после включения тумблера. Требует `send_order` в enum `frontpad_jobs.kind`; если его нет, dry-run всё равно проходит и пишет причину в `frontpadError`.
+- **Диагностика:** `GET /api/frontpad/diag?token=<FRONTPAD_HOOK_TOKEN>` — что видят хуки: наличие секрета, `sendEnabled`/`syncEnabled`, коды оплаты, собранный `hook_url`, `lastError`. Без токена — 404.
 - Стоп-лист (`frontpad_stock`, публичное чтение) режет витрину: `entities/product/lib/stock.ts` + `useCollectionRealtime`, не поллинг.
 
-JSVM (Goja): нет `async`/`await`/`fetch`/`setTimeout`; HTTP — синхронный `$http.send`, env — `$os.getenv`. Обработчик исполняется в изолированном пуле VM, **замыкания на внешние переменные файла не работают** — зависимости через `require(`${__hooks}/lib/…`)` внутри тела хука. Ошибки API — `new BadRequestError(...)`.
+### JSVM (Goja) — грабли, на которых уже стояли
+
+Нет `async`/`await`/`fetch`/`setTimeout`; HTTP — синхронный `$http.send`, env — `$os.getenv`. Обработчик исполняется в изолированном пуле VM, **замыкания на внешние переменные файла не работают** — зависимости через `require(`${__hooks}/lib/…`)` внутри тела хука. Ошибки API — `new BadRequestError(...)`.
+
+- **`runInTransaction` только через аргумент.** `$app.runInTransaction(function (txApp) { … })` — внутри звать `txApp.findRecordById` / `txApp.save`. Обращение к внешнему `$app` идёт по другому соединению и упирается в write-lock этой же транзакции: запрос висит до busy timeout, PB перестаёт отвечать, nginx отдаёт 504. Именно это ломало создание записей в `/_/` при включённом cron.
+- **Каждый хук обязан вызвать `e.next()`** — иначе цепочка обрывается и следующие обработчики (в т.ч. системные) не выполняются.
+- **JSON-поля не читать через `JSON.stringify` и dot-access.** `record.get("lines")` отдаёт Go-значение: `JSON.stringify` даёт `{}`, `line.article` — `undefined`. Только `toArrayLike` / `getField` из `lib/order.js`.
+- **datetime-поля.** `record.get("sentAt")` возвращает Go-объект `types.DateTime` — он **truthy даже когда пустой**, сравнение с `""`/`null` всегда врёт. Читать `config.readPbDateTime(record, field)`; очищать значением `""`, не `null`; для `number` пусто — `0`.
+- **Время только UTC.** PB парсит `YYYY-MM-DD HH:MM:SS` как UTC, поэтому строки собирать через `config.toPbDateTime` (UTC-геттеры), а парсить — `config.parsePbDateTimeMs`. С локальными компонентами фильтры по `created`/`updated` съезжают на смещение зоны (тихо ломались антифрод по телефону, нумерация заказов и бэкофф). Исключение — `datetime` для кассы: Frontpad ждёт локальное время заведения.
+- Ошибку отправки всегда писать в `frontpadError`: молчаливый `return` из `sendOrder` не отличить от «хуки не задеплоены».
 
 ## Имена блоков (для правок в чате)
 

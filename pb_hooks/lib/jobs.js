@@ -15,24 +15,9 @@ var MAX_SEND_PER_TICK = 2
 var MAX_SYNC_PER_TICK = 1
 var PURGE_AFTER_DAYS = 7
 
-function pad2(n) {
-  return n < 10 ? "0" + n : String(n)
-}
-
 function formatPbDateTime(d) {
-  return (
-    d.getFullYear() +
-    "-" +
-    pad2(d.getMonth() + 1) +
-    "-" +
-    pad2(d.getDate()) +
-    " " +
-    pad2(d.getHours()) +
-    ":" +
-    pad2(d.getMinutes()) +
-    ":" +
-    pad2(d.getSeconds())
-  )
+  var config = require(__hooks + "/lib/config.js")
+  return config.toPbDateTime(d)
 }
 
 /**
@@ -51,13 +36,9 @@ function backoffMinutes(attempts) {
 }
 
 function parseUpdatedMs(record) {
-  var raw = record.get("updated")
-  if (raw === undefined || raw === null || raw === "") {
-    return 0
-  }
-  var d = new Date(String(raw))
-  var ms = d.getTime()
-  return isNaN(ms) ? 0 : ms
+  var config = require(__hooks + "/lib/config.js")
+  var ms = config.parsePbDateTimeMs(config.readPbDateTime(record, "updated"))
+  return ms === null ? 0 : ms
 }
 
 /**
@@ -131,8 +112,10 @@ function claimNextJob(kindOrKinds) {
     }
 
     var claimed = null
-    $app.runInTransaction(function () {
-      var fresh = $app.findRecordById("frontpad_jobs", candidate.id)
+    // txApp обязателен: внешний $app внутри транзакции идёт по другому
+    // соединению и блокируется на write-lock этой же транзакции.
+    $app.runInTransaction(function (txApp) {
+      var fresh = txApp.findRecordById("frontpad_jobs", candidate.id)
       if (fresh.getString("status") !== JOB_STATUS.QUEUED) {
         return
       }
@@ -143,7 +126,7 @@ function claimNextJob(kindOrKinds) {
       fresh.set("status", JOB_STATUS.RUNNING)
       fresh.set("attempts", attempts + 1)
       fresh.set("error", "")
-      $app.save(fresh)
+      txApp.save(fresh)
       claimed = fresh
     })
 
@@ -221,7 +204,12 @@ function processSendJob(job) {
   }
 
   try {
-    var result = send.sendOrder(orderId, { noEnqueue: true })
+    // resend_order ставится вручную из админки — метка sentAt не должна его блокировать,
+    // защитой от дублей остаётся заполненный frontpadOrderId
+    var result = send.sendOrder(orderId, {
+      noEnqueue: true,
+      force: job.kind === "resend_order",
+    })
 
     if (result.sent || result.skipped || result.dryRun) {
       completeJob(job.id, result)
@@ -269,6 +257,46 @@ function processSyncJob(job) {
   }
 }
 
+/**
+ * Немедленный прогон одного джоба (кнопка «Переотправить» в админке).
+ * Возвращает false, если джоб уже забрал кто-то другой.
+ *
+ * @param {string} jobId
+ * @returns {boolean}
+ */
+function runJobById(jobId) {
+  var config = require(__hooks + "/lib/config.js")
+  var claimed = null
+
+  $app.runInTransaction(function (txApp) {
+    var fresh = txApp.findRecordById("frontpad_jobs", jobId)
+    if (fresh.getString("status") !== JOB_STATUS.QUEUED) {
+      return
+    }
+    var payload = config.parseJsonField(fresh.get("payload"), {})
+    if (payload && payload.auto) {
+      return
+    }
+    fresh.set("status", JOB_STATUS.RUNNING)
+    fresh.set("attempts", (fresh.getFloat("attempts") || 0) + 1)
+    fresh.set("error", "")
+    txApp.save(fresh)
+    claimed = fresh
+  })
+
+  if (!claimed) {
+    return false
+  }
+
+  var job = recordToJob(claimed)
+  if (job.kind === "send_order" || job.kind === "resend_order") {
+    processSendJob(job)
+  } else {
+    processSyncJob(job)
+  }
+  return true
+}
+
 function recoverStaleRunningJobs() {
   var cutoff = new Date(Date.now() - 5 * 60 * 1000)
   var cutoffStr = formatPbDateTime(cutoff)
@@ -291,11 +319,6 @@ function recoverStaleRunningJobs() {
 
 /** Cron-воркер: ≤2 отправки и ≤1 синхронизация за тик. */
 function runWorkerTick() {
-  var config = require(__hooks + "/lib/config.js")
-  if (!config.getSecret()) {
-    return
-  }
-
   recoverStaleRunningJobs()
 
   var sendCount = 0
@@ -317,8 +340,6 @@ function runWorkerTick() {
     processSyncJob(syncJob)
     syncCount++
   }
-
-  purgeOldJobs()
 }
 
 /** Удаление завершённых джобов старше 7 дней. */
@@ -347,6 +368,7 @@ module.exports = {
   backoffMinutes: backoffMinutes,
   enqueueJob: enqueueJob,
   claimNextJob: claimNextJob,
+  runJobById: runJobById,
   completeJob: completeJob,
   failJob: failJob,
   runWorkerTick: runWorkerTick,

@@ -14,30 +14,14 @@ function trimStr(value, maxLen) {
 }
 
 function formatPbDateTime(d) {
-  return (
-    d.getFullYear() +
-    "-" +
-    pad2(d.getMonth() + 1) +
-    "-" +
-    pad2(d.getDate()) +
-    " " +
-    pad2(d.getHours()) +
-    ":" +
-    pad2(d.getMinutes()) +
-    ":" +
-    pad2(d.getSeconds())
-  )
+  var config = require(__hooks + "/lib/config.js")
+  return config.toPbDateTime(d)
 }
 
 function parsePbDate(raw) {
-  if (raw === undefined || raw === null || raw === "") {
-    return null
-  }
-  var s = String(raw)
-  if (s.length >= 19) {
-    s = s.substring(0, 19)
-  }
-  return new Date(s.replace(" ", "T"))
+  var config = require(__hooks + "/lib/config.js")
+  var ms = config.parsePbDateTimeMs(raw)
+  return ms === null ? null : new Date(ms)
 }
 
 function getField(obj, name) {
@@ -166,13 +150,14 @@ function resolveCouponDiscount(goods, rawCode) {
     throw new BadRequestError("Промокод недействителен")
   }
 
+  var config = require(__hooks + "/lib/config.js")
   var now = new Date()
-  var startsAt = parsePbDate(coupon.get("startsAt"))
+  var startsAt = parsePbDate(config.readPbDateTime(coupon, "startsAt"))
   if (startsAt && now < startsAt) {
     throw new BadRequestError("Промокод ещё не активен")
   }
 
-  var endsAt = parsePbDate(coupon.get("endsAt"))
+  var endsAt = parsePbDate(config.readPbDateTime(coupon, "endsAt"))
   if (endsAt && now > endsAt) {
     throw new BadRequestError("Промокод истёк")
   }
@@ -607,24 +592,34 @@ function validateAndRecalculateOrder(e) {
   e.next()
 }
 
+/**
+ * PB хранит preorderAt в UTC, касса ждёт локальное время заведения —
+ * отдаём отформатированное локальное, а не срез UTC-строки.
+ */
 function formatPreorderDatetime(raw) {
-  if (raw === undefined || raw === null || raw === "") {
+  var config = require(__hooks + "/lib/config.js")
+  var ms = config.parsePbDateTimeMs(raw)
+  if (ms === null) {
     return null
   }
-  var s = String(raw)
-  if (s.length >= 19) {
-    s = s.substring(0, 19).replace("T", " ")
-  }
-  var d = new Date(s.replace(" ", "T"))
-  if (isNaN(d.getTime())) {
+  var nowMs = Date.now()
+  if (ms < nowMs || ms > nowMs + 30 * 24 * 60 * 60 * 1000) {
     return null
   }
-  var now = new Date()
-  var maxDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-  if (d < now || d > maxDate) {
-    return null
-  }
-  return s
+  var d = new Date(ms)
+  return (
+    d.getFullYear() +
+    "-" +
+    pad2(d.getMonth() + 1) +
+    "-" +
+    pad2(d.getDate()) +
+    " " +
+    pad2(d.getHours()) +
+    ":" +
+    pad2(d.getMinutes()) +
+    ":" +
+    pad2(d.getSeconds())
+  )
 }
 
 function buildDescr(order) {
