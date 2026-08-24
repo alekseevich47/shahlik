@@ -141,6 +141,25 @@ function maskSecret(value) {
   return out
 }
 
+var FRONTPAD_ERROR_TEXT = {
+  invalid_secret: "Неверный секрет API — проверьте FRONTPAD_SECRET в systemd и настройках кассы",
+  missing_secret: "FRONTPAD_SECRET не задан в env процесса pocketbase",
+  api_off: "API кассы выключено в личном кабинете Frontpad",
+  cash_close: "Касса закрыта — заказ не принят",
+  requests_limit: "Лимит запросов к API кассы",
+  invalid_product_keys: "Неизвестные артикулы в заказе",
+}
+
+function errorText(error) {
+  if (!error) {
+    return "Ошибка кассы"
+  }
+  if (error.code && FRONTPAD_ERROR_TEXT[error.code]) {
+    return FRONTPAD_ERROR_TEXT[error.code]
+  }
+  return error.message || error.code || "Ошибка кассы"
+}
+
 /**
  * @param {string} method
  * @param {Object} params
@@ -238,6 +257,7 @@ module.exports = {
   DEFAULT_TIMEOUT_MS: DEFAULT_TIMEOUT_MS,
   formEncode: formEncode,
   call: call,
+  errorText: errorText,
   maskSecret: maskSecret,
   extractWarnings: extractWarnings,
   warningsToText: warningsToText,

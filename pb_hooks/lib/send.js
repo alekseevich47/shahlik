@@ -221,7 +221,7 @@ function sendOrder(orderId, options) {
     }
 
     var error = response.error || { code: "unknown", message: "Ошибка кассы" }
-    var errorText = error.message || error.code || "Ошибка кассы"
+    var errorText = http.errorText(error)
 
     if (shouldEnqueueResend(error)) {
       patchOrder(orderId, {
