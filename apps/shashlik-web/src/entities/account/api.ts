@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { RecordModel } from "pocketbase"
 import { useSyncExternalStore } from "react"
 
+import { ensurePbBaseUrl } from "@/shared/api/pb"
 import { pbClient } from "@/shared/api/pb-client"
 
 import type {
@@ -102,6 +103,8 @@ async function persistRecord(record: RecordModel): Promise<AppUser> {
 }
 
 export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> {
+  // Абсолютный baseUrl → redirect_uri = https://…/api/oauth2-redirect (не /auth/callback).
+  ensurePbBaseUrl(pbClient)
   const auth = await pbClient.collection(COLLECTION).authWithOAuth2({ provider })
   if (!isAppUserRecord(auth.record)) {
     pbClient.authStore.clear()

@@ -535,8 +535,8 @@
     "semantic_hash": ""
   },
   "src/shared/api/pb.ts": {
-    "mtime": 1787559868.0237987,
-    "ast_hash": "fd8eb1e17690319091a0bd9c96baea26",
+    "mtime": 1787575566.6037102,
+    "ast_hash": "c2be28baea69d1fbf9f57f562a52a39a",
     "semantic_hash": ""
   },
   "src/shared/api/query-client.ts": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "src/entities/account/api.ts": {
-    "mtime": 1787572158.061371,
-    "ast_hash": "87646abeb2ba6f2d4368cbae0a0193da",
+    "mtime": 1787575596.5691364,
+    "ast_hash": "14cd73936e7a9ce4677e0729f7df1579",
     "semantic_hash": ""
   },
   "src/entities/account/model.ts": {
