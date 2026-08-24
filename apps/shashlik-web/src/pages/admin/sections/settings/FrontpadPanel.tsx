@@ -74,6 +74,10 @@ export function FrontpadPanel({ enabled }: Props) {
   const addTag = () => {
     const tag = tagInput.trim()
     if (!tag) return
+    if (!/^\d+$/.test(tag)) {
+      toast.error("Отметка — числовой код из справочника Frontpad")
+      return
+    }
     if (draft.orderTags.includes(tag)) {
       toast.error("Такой тег уже есть")
       return
@@ -137,7 +141,7 @@ export function FrontpadPanel({ enabled }: Props) {
         channel: draft.channel.trim(),
         affiliate: draft.affiliate.trim(),
         point: draft.point.trim(),
-        orderTags: draft.orderTags,
+        orderTags: draft.orderTags.filter((t) => /^\d+$/.test(t)),
         hookStatuses: draft.hookStatuses,
         statusMap: draft.statusMap,
       })
@@ -299,6 +303,9 @@ export function FrontpadPanel({ enabled }: Props) {
               {draft.orderTags.length}/{MAX_ORDER_TAGS}
             </span>
           </div>
+          <p className="mb-2 text-[11px] leading-snug text-fg-muted">
+            Числовые коды API из справочника Frontpad, не названия.
+          </p>
           <div className="mb-2 flex flex-wrap gap-1.5">
             {draft.orderTags.length === 0 ? (
               <span className="text-[12px] text-fg-muted">Пусто</span>
@@ -327,7 +334,7 @@ export function FrontpadPanel({ enabled }: Props) {
             <Input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              placeholder="Код тега"
+              placeholder="Код из справочника"
               maxLength={32}
               disabled={busy || draft.orderTags.length >= MAX_ORDER_TAGS}
               className="h-9"

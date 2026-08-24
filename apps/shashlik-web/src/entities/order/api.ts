@@ -215,7 +215,7 @@ function buildOrdersFilter(params: OrdersPageParams): string {
   }
 
   if (params.hasFrontpadError) {
-    parts.push('frontpadError != ""')
+    parts.push('frontpadError != "" && frontpadOrderId = 0')
   }
 
   if (!parts.length) return ""

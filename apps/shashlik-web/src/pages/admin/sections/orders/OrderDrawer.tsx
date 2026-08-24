@@ -10,6 +10,7 @@ import {
   ORDER_STATUS_FLOW,
   ORDER_STATUS_LABEL,
   ORDER_STATUS_SOURCE_LABEL,
+  isFrontpadWarning,
   type Order,
   type OrderStatus,
 } from "@/entities/order/model"
@@ -273,7 +274,13 @@ export function OrderDrawer({ order: seed, open, onOpenChange }: Props) {
                     ) : null}
                   </dl>
                   {order.frontpadError ? (
-                    <p className="rounded-[var(--r-xs)] bg-red-soft px-2.5 py-2 text-[12.5px] leading-snug font-medium text-red">
+                    <p
+                      className={
+                        isFrontpadWarning(order)
+                          ? "rounded-[var(--r-xs)] bg-brand-soft px-2.5 py-2 text-[12.5px] leading-snug font-medium text-brand"
+                          : "rounded-[var(--r-xs)] bg-red-soft px-2.5 py-2 text-[12.5px] leading-snug font-medium text-red"
+                      }
+                    >
                       {order.frontpadError}
                     </p>
                   ) : null}

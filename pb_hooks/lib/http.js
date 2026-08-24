@@ -5,6 +5,7 @@ var WARNING_KEYS = [
   "too_long_period",
   "invalid_product_keys",
   "invalid_tags",
+  "invalid_tag",
   "invalid_hook_status",
 ]
 
@@ -98,7 +99,18 @@ function warningsToText(warnings) {
   var chunks = []
   for (var i = 0; i < warnings.length; i++) {
     var item = warnings[i]
-    chunks.push(item.key + ": " + JSON.stringify(item.value))
+    var key = item.key
+    if (key === "invalid_tags" || key === "invalid_tag") {
+      chunks.push(
+        "Касса не приняла отметки заказа. В Настройках → Касса укажите числовые коды из справочника Frontpad (не «all»).",
+      )
+      continue
+    }
+    if (key === "invalid_hook_status") {
+      chunks.push("Касса не приняла коды webhook-статусов — проверьте список в настройках кассы.")
+      continue
+    }
+    chunks.push(key + ": " + JSON.stringify(item.value))
   }
   return chunks.join("; ")
 }

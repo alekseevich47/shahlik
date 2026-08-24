@@ -63,6 +63,11 @@ export type Order = {
   sentAt?: string | null
 }
 
+/** Заказ ушёл в кассу, `frontpadError` — warning API, не отказ. */
+export function isFrontpadWarning(order: Pick<Order, "frontpadOrderId" | "frontpadError">) {
+  return Boolean(order.frontpadOrderId) && Boolean(order.frontpadError)
+}
+
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   new: "Новый",
   cooking: "Готовится",

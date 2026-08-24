@@ -9,6 +9,7 @@ import {
 } from "@/entities/order/api"
 import {
   ORDER_STATUS_LABEL,
+  isFrontpadWarning,
   type Order,
   type OrderStatus,
 } from "@/entities/order/model"
@@ -168,8 +169,14 @@ export function OrdersSection() {
             {ORDER_STATUS_LABEL[row.status]}
           </Badge>
           {row.frontpadError ? (
-            <span className="max-w-[140px] truncate text-[10.5px] font-semibold text-red">
-              Ошибка кассы
+            <span
+              className={
+                isFrontpadWarning(row)
+                  ? "max-w-[140px] truncate text-[10.5px] font-semibold text-brand"
+                  : "max-w-[140px] truncate text-[10.5px] font-semibold text-red"
+              }
+            >
+              {isFrontpadWarning(row) ? "Предупреждение кассы" : "Ошибка кассы"}
             </span>
           ) : null}
         </span>

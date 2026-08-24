@@ -115,7 +115,7 @@ async function fetchDashboard(): Promise<DashboardData> {
       "orders",
       'status = "new" || status = "cooking" || status = "delivering"',
     ),
-    countByFilter("orders", 'frontpadError != ""'),
+    countByFilter("orders", 'frontpadError != "" && frontpadOrderId = 0'),
     countByFilter("frontpad_stock", "stopped = true"),
     countByFilter("reviews", "published = false"),
   ])

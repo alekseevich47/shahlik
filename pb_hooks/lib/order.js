@@ -778,7 +778,11 @@ function buildNewOrderPayload(order, fpSettings) {
   if (fpSettings.orderTags && fpSettings.orderTags.length) {
     var tags = []
     for (var ti = 0; ti < fpSettings.orderTags.length && ti < 10; ti++) {
-      tags.push(fpSettings.orderTags[ti])
+      var tag = String(fpSettings.orderTags[ti]).trim()
+      if (!/^\d+$/.test(tag)) {
+        continue
+      }
+      tags.push(tag)
     }
     if (tags.length) {
       payload.tags = tags

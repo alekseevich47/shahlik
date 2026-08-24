@@ -63,20 +63,14 @@
   "61": "jobs.js",
   "62": "http.js",
   "63": "AddonForm.tsx",
-  "64": "products.ts",
   "65": "@radix-ui/react-dialog",
   "66": "react-router-dom",
   "67": "tailwind-merge",
-  "68": "addon/model.ts",
   "69": "sync.js",
   "70": "store.ts",
   "71": "frontpad.pb.js",
   "72": "promo.pb.js",
   "73": "category/api.ts",
-  "74": "articles.ts",
-  "75": "counts.ts",
   "76": "crud.ts",
-  "77": "NutritionHint.tsx",
-  "78": "toUploadFormData",
-  "79": "invalidateProductRatings"
+  "77": "NutritionHint.tsx"
 }

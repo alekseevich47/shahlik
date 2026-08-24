@@ -82,25 +82,69 @@ function parseJsonField(raw, fallback) {
   }
 }
 
-function toStringArray(raw) {
-  var parsed = parseJsonField(raw, [])
-  if (!parsed || !parsed.length) {
+function isArrayLike(value) {
+  return Boolean(value) && typeof value === "object" && typeof value.length === "number"
+}
+
+/** Goja часто отдаёт JSON-поле как срез байт ASCII (`[91,51,…]` = `"[3,…"`). */
+function decodeByteJson(value) {
+  if (!isArrayLike(value) || !value.length) {
+    return undefined
+  }
+  var s = ""
+  for (var i = 0; i < value.length; i++) {
+    var c = value[i]
+    if (typeof c !== "number" || c !== Math.floor(c) || c < 9 || c > 126) {
+      return undefined
+    }
+    s += String.fromCharCode(c)
+  }
+  var t = s.replace(/^\s+|\s+$/g, "")
+  if (t.charAt(0) !== "[" && t.charAt(0) !== "{") {
+    return undefined
+  }
+  return parseJsonField(t, [])
+}
+
+function coerceJsonArray(raw) {
+  var parsed = parseJsonField(raw, null)
+  if (typeof parsed === "string") {
+    var t = parsed.replace(/^\s+|\s+$/g, "")
+    if (t.charAt(0) === "[") {
+      parsed = parseJsonField(t, [])
+    } else if (t.indexOf(",") >= 0) {
+      parsed = t.split(",")
+    } else {
+      parsed = t ? [t] : []
+    }
+  }
+  var fromBytes = decodeByteJson(parsed)
+  if (fromBytes !== undefined) {
+    parsed = fromBytes
+  }
+  if (!isArrayLike(parsed)) {
     return []
   }
   var out = []
   for (var i = 0; i < parsed.length; i++) {
+    out.push(parsed[i])
+  }
+  return out
+}
+
+function toStringArray(raw) {
+  var parsed = coerceJsonArray(raw)
+  var out = []
+  for (var i = 0; i < parsed.length; i++) {
     if (parsed[i] !== undefined && parsed[i] !== null && String(parsed[i]).length > 0) {
-      out.push(String(parsed[i]))
+      out.push(String(parsed[i]).trim())
     }
   }
   return out
 }
 
 function toNumberArray(raw) {
-  var parsed = parseJsonField(raw, [])
-  if (!parsed || !parsed.length) {
-    return []
-  }
+  var parsed = coerceJsonArray(raw)
   var out = []
   for (var i = 0; i < parsed.length; i++) {
     var n = Number(parsed[i])
