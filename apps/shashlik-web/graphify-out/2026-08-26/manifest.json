@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "src/entities/account/api.ts": {
-    "mtime": 1787677738.845836,
-    "ast_hash": "eca97f28a25a318b5f3921704d74c964",
+    "mtime": 1787676003.5091493,
+    "ast_hash": "8ef6bde04e7bd12cf01ea6eb855e7dd8",
     "semantic_hash": ""
   },
   "src/entities/account/model.ts": {
@@ -990,8 +990,8 @@
     "semantic_hash": ""
   },
   "src/pages/profile/ProfilePage.tsx": {
-    "mtime": 1787677742.5248365,
-    "ast_hash": "60b9809475be175e819f1a0862c5a3eb",
+    "mtime": 1787675940.2199192,
+    "ast_hash": "5e21b011802e985822f69edc6fb3f6d8",
     "semantic_hash": ""
   },
   "src/pages/profile/ui/LoginPanel.tsx": {

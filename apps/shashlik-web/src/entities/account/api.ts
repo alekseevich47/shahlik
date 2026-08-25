@@ -122,6 +122,14 @@ async function persistRecord(record: RecordModel): Promise<AppUser> {
   return mapAppUser(record)
 }
 
+/** Scope перезаписывает дефолт PB — перечисляем все нужные, включая телефон. */
+const YANDEX_SCOPES = [
+  "login:email",
+  "login:avatar",
+  "login:info",
+  "login:default_phone",
+] as const
+
 export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> {
   if (provider === "vk") {
     loginWithVkId()
@@ -129,10 +137,18 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
     await new Promise<never>(() => undefined)
   }
   ensurePbBaseUrl(pbClient)
-  const auth = await pbClient.collection(COLLECTION).authWithOAuth2({ provider })
+  const auth = await pbClient.collection(COLLECTION).authWithOAuth2({
+    provider,
+    scopes: [...YANDEX_SCOPES],
+  })
   if (!isAppUserRecord(auth.record)) {
     pbClient.authStore.clear()
     throw new Error("Нет доступа к профилю")
+  }
+  // Хук на сервере пишет phone; refresh подхватывает, если create/update успели.
+  const refreshed = await pbClient.collection(COLLECTION).authRefresh()
+  if (isAppUserRecord(refreshed.record)) {
+    return mapAppUser(refreshed.record)
   }
   return mapAppUser(auth.record)
 }

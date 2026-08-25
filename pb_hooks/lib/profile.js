@@ -281,8 +281,72 @@ function backfillOrders(app, userId, phone) {
 }
 
 /**
+ * Телефон из rawUser Яндекса (`login:default_phone` → `default_phone.number`).
+ * @param {any} oauth2User
+ * @returns {string} нормализованный +7… или ""
+ */
+function phoneFromYandexOAuth(oauth2User) {
+  if (!oauth2User) return ""
+  var raw = oauth2User.rawUser || oauth2User.RawUser || null
+  if (!raw || typeof raw !== "object") return ""
+  var dp = raw.default_phone
+  if (!dp) return ""
+  if (typeof dp === "string" || typeof dp === "number") {
+    return normalizePhone(dp)
+  }
+  if (typeof dp === "object") {
+    return normalizePhone(dp.number || dp.phone || "")
+  }
+  return ""
+}
+
+/**
+ * Пишет phone + customerId + бэкофилл заказов. Не меняет уже зафиксированный другой номер.
+ * @returns {{ phone: string, customerId: string, linkedOrders: number } | null}
+ */
+function bindPhoneToUser(app, user, phoneRaw) {
+  var phone = normalizePhone(phoneRaw)
+  if (!phone || !user) return null
+
+  var existing = normalizePhone(user.getString("phone"))
+  if (existing && existing !== phone) {
+    return null
+  }
+  if (existing === phone && user.getString("customerId")) {
+    return {
+      phone: phone,
+      customerId: user.getString("customerId"),
+      linkedOrders: 0,
+    }
+  }
+
+  var taken = findAppUserByPhone(app, phone, user.id)
+  if (taken) {
+    throw new BadRequestError("Этот телефон уже привязан к другому аккаунту")
+  }
+
+  var result = { phone: phone, customerId: "", linkedOrders: 0 }
+  app.runInTransaction(function (txApp) {
+    var fresh = txApp.findRecordById("app_users", user.id)
+    var customer = findCustomerByPhone(txApp, phone)
+    if (!customer) {
+      customer = createCustomer(txApp, phone)
+    }
+    fresh.set("phone", phone)
+    fresh.set("customerId", customer.id)
+    txApp.save(fresh)
+    result.customerId = customer.id
+    result.linkedOrders = backfillOrders(txApp, fresh.id, phone)
+    user.set("phone", phone)
+    user.set("customerId", customer.id)
+  })
+  return result
+}
+
+/**
  * POST /api/profile/link
  * body: { phone }
+ * Телефон фиксируется один раз — смена запрещена.
  */
 function handleLink(e) {
   var auth = requireAppUser(e)
@@ -292,40 +356,69 @@ function handleLink(e) {
     throw new BadRequestError("Укажите телефон в формате +7XXXXXXXXXX")
   }
 
-  var taken = findAppUserByPhone($app, phone, auth.id)
-  if (taken) {
-    throw new BadRequestError("Этот телефон уже привязан к другому аккаунту")
+  var user = $app.findRecordById("app_users", auth.id)
+  var existing = normalizePhone(user.getString("phone"))
+  if (existing && existing !== phone) {
+    throw new BadRequestError("Телефон уже зафиксирован и не меняется")
   }
 
-  var result = {
-    phone: phone,
-    customerId: "",
-    linkedOrders: 0,
+  var result = bindPhoneToUser($app, user, phone)
+  if (!result) {
+    throw new BadRequestError("Не удалось привязать телефон")
   }
-
-  $app.runInTransaction(function (txApp) {
-    var user = txApp.findRecordById("app_users", auth.id)
-
-    var customer = findCustomerByPhone(txApp, phone)
-    if (!customer) {
-      customer = createCustomer(txApp, phone)
-    }
-
-    user.set("phone", phone)
-    user.set("customerId", customer.id)
-    txApp.save(user)
-
-    result.customerId = customer.id
-    result.linkedOrders = backfillOrders(txApp, user.id, phone)
-  })
-
-  // Обновить authStore-совместимый снимок в ответе не нужно — клиент сам refetch.
   return e.json(200, result)
+}
+
+/** Яндекс OAuth: телефон из default_phone → app_users.phone (+ customers). */
+function handleYandexOAuthPhone(e) {
+  if (e.providerName !== "yandex") {
+    return e.next()
+  }
+
+  var phone = phoneFromYandexOAuth(e.oauth2User)
+  e.next()
+
+  if (!phone || !e.record) {
+    return
+  }
+  try {
+    bindPhoneToUser($app, e.record, phone)
+  } catch (err) {
+    var msg = err && err.message ? String(err.message) : String(err)
+    $app.logger().warn("yandex oauth phone bind skipped", "error", msg)
+  }
+}
+
+/** Клиент не может менять phone/birthday после первой записи. */
+function lockAppUserIdentityFields(e) {
+  if (e.hasSuperuserAuth && e.hasSuperuserAuth()) {
+    return e.next()
+  }
+  var orig = e.record.original()
+  var oldPhone = normalizePhone(orig.getString("phone"))
+  var newPhone = normalizePhone(e.record.getString("phone"))
+  if (oldPhone) {
+    if (newPhone && newPhone !== oldPhone) {
+      throw new BadRequestError("Телефон уже зафиксирован и не меняется")
+    }
+    e.record.set("phone", oldPhone)
+  }
+
+  var oldBirthday = orig.getString("birthday") || ""
+  if (oldBirthday) {
+    e.record.set("birthday", oldBirthday)
+  }
+
+  return e.next()
 }
 
 module.exports = {
   CACHE_TTL_MS: CACHE_TTL_MS,
   normalizePhone: normalizePhone,
+  phoneFromYandexOAuth: phoneFromYandexOAuth,
+  bindPhoneToUser: bindPhoneToUser,
   handleBonus: handleBonus,
   handleLink: handleLink,
+  handleYandexOAuthPhone: handleYandexOAuthPhone,
+  lockAppUserIdentityFields: lockAppUserIdentityFields,
 }

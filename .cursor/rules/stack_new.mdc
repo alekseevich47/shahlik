@@ -375,7 +375,7 @@ Env процесса `pocketbase`:
 `https://shashlik.loomixx.ru/api/auth/vk/callback`
 (не `/api/oauth2-redirect` — тот только для Яндекса / legacy PB).
 
-Клиент: кнопка «VK ID» → `loginWithVkId()` (full-page redirect); «Яндекс ID» → `authWithOAuth2({ provider: "yandex" })`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап-флоу Яндекса. «Выйти из аккаунта» чистит `shashlik:client:auth` и ведёт на `/`.
+Клиент: кнопка «VK ID» → `loginWithVkId()` (full-page redirect); «Яндекс ID» → `authWithOAuth2({ provider: "yandex", scopes: login:email|avatar|info|default_phone })`. Хук `onRecordAuthWithOAuth2Request` пишет `default_phone` в `app_users.phone` и линкует `customers`. Телефон (как день рождения) после первой записи не меняется — UI disabled + `onRecordUpdateRequest` / `POST /api/profile/link`. В кабинете Яндекса включить право `login:default_phone`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап-флоу Яндекса. «Выйти из аккаунта» чистит `shashlik:client:auth` и ведёт на `/`.
 
 `useAccount()` / `getAccount()` кэширует снапшот: `useSyncExternalStore` не терпит новый объект на каждый вызов (React #185, белый экран после логина).
 

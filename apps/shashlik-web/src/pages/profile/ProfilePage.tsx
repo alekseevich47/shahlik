@@ -222,6 +222,7 @@ function DataTab() {
   const [phone, setPhone] = useState(user?.phone ?? "")
   const [birthday, setBirthday] = useState(user?.birthday?.slice(0, 10) ?? "")
   const [pending, setPending] = useState(false)
+  const phoneLocked = Boolean(user?.phone)
   const birthdayLocked = Boolean(user?.birthday)
 
   useEffect(() => {
@@ -240,10 +241,10 @@ function DataTab() {
       await updateAccount({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: nextPhone,
+        ...(phoneLocked ? {} : { phone: nextPhone }),
         ...(birthdayLocked || !birthday.trim() ? {} : { birthday: birthday.trim() }),
       })
-      if (nextPhone && nextPhone !== user.phone) {
+      if (!phoneLocked && nextPhone && nextPhone !== user.phone) {
         await linkPhone(nextPhone)
       }
       toast.success("Данные сохранены")
@@ -264,13 +265,21 @@ function DataTab() {
           <Input value={lastName} onChange={(e) => setLastName(e.target.value)} maxLength={50} />
         </Field>
       </div>
-      <Field label="Телефон" hint="Нужен для бонусов и привязки заказов">
+      <Field
+        label="Телефон"
+        hint={
+          phoneLocked
+            ? "Зафиксирован при входе и больше не меняется"
+            : "Нужен для бонусов и привязки заказов"
+        }
+      >
         <Input
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="+7…"
           autoComplete="tel"
+          disabled={phoneLocked}
         />
       </Field>
       <Field

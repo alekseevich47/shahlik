@@ -20,3 +20,19 @@ routerAdd(
   },
   $apis.requireAuth("app_users"),
 )
+
+onRecordAuthWithOAuth2Request(
+  function (e) {
+    var profile = require(__hooks + "/lib/profile.js")
+    return profile.handleYandexOAuthPhone(e)
+  },
+  "app_users",
+)
+
+onRecordUpdateRequest(
+  function (e) {
+    var profile = require(__hooks + "/lib/profile.js")
+    return profile.lockAppUserIdentityFields(e)
+  },
+  "app_users",
+)
