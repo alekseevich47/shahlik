@@ -285,7 +285,7 @@ Env процесса `pocketbase`:
 | `FRONTPAD_API_URL` | необязательно, по умолчанию `https://app.frontpad.ru/api/index.php` |
 | `FRONTPAD_CRON` | `0` отключает все `cronAdd`. Держать **включённым**: без cron не работает бэкофф и авто-синхронизация |
 | `SITE_URL` | необязательно; публичный origin витрины для редиректов VK ID (дефолт `https://shashlik.loomixx.ru`) |
-| `VK_OAUTH_COOKIE_KEY` | необязательно; ключ шифрования cookie PKCE-state (≥16). Иначе берётся `FRONTPAD_HOOK_TOKEN` |
+| `VK_OAUTH_COOKIE_KEY` | необязательно; ключ шифрования sealed `state` PKCE (≥16). Иначе берётся `FRONTPAD_HOOK_TOKEN` |
 
 В git и в бандл env не попадают.
 
@@ -366,10 +366,10 @@ Env процесса `pocketbase`:
 
 | Роут | Роль |
 |---|---|
-| `GET /api/auth/vk/start` | PKCE + cookie state → редирект на `id.vk.ru/authorize` |
+| `GET /api/auth/vk/start` | PKCE + sealed `state` → редирект на `id.vk.ru/authorize` |
 | `GET /api/auth/vk/callback` | `code` + `device_id` (+ `payload`) → обмен токена → `app_users` → редирект `/auth/callback?token=` |
 
-Файлы: `pb_hooks/vkid.pb.js`, `pb_hooks/lib/vkid.js`. Client id/secret читаются из OAuth2-провайдера `vk` в коллекции `app_users` (как в `/_/`). Cookie state шифруется ключом `FRONTPAD_HOOK_TOKEN` или `VK_OAUTH_COOKIE_KEY`. Публичный origin — `SITE_URL` (иначе `https://shashlik.loomixx.ru`).
+Файлы: `pb_hooks/vkid.pb.js`, `pb_hooks/lib/vkid.js`. Client id/secret читаются из OAuth2-провайдера `vk` в коллекции `app_users` (как в `/_/`). PKCE verifier в зашифрованном OAuth `state` (без cookie; ключ `FRONTPAD_HOOK_TOKEN` или `VK_OAUTH_COOKIE_KEY`). Публичный origin — `SITE_URL` (иначе `https://shashlik.loomixx.ru`).
 
 В кабинете VK ID в **Trusted redirect URI** должен быть ровно:
 `https://shashlik.loomixx.ru/api/auth/vk/callback`

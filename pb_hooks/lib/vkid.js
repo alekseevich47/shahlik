@@ -1,15 +1,17 @@
 /**
  * VK ID (id.vk.ru) — OAuth 2.1 + PKCE + device_id.
  * Встроенный провайдер PocketBase `vk` — legacy oauth.vk.com, с VK ID не совместим.
+ *
+ * PKCE verifier кладём в зашифрованный `state` (VK его возвращает как есть).
+ * Cookie между доменами часто теряется → «Сессия VK ID истекла».
  */
 
-var COOKIE_NAME = "shashlik_vk_oauth"
-var COOKIE_MAX_AGE = 600
 var PROVIDER = "vk"
 var COLLECTION = "app_users"
 var AUTH_URL = "https://id.vk.ru/authorize"
 var TOKEN_URL = "https://id.vk.ru/oauth2/auth"
 var USER_INFO_URL = "https://id.vk.ru/oauth2/user_info"
+var STATE_TTL_MS = 10 * 60 * 1000
 var PKCE_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
 var B64URL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -26,7 +28,7 @@ function callbackUrl() {
   return siteOrigin() + "/api/auth/vk/callback"
 }
 
-function cookieKey() {
+function cryptoKey() {
   var raw =
     $os.getenv("VK_OAUTH_COOKIE_KEY") ||
     $os.getenv("FRONTPAD_HOOK_TOKEN") ||
@@ -89,8 +91,49 @@ function bytesToBase64Url(bytes) {
   return out
 }
 
+function toBase64Url(raw) {
+  return String(raw)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "")
+}
+
+function fromBase64Url(raw) {
+  var b64 = String(raw).replace(/-/g, "+").replace(/_/g, "/")
+  while (b64.length % 4) {
+    b64 += "="
+  }
+  return b64
+}
+
 function pkceChallenge(verifier) {
   return bytesToBase64Url(hexToBytes($security.sha256(verifier)))
+}
+
+/** state для VK: только [A-Za-z0-9_-], длина ≥ 32. */
+function sealState(payload) {
+  var enc = $security.encrypt(JSON.stringify(payload), cryptoKey())
+  return toBase64Url(enc)
+}
+
+function unsealState(state) {
+  if (!state || String(state).length < 32) {
+    throw new BadRequestError("Пустой или короткий state от VK ID")
+  }
+  try {
+    var json = $security.decrypt(fromBase64Url(state), cryptoKey())
+    var data = JSON.parse(json)
+    if (!data || !data.verifier) {
+      throw new Error("no verifier")
+    }
+    if (data.exp && Date.now() > Number(data.exp)) {
+      throw new BadRequestError("Сессия VK ID истекла — начните вход снова")
+    }
+    return data
+  } catch (err) {
+    if (err instanceof BadRequestError) throw err
+    throw new BadRequestError("Не удалось проверить state VK ID — начните вход снова")
+  }
 }
 
 function formEncode(params) {
@@ -102,47 +145,6 @@ function formEncode(params) {
     parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(String(value)))
   }
   return parts.join("&")
-}
-
-function setOauthCookie(e, payload) {
-  var raw = $security.encrypt(JSON.stringify(payload), cookieKey())
-  // sameSite: 3 = Lax (см. net/http SameSiteLaxMode)
-  e.setCookie(
-    new Cookie({
-      name: COOKIE_NAME,
-      value: raw,
-      path: "/",
-      maxAge: COOKIE_MAX_AGE,
-      httpOnly: true,
-      secure: true,
-      sameSite: 3,
-    }),
-  )
-}
-
-function clearOauthCookie(e) {
-  e.setCookie(
-    new Cookie({
-      name: COOKIE_NAME,
-      value: "",
-      path: "/",
-      maxAge: -1,
-      httpOnly: true,
-      secure: true,
-      sameSite: 3,
-    }),
-  )
-}
-
-function readOauthCookie(e) {
-  var info = e.requestInfo()
-  var cookies = (info && info.cookies) || {}
-  var raw = cookies[COOKIE_NAME]
-  if (!raw) {
-    throw new BadRequestError("Сессия VK ID истекла — начните вход снова")
-  }
-  var json = $security.decrypt(String(raw), cookieKey())
-  return JSON.parse(json)
 }
 
 function queryValue(query, key) {
@@ -279,7 +281,6 @@ function linkExternal(authRecord, providerId) {
 }
 
 function redirectError(e, message) {
-  clearOauthCookie(e)
   var url =
     siteOrigin() +
     "/profile?auth_error=" +
@@ -291,15 +292,12 @@ function handleStart(e) {
   try {
     var creds = getVkCredentials()
     var verifier = $security.randomStringWithAlphabet(64, PKCE_ALPHABET)
-    var state = $security.randomStringWithAlphabet(32, PKCE_ALPHABET)
-    var challenge = pkceChallenge(verifier)
     var redirectUri = callbackUrl()
-
-    setOauthCookie(e, {
-      state: state,
+    var challenge = pkceChallenge(verifier)
+    var state = sealState({
       verifier: verifier,
       redirectUri: redirectUri,
-      createdAt: Date.now(),
+      exp: Date.now() + STATE_TTL_MS,
     })
 
     var url =
@@ -350,13 +348,9 @@ function handleCallbackInner(e) {
 
   var stored
   try {
-    stored = readOauthCookie(e)
+    stored = unsealState(params.state)
   } catch (err) {
     return redirectError(e, String(err.message || err))
-  }
-
-  if (stored.state !== params.state) {
-    return redirectError(e, "Не совпал state — начните вход снова")
   }
 
   var creds = getVkCredentials()
@@ -414,8 +408,6 @@ function handleCallbackInner(e) {
   if (record.getBool("blocked")) {
     return redirectError(e, "Аккаунт заблокирован")
   }
-
-  clearOauthCookie(e)
 
   var token = record.newAuthToken()
   var finish =
