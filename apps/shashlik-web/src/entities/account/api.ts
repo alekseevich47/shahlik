@@ -74,15 +74,35 @@ export function isAppUserRecord(record: RecordModel | null): boolean {
   return record?.collectionName === COLLECTION
 }
 
-export function getAccount(): AppUser | null {
-  if (!pbClient.authStore.isValid) return null
+/** Кэш снапшота: useSyncExternalStore требует стабильную ссылку, иначе React #185. */
+let accountSnapshot: AppUser | null = null
+let accountSnapshotKey = ""
+
+function accountCacheKey(): string {
+  if (!pbClient.authStore.isValid) return ""
   const record = pbClient.authStore.record
-  if (!record || !isAppUserRecord(record)) return null
-  return mapAppUser(record)
+  if (!record || !isAppUserRecord(record)) return ""
+  return `${pbClient.authStore.token}:${record.id}:${String(record.updated ?? "")}`
+}
+
+export function getAccount(): AppUser | null {
+  const key = accountCacheKey()
+  if (key === accountSnapshotKey) return accountSnapshot
+  accountSnapshotKey = key
+  if (!key) {
+    accountSnapshot = null
+    return null
+  }
+  const record = pbClient.authStore.record
+  accountSnapshot = record && isAppUserRecord(record) ? mapAppUser(record) : null
+  return accountSnapshot
 }
 
 function subscribeAccount(onStoreChange: () => void) {
-  return pbClient.authStore.onChange(() => onStoreChange())
+  return pbClient.authStore.onChange(() => {
+    accountSnapshotKey = ""
+    onStoreChange()
+  })
 }
 
 export function useAccount(): AppUser | null {
