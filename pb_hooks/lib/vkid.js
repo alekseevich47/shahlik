@@ -27,33 +27,41 @@ function callbackUrl() {
 }
 
 function cookieKey() {
-  var key =
+  var raw =
     $os.getenv("VK_OAUTH_COOKIE_KEY") ||
     $os.getenv("FRONTPAD_HOOK_TOKEN") ||
     ""
-  if (!key || String(key).length < 16) {
-    throw new Error(
+  if (!raw || String(raw).length < 16) {
+    throw new BadRequestError(
       "Задайте FRONTPAD_HOOK_TOKEN или VK_OAUTH_COOKIE_KEY (≥16 символов) для VK ID",
     )
   }
-  return String(key)
+  // AES-256-GCM в $security.encrypt требует ровно 32 символа.
+  return $security.sha256(String(raw)).substring(0, 32)
 }
 
 function getVkCredentials() {
   var col = $app.findCollectionByNameOrId(COLLECTION)
   var oauth2 = col.oauth2
-  var providers = oauth2 && oauth2.providers ? oauth2.providers : []
+  if (!oauth2) {
+    throw new BadRequestError("У app_users не включён OAuth2")
+  }
+  var providers = oauth2.providers || []
   for (var i = 0; i < providers.length; i++) {
     var p = providers[i]
-    if (p && p.name === PROVIDER && p.clientId) {
+    if (!p) continue
+    var name = p.name || p.Name || ""
+    var clientId = p.clientId || p.ClientId || ""
+    var clientSecret = p.clientSecret || p.ClientSecret || ""
+    if (name === PROVIDER && clientId) {
       return {
-        clientId: String(p.clientId),
-        clientSecret: p.clientSecret ? String(p.clientSecret) : "",
+        clientId: String(clientId),
+        clientSecret: clientSecret ? String(clientSecret) : "",
       }
     }
   }
-  throw new Error(
-    "В коллекции app_users не настроен OAuth2-провайдер vk (clientId/secret)",
+  throw new BadRequestError(
+    "В app_users нет OAuth2-провайдера vk с clientId (/_/ → коллекция → Options → OAuth2)",
   )
 }
 
@@ -98,6 +106,7 @@ function formEncode(params) {
 
 function setOauthCookie(e, payload) {
   var raw = $security.encrypt(JSON.stringify(payload), cookieKey())
+  // sameSite: 3 = Lax (см. net/http SameSiteLaxMode)
   e.setCookie(
     new Cookie({
       name: COOKIE_NAME,
@@ -106,7 +115,7 @@ function setOauthCookie(e, payload) {
       maxAge: COOKIE_MAX_AGE,
       httpOnly: true,
       secure: true,
-      sameSite: "Lax",
+      sameSite: 3,
     }),
   )
 }
@@ -120,7 +129,7 @@ function clearOauthCookie(e) {
       maxAge: -1,
       httpOnly: true,
       secure: true,
-      sameSite: "Lax",
+      sameSite: 3,
     }),
   )
 }
@@ -279,39 +288,55 @@ function redirectError(e, message) {
 }
 
 function handleStart(e) {
-  var creds = getVkCredentials()
-  var verifier = $security.randomStringWithAlphabet(64, PKCE_ALPHABET)
-  var state = $security.randomStringWithAlphabet(32, PKCE_ALPHABET)
-  var challenge = pkceChallenge(verifier)
-  var redirectUri = callbackUrl()
+  try {
+    var creds = getVkCredentials()
+    var verifier = $security.randomStringWithAlphabet(64, PKCE_ALPHABET)
+    var state = $security.randomStringWithAlphabet(32, PKCE_ALPHABET)
+    var challenge = pkceChallenge(verifier)
+    var redirectUri = callbackUrl()
 
-  setOauthCookie(e, {
-    state: state,
-    verifier: verifier,
-    redirectUri: redirectUri,
-    createdAt: Date.now(),
-  })
+    setOauthCookie(e, {
+      state: state,
+      verifier: verifier,
+      redirectUri: redirectUri,
+      createdAt: Date.now(),
+    })
 
-  var url =
-    AUTH_URL +
-    "?response_type=code" +
-    "&client_id=" +
-    encodeURIComponent(creds.clientId) +
-    "&redirect_uri=" +
-    encodeURIComponent(redirectUri) +
-    "&state=" +
-    encodeURIComponent(state) +
-    "&code_challenge=" +
-    encodeURIComponent(challenge) +
-    "&code_challenge_method=S256" +
-    "&scope=" +
-    encodeURIComponent("email") +
-    "&lang_id=0"
+    var url =
+      AUTH_URL +
+      "?response_type=code" +
+      "&client_id=" +
+      encodeURIComponent(creds.clientId) +
+      "&redirect_uri=" +
+      encodeURIComponent(redirectUri) +
+      "&state=" +
+      encodeURIComponent(state) +
+      "&code_challenge=" +
+      encodeURIComponent(challenge) +
+      "&code_challenge_method=S256" +
+      "&scope=" +
+      encodeURIComponent("email") +
+      "&lang_id=0"
 
-  return e.redirect(302, url)
+    return e.redirect(302, url)
+  } catch (err) {
+    var msg = err && err.message ? String(err.message) : String(err)
+    $app.logger().error("vkid start failed", "error", msg)
+    throw new BadRequestError(msg)
+  }
 }
 
 function handleCallback(e) {
+  try {
+    return handleCallbackInner(e)
+  } catch (err) {
+    var msg = err && err.message ? String(err.message) : String(err)
+    $app.logger().error("vkid callback failed", "error", msg)
+    return redirectError(e, msg)
+  }
+}
+
+function handleCallbackInner(e) {
   var params = parseCallbackParams(e)
   if (params.error) {
     return redirectError(
