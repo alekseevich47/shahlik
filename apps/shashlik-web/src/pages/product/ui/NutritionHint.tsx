@@ -1,24 +1,73 @@
+import { useEffect, useRef, useState } from "react"
+
 import type { ProductNutrition } from "@/entities/product/model"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip"
+import { useMediaQuery } from "@/shared/hooks/useMediaQuery"
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
 
 function formatGrams(value: number): string {
   return Number.isInteger(value) ? `${value}` : value.toFixed(1).replace(".", ",")
 }
 
-/** Иконка kcal справа от названия (~0.92lh заголовка) — пищевая ценность на 100 г. */
+/** Иконка kcal: hover (ПК) и click/тач (мобилки) → пищевая ценность на 100 г. */
 export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
+  const [open, setOpen] = useState(false)
+  const canHover = useMediaQuery("(hover: hover) and (pointer: fine)")
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (leaveTimer.current) clearTimeout(leaveTimer.current)
+    }
+  }, [])
+
+  const cancelLeave = () => {
+    if (leaveTimer.current) {
+      clearTimeout(leaveTimer.current)
+      leaveTimer.current = null
+    }
+  }
+
+  const scheduleLeave = () => {
+    if (!canHover) return
+    cancelLeave()
+    leaveTimer.current = setTimeout(() => setOpen(false), 120)
+  }
+
+  const onHoverEnter = () => {
+    if (!canHover) return
+    cancelLeave()
+    setOpen(true)
+  }
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
           type="button"
           aria-label="Пищевая ценность на 100 г"
-          className="nutrition-hint group/kcal relative ml-[0.16em] inline-flex shrink-0 cursor-help items-center justify-center"
+          aria-expanded={open}
+          className="nutrition-hint group/kcal relative ml-[0.16em] inline-flex shrink-0 cursor-pointer items-center justify-center"
+          onPointerEnter={onHoverEnter}
+          onPointerLeave={scheduleLeave}
         >
-          <span className="nutrition-hint-glyph bg-fg-muted group-hover/kcal:bg-brand group-hover/kcal:scale-[1.06]" />
+          <span
+            className={
+              open
+                ? "nutrition-hint-glyph bg-brand scale-[1.06]"
+                : "nutrition-hint-glyph bg-fg-muted group-hover/kcal:bg-brand group-hover/kcal:scale-[1.06]"
+            }
+          />
         </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" align="start" className="max-w-none min-w-52 p-3">
+      </PopoverTrigger>
+      <PopoverContent
+        side="bottom"
+        align="start"
+        className="max-w-none min-w-52 p-3"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onPointerEnter={onHoverEnter}
+        onPointerLeave={scheduleLeave}
+      >
         <p className="mb-2 text-[11px] font-extrabold tracking-[0.04em] text-fg">
           Пищевая ценность на 100 г
         </p>
@@ -28,8 +77,8 @@ export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
           <NutRow label="Белки" value={`${formatGrams(nutrition.protein)} г`} />
           <NutRow label="Углеводы" value={`${formatGrams(nutrition.carbs)} г`} />
         </ul>
-      </TooltipContent>
-    </Tooltip>
+      </PopoverContent>
+    </Popover>
   )
 }
 

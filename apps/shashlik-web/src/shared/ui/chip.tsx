@@ -26,8 +26,8 @@ export function Chip({ className, active = false, ...props }: ChipProps) {
 type OptionCardProps = ComponentProps<"button"> & { active?: boolean }
 
 /**
- * Крупная кнопка выбора на странице товара (вариант мяса / размер).
- * Активное состояние использует product-accent → лайм в тёмной теме.
+ * Тумблер выбора на PDP (вариант мяса / размер), без обводки.
+ * Активное — product-accent (оранж light / лайм dark).
  */
 export function OptionCard({ className, active = false, ...props }: OptionCardProps) {
   return (
@@ -35,12 +35,12 @@ export function OptionCard({ className, active = false, ...props }: OptionCardPr
       type="button"
       data-active={active || undefined}
       className={cn(
-        "flex min-h-13 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--r-md)] px-4 py-2.5",
-        "text-[14px] font-bold transition-all duration-200",
+        "flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-[var(--r-md)] px-3 py-1.5",
+        "text-[13px] font-bold transition-all duration-200",
         active
-          ? "border border-product-accent-border bg-product-accent-soft text-product-accent"
-          : "border border-line bg-surface text-fg-soft hover:border-line-strong",
-        "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-line",
+          ? "bg-product-accent-soft text-product-accent"
+          : "bg-surface-3 text-fg-muted hover:text-fg",
+        "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:text-fg-muted",
         className,
       )}
       {...props}

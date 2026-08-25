@@ -101,20 +101,33 @@ export function ProductView({ onClose, className }: ProductViewProps) {
 
   return (
     <div className={cn("bg-canvas", className)}>
-      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,620px)] lg:items-start xl:grid-cols-[minmax(0,1fr)_700px]">
-        <section className="relative overflow-hidden bg-surface-3 lg:rounded-[var(--r-2xl)]">
-          <div className="relative w-full" style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}>
+      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px] dark:lg:items-start">
+        <section className="relative overflow-hidden bg-surface lg:rounded-[var(--r-2xl)] dark:bg-surface-3">
+          <div
+            className={cn(
+              "relative flex w-full items-center justify-center",
+              /* mobile + dark: канон 3∶2 */
+              "max-lg:[aspect-ratio:var(--product-ar)] dark:lg:[aspect-ratio:var(--product-ar)]",
+              /* light desktop: высота = правая колонка, фото по центру */
+              "lg:h-full lg:min-h-[280px] dark:lg:h-auto dark:lg:min-h-0",
+            )}
+            style={{ ["--product-ar" as string]: PRODUCT_ASPECT_RATIO }}
+          >
             <img
               src={product.image}
               alt={product.name}
-              className="size-full object-cover"
+              className={cn(
+                "max-h-full max-w-full object-contain",
+                "dark:size-full dark:object-cover",
+                "max-lg:size-full max-lg:object-cover",
+              )}
             />
-            <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.35))] lg:hidden" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.35))] lg:hidden dark:lg:block" />
 
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 left-4 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
+              className="absolute top-4 left-4 z-10 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
             >
               <ArrowLeft size={16} strokeWidth={2.6} />
               Назад
@@ -127,21 +140,22 @@ export function ProductView({ onClose, className }: ProductViewProps) {
               aria-pressed={liked}
               className={cn(
                 "absolute top-4 right-4 z-10 grid size-10 cursor-pointer place-items-center",
-                "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)] transition-colors duration-200",
+                "text-fg drop-shadow-[0_1px_3px_rgba(0,0,0,0.25)] transition-colors duration-200 dark:text-white dark:drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]",
+                "max-lg:text-white max-lg:drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]",
                 liked ? "text-red" : "hover:text-red",
               )}
             >
               <Heart size={22} strokeWidth={2.1} fill={liked ? "currentColor" : "none"} />
             </button>
 
-            <div className="absolute inset-x-4 bottom-4 flex flex-col gap-2.5">
+            <div className="absolute bottom-4 left-4 z-10 flex max-w-[min(100%-2rem,420px)] flex-col gap-2.5">
               <RatingOverlay
                 overall={product.rating.overall}
                 votes={product.rating.votes}
                 criteria={product.rating.criteria}
               />
               {product.composition ? (
-                <div className="max-w-[420px] rounded-[var(--r-lg)] border border-line bg-surface/94 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md">
+                <div className="rounded-[var(--r-lg)] border border-line bg-surface/94 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md">
                   <div className="mb-1.5 flex items-center gap-1.5">
                     <span className="text-[14px] font-extrabold text-fg">Состав</span>
                     <Leaf size={14} className="text-success" strokeWidth={2.3} />
@@ -155,7 +169,10 @@ export function ProductView({ onClose, className }: ProductViewProps) {
           </div>
         </section>
 
-        <section className="flex flex-col gap-5 border border-line bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6 lg:rounded-[var(--r-2xl)]">
+        <section className="relative flex flex-col overflow-hidden border border-line bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6 lg:rounded-[var(--r-2xl)]">
+          <FreshStamp className="pointer-events-none absolute top-3 right-3 z-0 hidden opacity-30 sm:block" size={96} />
+
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-5">
           <header className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -173,8 +190,6 @@ export function ProductView({ onClose, className }: ProductViewProps) {
                 {product.tagline}
               </p>
             </div>
-
-            <FreshStamp className="hidden sm:block" />
 
             <button
               type="button"
@@ -206,7 +221,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
           {product.variants.length > 1 ? (
             <div>
               <GroupLabel>Выберите вариант</GroupLabel>
-              <div className="flex gap-2.5">
+              <div className="flex gap-2">
                 {product.variants.map((v) => {
                   const unavailable = isVariantStopped(product, v.id, stopped)
                   return (
@@ -228,7 +243,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
           {product.sizes.length > 1 ? (
             <div>
               <GroupLabel>Размер</GroupLabel>
-              <div className="flex gap-2.5">
+              <div className="flex gap-2">
                 {product.sizes.map((s) => {
                   const unavailable = isSizeStopped(product, s.id, variant?.id, stopped)
                   return (
@@ -239,8 +254,8 @@ export function ProductView({ onClose, className }: ProductViewProps) {
                       onClick={() => setSizeId(s.id)}
                       className="flex-col gap-0.5"
                     >
-                      <span className="text-[14px] font-extrabold">{s.label}</span>
-                      <span className="text-[12px] font-bold opacity-80 tabular-nums">
+                      <span className="text-[13px] font-extrabold">{s.label}</span>
+                      <span className="text-[11px] font-bold opacity-80 tabular-nums">
                         {formatPrice(priceOf(s, variant))}
                       </span>
                     </OptionCard>
@@ -253,7 +268,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <GroupLabel>Соусы</GroupLabel>
-              <ul className="flex flex-col gap-1.5">
+              <ul className="flex flex-col">
                 {visibleSauces.slice(0, 4).map((addon) => (
                   <AddonRow
                     key={addon.id}
@@ -266,7 +281,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
             </div>
             <div>
               <GroupLabel>Добавки</GroupLabel>
-              <ul className="flex flex-col gap-1.5">
+              <ul className="flex flex-col">
                 {visibleExtras.slice(0, 4).map((addon) => (
                   <AddonRow
                     key={addon.id}
@@ -290,6 +305,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
             >
               {skuStopped ? "Нет в наличии" : `В корзину • ${formatPrice(total)}`}
             </Button>
+          </div>
           </div>
         </section>
       </div>
@@ -360,8 +376,8 @@ export function ProductModal() {
 }
 
 function MeatGlyph({ icon }: { icon: MeatIcon }) {
-  if (icon === "chicken") return <Drumstick size={18} strokeWidth={1.9} />
-  if (icon === "pork") return <Ham size={18} strokeWidth={1.9} />
+  if (icon === "chicken") return <Drumstick size={15} strokeWidth={1.9} />
+  if (icon === "pork") return <Ham size={15} strokeWidth={1.9} />
   return null
 }
 

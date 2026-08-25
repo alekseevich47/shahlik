@@ -8,13 +8,13 @@ type StepperProps = {
   min?: number
   max?: number
   size?: "sm" | "md" | "lg"
-  tone?: "outline" | "ghost"
+  tone?: "outline" | "ghost" | "solid"
   className?: string
   ariaLabel?: string
 }
 
 const SIZES = {
-  sm: { box: "h-7 gap-0.5 px-0.5 rounded-[var(--r-xs)]", btn: "size-6", txt: "text-[12px] min-w-5", ico: 13 },
+  sm: { box: "h-8 gap-0.5 px-0.5 rounded-[var(--r-xs)]", btn: "size-6", txt: "text-[12px] min-w-5", ico: 13 },
   md: { box: "h-9 gap-1 px-1 rounded-[var(--r-sm)]", btn: "size-7", txt: "text-[13px] min-w-6", ico: 15 },
   lg: { box: "h-12 gap-1.5 px-1.5 rounded-[var(--r-md)]", btn: "size-9", txt: "text-[15px] min-w-8", ico: 17 },
 } as const
@@ -31,6 +31,7 @@ export function Stepper({
   ariaLabel = "Количество",
 }: StepperProps) {
   const s = SIZES[size]
+  const solid = tone === "solid"
   return (
     <div
       role="group"
@@ -38,7 +39,9 @@ export function Stepper({
       className={cn(
         "inline-flex items-center justify-between",
         s.box,
-        tone === "outline" ? "border border-line bg-surface" : "bg-surface-3",
+        tone === "outline" && "border border-line bg-surface",
+        tone === "ghost" && "bg-surface-3",
+        solid && "bg-fg text-on-brand",
         className,
       )}
     >
@@ -47,10 +50,17 @@ export function Stepper({
         disabled={value <= min}
         onClick={() => onChange(value - 1)}
         label="Уменьшить"
+        solid={solid}
       >
         <Minus size={s.ico} strokeWidth={2.6} />
       </StepBtn>
-      <span className={cn("text-center font-extrabold text-fg tabular-nums", s.txt)}>
+      <span
+        className={cn(
+          "text-center font-extrabold tabular-nums",
+          s.txt,
+          solid ? "text-on-brand" : "text-fg",
+        )}
+      >
         {value}
       </span>
       <StepBtn
@@ -58,6 +68,7 @@ export function Stepper({
         disabled={value >= max}
         onClick={() => onChange(value + 1)}
         label="Увеличить"
+        solid={solid}
       >
         <Plus size={s.ico} strokeWidth={2.6} />
       </StepBtn>
@@ -71,12 +82,14 @@ function StepBtn({
   disabled,
   onClick,
   label,
+  solid = false,
 }: {
   children: React.ReactNode
   className?: string
   disabled?: boolean
   onClick: () => void
   label: string
+  solid?: boolean
 }) {
   return (
     <button
@@ -85,8 +98,11 @@ function StepBtn({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "grid cursor-pointer place-items-center rounded-[var(--r-xs)] text-fg-muted",
-        "transition-colors hover:bg-surface-3 hover:text-fg",
+        "grid cursor-pointer place-items-center rounded-[var(--r-xs)]",
+        "transition-colors",
+        solid
+          ? "text-on-brand/80 hover:bg-white/10 hover:text-on-brand"
+          : "text-fg-muted hover:bg-surface-3 hover:text-fg",
         "disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent",
         className,
       )}

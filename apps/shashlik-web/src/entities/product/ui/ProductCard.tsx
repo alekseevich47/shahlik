@@ -26,7 +26,7 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
   const { data: badges = [] } = useBadges()
   const { data: stopped = new Set<string>() } = useStoppedArticles()
   const label = badgeLabel(product.badge, badges)
-  const hasMeta = product.variants.length > 0 || product.sizes.length > 0
+  const hasVariants = product.variants.length > 0
   const outOfStock = isProductStopped(product, stopped)
 
   return (
@@ -57,65 +57,64 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
         ) : null}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2.5 p-3.5">
-        <Link
-          to={`/product/${product.slug}`}
-          state={productState}
-          className="line-clamp-2 min-h-[2lh] text-[17px] leading-tight font-extrabold tracking-[-0.01em] text-fg transition-colors hover:text-brand"
-        >
-          {product.name}
-          {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
-        </Link>
+      <div className="flex flex-1 flex-col gap-2 p-3.5">
+        <div className="flex flex-col gap-1">
+          <Link
+            to={`/product/${product.slug}`}
+            state={productState}
+            className="line-clamp-2 min-h-[2lh] text-[20px] leading-tight font-extrabold tracking-[-0.01em] text-fg transition-colors hover:text-brand"
+          >
+            {product.name}
+            {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
+          </Link>
 
-        {hasMeta ? (
-          <div className="flex flex-wrap gap-1.5">
-            {product.variants.map((variant) => (
-              <Badge key={variant.id} size="sm">
-                {variant.label}
-              </Badge>
-            ))}
-            {product.sizes.map((size) => (
-              <Badge key={size.id} size="sm">
-                {size.label}
-              </Badge>
-            ))}
+          {hasVariants ? (
+            <div className="flex flex-wrap gap-1.5">
+              {product.variants.map((variant) => (
+                <Badge key={variant.id} size="sm">
+                  {variant.label}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-auto flex flex-col gap-1">
+          {product.composition ? (
+            <p className="line-clamp-3 h-[3lh] text-[11.5px] leading-[1.5] text-fg-muted">
+              {product.composition}
+            </p>
+          ) : null}
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <Star size={15} className="text-brand dark:text-fg" strokeWidth={2.4} />
+              <span className="text-[14px] font-extrabold text-brand tabular-nums dark:text-fg">
+                {product.rating.overall}/10
+              </span>
+            </div>
+
+            <ul className="flex flex-col gap-[3px]">
+              {product.rating.criteria.map((criterion) => (
+                <li key={criterion.id} className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate text-[11px] font-medium text-fg-muted">
+                    {criterion.label}
+                  </span>
+                  <span
+                    className="shrink-0 text-[11px] font-extrabold tabular-nums"
+                    style={{ color: scoreColor(criterion.value * 2, 10) }}
+                  >
+                    {Number((criterion.value * 2).toFixed(1))}/10
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : null}
-
-        {product.composition ? (
-          <p className="line-clamp-3 h-[3lh] text-[11.5px] leading-[1.5] text-fg-muted">
-            {product.composition}
-          </p>
-        ) : null}
-
-        <div className="mt-auto flex flex-col gap-1.5 pt-1">
-          <div className="flex items-center gap-1.5">
-            <Star size={15} className="text-brand dark:text-fg" strokeWidth={2.4} />
-            <span className="text-[14px] font-extrabold text-brand tabular-nums dark:text-fg">
-              {product.rating.overall}/10
-            </span>
-          </div>
-
-          <ul className="flex flex-col gap-[3px]">
-            {product.rating.criteria.map((criterion) => (
-              <li key={criterion.id} className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate text-[11px] font-medium text-fg-muted">
-                  {criterion.label}
-                </span>
-                <span
-                  className="shrink-0 text-[11px] font-extrabold tabular-nums"
-                  style={{ color: scoreColor(criterion.value * 2, 10) }}
-                >
-                  {Number((criterion.value * 2).toFixed(1))}/10
-                </span>
-              </li>
-            ))}
-          </ul>
         </div>
 
         <div className="mt-1.5 flex items-center justify-between gap-2">
-          <span className="text-[19px] leading-none font-extrabold text-fg tabular-nums">
-            {formatPrice(minPrice(product))}
+          <span className="text-[22px] leading-none font-extrabold text-fg tabular-nums">
+            от {formatPrice(minPrice(product))}
           </span>
           <div className="product-card-add">
             <div>

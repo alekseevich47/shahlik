@@ -27,7 +27,7 @@ alwaysApply: false
 | Runtime | React 19 + React DOM 19 |
 | Сборка | Vite 8, `@vitejs/plugin-react`, TypeScript (strict, `verbatimModuleSyntax`) |
 | Стили | Tailwind CSS v4 через `@tailwindcss/vite`. **Нет** `tailwind.config` / PostCSS. Тема — CSS-переменные в `src/styles/globals.css` + `@theme inline` |
-| UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
+| UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `popover`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
 | Роутер | `react-router-dom` v7. Home/Product — eager (анимация карточки), Admin — lazy. `BrowserRouter` |
 | Анимации маршрутов | `motion` v13 через `LazyMotion` + `m` из `motion/react-m`. Движок фич — асинхронный чанк (`app/motion-features.ts`). Режим `strict`: компонент `motion.*` использовать **нельзя**, только `m.*` |
 | Состояние | Zustand + persist **только корзина** (`shashlik:cart:v2`). Тема — React context + `localStorage` (`shashlik:theme`) |
@@ -110,7 +110,7 @@ apps/shashlik-web/
 
 | Токен | HEX | Роль |
 |-------|-----|------|
-| `--canvas` | `#fbf8f4` | фон страницы |
+| `--canvas` | `#f3f3f3` | фон страницы |
 | `--surface` | `#ffffff` | карточки, сайдбар, корзина |
 | `--surface-2` | `#fffbf8` | админ-панели, тёплая подложка |
 | `--surface-3` | `#f8f4ef` | неактивные чипы, inset |
@@ -205,7 +205,7 @@ Desktop (`DesktopHome`, ≥1024):
 1. **Sidebar** — категории + промо `BOSS10` + ссылка «Войти» → `/admin`
 2. **HeroBanner** — карусель баннеров из PB (только `image`), стрелки-хитзоны, dots. Контейнер с `aspect-ratio` из `entities/banner/format.ts` (**1680×460**). Загрузка — обрезка до канона (`BannerImageField`). Опциональная плашка `note` в углу.
 3. **TagFilters** — «Все» + теги активной категории из `product_tags` (spring / `popLayout` при смене категории). На стекле плашки — без layout-анимации.
-4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — бейджи **всех** вариантов, затем **всех** размеров (`flex-wrap`)
+4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — название `20px`, бейджи **только вариантов** (размеры не показывать), цена `от {minPrice}` кегль `22px`; плотнее gaps название↔бейджи и состав↔оценка
 5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг и «Добавить» в dark — `text-fg` (белые, звезда тоже). «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Высота блока названия/состава фиксирована (`min-h-[2lh]` / `h-[3lh]`), рейтинг `truncate` + `shrink-0` — без скачка текста при смене ширины колонки.
 
 Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
@@ -214,15 +214,16 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 ## Страница товара (PDP)
 
-`pages/product/ProductPage.tsx` — две колонки: фото слева в **фиксированном формате 1536×1024** (`product/format`), конфигуратор справа. Сетка `lg:items-start` — фото не растягивается на всю высоту вьюпорта.
+`pages/product/ProductPage.tsx` — две колонки: фото слева, конфигуратор справа (ширина −⅓ от прежнего: `lg` 413px / `xl` 467px). Сетка light `lg:items-stretch` (высота фото = правая колонка); dark — `items-start`.
 
+- Light desktop: левый блок `bg-surface` (белый), фото `object-contain` по центру; оценка + состав — нижний левый угол. Dark / mobile: cover + канон `aspect-ratio` 1536×1024
 - Открытие/закрытие — `motion` + `AnimatePresence` в `app/router.tsx` (Home/Product грузятся сразу, не lazy). `viewTransition` у RR здесь не работает: нужен data-router, а стоит `BrowserRouter`. Уход маршрута — `position: absolute; inset: 0; overflow: hidden`, без scale (иначе рывок). Скроллбар: `scrollbar-gutter: stable` на `html`, чтобы исчезающая полоса Home не дёргала PDP вправо
 - Сердце избранного — **без рамки**, правый верхний угол фото; лайк заполняет только иконку
 - Крестик закрытия — правый верхний угол панели, рамка как у бывшего сердца, `text-fg-faint` → hover `text-red`
-- Справа от названия — иконка `/icons/kcal.png` (`NutritionHint`): размер `0.92lh` заголовка (чуть ниже кегля), mask + `bg-fg-muted` → hover `bg-brand`. Ховер → пищевая ценность на 100 г
-- Штамп `FreshStamp`: глифы равномерно по окружности (поворот каждого символа, не `textPath`). Текст «СДЕЛАНО С ЛЮБОВЬ • 100% СВЕЖИЕ ПРОДУКТЫ •». Кегль ≈ `дуг×1.72` при размере 112 (не 84×0.78 — иначе буквы нечитаемы). Колпак — `chef-hat-spin`: круиз → гауссов рывок → плавный выбег к той же угловой скорости (1080° / цикл, стык 0%/100% без ступеньки)
-- Выбранные вариант/размер — `OptionCard` с `product-accent` (оранж light / лайм dark)
-- Соусы | Добавки — `AddonRow`: qty=0 → кнопка `+N₽`, иначе `Stepper`
+- Справа от названия — иконка `/icons/kcal.png` (`NutritionHint` / Popover): размер `0.92lh` заголовка, mask + `bg-fg-muted` → open/hover `bg-brand`. ПК: hover open / leave close; мобилки: click toggle; тач/клик/свайп вне окна — close
+- Штамп `FreshStamp`: абсолют правый верх панели, `opacity-30`, `z` под текстом. Глифы равномерно по окружности (поворот каждого символа, не `textPath`). Текст «СДЕЛАНО С ЛЮБОВЬ • 100% СВЕЖИЕ ПРОДУКТЫ •». Колпак — `chef-hat-spin`
+- Вариант/размер — `OptionCard` тумблеры **без обводки**, компактные (`min-h-10`); active — `product-accent-soft`
+- Соусы | Добавки — `AddonRow` без рамки, одна строка: thumb → имя/вес → серая `+цена` → кнопка цены / `Stepper tone="solid"`
 - Низ: `Stepper` количества + кнопка `variant="product"` «В корзину • сумма»
 - После добавления — `navigate('/')`
 
@@ -322,7 +323,7 @@ Env процесса `pocketbase`:
 | groupByCategory | `pages/home/lib/groupByCategory.ts` — секции каталога по категориям |
 | useCatalogScrollSpy | `pages/home/lib/useCatalogScrollSpy.ts` — активная категория по скроллу |
 | CatalogCategorySection | `pages/home/ui/CatalogCategorySection.tsx` — якорь секции каталога |
-| ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи всех вариантов + размеров. «Добавить» по hover (`.product-card-add`: fade + 0fr→1fr, без translate). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
+| ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи только вариантов, цена «от min». «Добавить» по hover (`.product-card-add`). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | product/format | `entities/product/format.ts` — `PRODUCT_WIDTH` / `PRODUCT_HEIGHT` (1536×1024, 3∶2) |
 | CartPanel | `features/cart/ui/CartPanel.tsx` |
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |
@@ -334,8 +335,9 @@ Env процесса `pocketbase`:
 | Cart panel store | `features/cart/model/panel.ts` |
 | MobileTabBar | `widgets/mobile/MobileTabBar.tsx` |
 | ProductPage / PDP | `pages/product/ProductPage.tsx` |
-| FreshStamp | `pages/product/ui/FreshStamp.tsx` |
-| NutritionHint | `pages/product/ui/NutritionHint.tsx` |
+| FreshStamp | `pages/product/ui/FreshStamp.tsx` — absolute top-right PDP, opacity 30%, под текстом |
+| NutritionHint | `pages/product/ui/NutritionHint.tsx` — Popover: hover (ПК) + click (тач), outside close |
+| popover | `shared/ui/popover.tsx` — Radix Popover |
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD |
 | ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — создание + карусель фото |
 | ProductsSection | `pages/admin/sections/products/ProductsSection.tsx` — список + DnD `order` |
@@ -431,7 +433,7 @@ Env процесса `pocketbase`:
 `vite.config.ts` делит вендоров на чанки `react` / `motion` / `router`: они меняются редко, поэтому деплой правок витрины не сбрасывает их из кэша браузера.
 
 - `motion` подключён через `LazyMotion` в режиме `strict`. Использовать `m.*` из `motion/react-m`; `motion.*` в `strict` падает в рантайме и тянет движок в основной чанк.
-- В `package.json` держать только реально импортированные пакеты. Из Radix используются `dialog`, `slot`, `tooltip` — остальные были мёртвым весом и удалены.
+- В `package.json` держать только реально импортированные пакеты. Из Radix используются `dialog`, `popover`, `slot`, `tooltip` — остальные были мёртвым весом и удалены.
 - Новая тяжёлая страница — `lazy` в `app/router.tsx`, как `AdminPage`. Home и Product остаются eager: между ними анимация перехода.
 - Фото витрины — в `public/products`, `loading="lazy"` на `img` обязателен. Ориентир: ≤ 120 kB на файл.
 
