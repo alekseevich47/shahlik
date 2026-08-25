@@ -532,80 +532,65 @@ export function ProductEditor({ product, onBack }: Props) {
                 <Plus size={15} strokeWidth={3} />
               </button>
             }
-            bodyClassName="flex flex-col gap-2 p-3"
+            bodyClassName="p-3"
           >
             {!variants.length ? (
               <p className="px-1 py-2 text-[12.5px] text-fg-muted">
-                Без вариантов — один SKU на размер. Добавьте «Курица / Свинина», если нужно.
+                Без вариантов — один SKU на размер. Цены — в матрице артикулов.
               </p>
             ) : (
-              variants.map((variant, index) => (
-                <div
-                  key={variant.id}
-                  className="grid gap-2 rounded-[var(--r-md)] border border-line bg-surface p-2.5 sm:grid-cols-[1fr_120px_100px_auto]"
-                >
-                  <Field label="Название">
-                    <Input
-                      value={variant.label}
-                      disabled={busy}
-                      onChange={(e) =>
-                        setVariants((list) =>
-                          list.map((v, i) =>
-                            i === index ? { ...v, label: e.target.value } : v,
-                          ),
-                        )
-                      }
-                    />
-                  </Field>
-                  <Field label="Иконка">
-                    <Select
-                      value={variant.icon ?? ""}
-                      disabled={busy}
-                      onChange={(e) => {
-                        const raw = e.target.value
-                        const icon = (raw === "" ? null : raw) as MeatIcon
-                        setVariants((list) =>
-                          list.map((v, i) => (i === index ? { ...v, icon } : v)),
-                        )
-                      }}
-                    >
-                      {MEAT_OPTIONS.map((opt) => (
-                        <option key={String(opt.value)} value={opt.value ?? ""}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Δ цена">
-                    <Input
-                      value={String(variant.priceDelta)}
-                      inputMode="numeric"
-                      disabled={busy}
-                      onChange={(e) => {
-                        const n = Number(e.target.value.replace(/[^\d-]/g, ""))
-                        setVariants((list) =>
-                          list.map((v, i) =>
-                            i === index
-                              ? { ...v, priceDelta: Number.isFinite(n) ? n : 0 }
-                              : v,
-                          ),
-                        )
-                      }}
-                    />
-                  </Field>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
-                    aria-label="Удалить вариант"
-                    disabled={busy}
-                    onClick={() => setVariants((list) => list.filter((_, i) => i !== index))}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {variants.map((variant, index) => (
+                  <div
+                    key={variant.id}
+                    className="grid grid-cols-[1fr_88px_auto] gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
                   >
-                    <Trash2 size={14} strokeWidth={2.3} />
-                  </Button>
-                </div>
-              ))
+                    <Field label="Название">
+                      <Input
+                        value={variant.label}
+                        disabled={busy}
+                        onChange={(e) =>
+                          setVariants((list) =>
+                            list.map((v, i) =>
+                              i === index ? { ...v, label: e.target.value } : v,
+                            ),
+                          )
+                        }
+                      />
+                    </Field>
+                    <Field label="Иконка">
+                      <Select
+                        value={variant.icon ?? ""}
+                        disabled={busy}
+                        onChange={(e) => {
+                          const raw = e.target.value
+                          const icon = (raw === "" ? null : raw) as MeatIcon
+                          setVariants((list) =>
+                            list.map((v, i) => (i === index ? { ...v, icon } : v)),
+                          )
+                        }}
+                      >
+                        {MEAT_OPTIONS.map((opt) => (
+                          <option key={String(opt.value)} value={opt.value ?? ""}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                      aria-label="Удалить вариант"
+                      disabled={busy}
+                      onClick={() => setVariants((list) => list.filter((_, i) => i !== index))}
+                    >
+                      <Trash2 size={14} strokeWidth={2.3} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             )}
           </AdminCard>
 
@@ -622,60 +607,48 @@ export function ProductEditor({ product, onBack }: Props) {
                 <Plus size={15} strokeWidth={3} />
               </button>
             }
-            bodyClassName="flex flex-col gap-2 p-3"
+            bodyClassName="p-3"
           >
-            {sizes.map((size, index) => (
-              <div
-                key={size.id}
-                className="grid gap-2 rounded-[var(--r-md)] border border-line bg-surface p-2.5 sm:grid-cols-[1fr_120px_auto]"
-              >
-                <Field label="Название">
-                  <Input
-                    value={size.label}
-                    disabled={busy}
-                    onChange={(e) =>
-                      setSizes((list) =>
-                        list.map((s, i) => (i === index ? { ...s, label: e.target.value } : s)),
-                      )
-                    }
-                  />
-                </Field>
-                <Field label="Цена, ₽">
-                  <Input
-                    value={String(size.price)}
-                    inputMode="decimal"
-                    disabled={busy}
-                    onChange={(e) => {
-                      const n = Number(e.target.value.replace(",", "."))
-                      setSizes((list) =>
-                        list.map((s, i) =>
-                          i === index ? { ...s, price: Number.isFinite(n) ? n : 0 } : s,
-                        ),
-                      )
-                    }}
-                  />
-                </Field>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
-                  aria-label="Удалить размер"
-                  disabled={busy || sizes.length <= 1}
-                  onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {sizes.map((size, index) => (
+                <div
+                  key={size.id}
+                  className="grid grid-cols-[1fr_auto] gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
                 >
-                  <Trash2 size={14} strokeWidth={2.3} />
-                </Button>
-              </div>
-            ))}
+                  <Field label="Название">
+                    <Input
+                      value={size.label}
+                      disabled={busy}
+                      onChange={(e) =>
+                        setSizes((list) =>
+                          list.map((s, i) => (i === index ? { ...s, label: e.target.value } : s)),
+                        )
+                      }
+                    />
+                  </Field>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                    aria-label="Удалить размер"
+                    disabled={busy || sizes.length <= 1}
+                    onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+                  >
+                    <Trash2 size={14} strokeWidth={2.3} />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </AdminCard>
 
-          <AdminCard title="Матрица артикулов (вариант × размер)">
+          <AdminCard title="Матрица артикулов и цен (вариант × размер)">
             <ArticleMatrix
               productId={product.id}
               variants={variants}
               sizes={sizes}
-              onChange={setSizes}
+              onSizesChange={setSizes}
+              onVariantsChange={setVariants}
               disabled={busy}
             />
           </AdminCard>
@@ -879,16 +852,11 @@ export function ProductEditor({ product, onBack }: Props) {
               </div>
               <div className="flex flex-col gap-1.5 p-3">
                 <p className="text-[14px] leading-tight font-extrabold text-fg">{name}</p>
-                {variants.length || sizes.length ? (
+                {variants.length ? (
                   <div className="flex flex-wrap gap-1">
                     {variants.map((variant) => (
                       <Badge key={variant.id} size="sm">
                         {variant.label}
-                      </Badge>
-                    ))}
-                    {sizes.map((size) => (
-                      <Badge key={size.id} size="sm">
-                        {size.label}
                       </Badge>
                     ))}
                   </div>
@@ -940,7 +908,7 @@ export function ProductEditor({ product, onBack }: Props) {
           <span>
             <span className="block text-[12.5px] font-extrabold text-fg">Подсказка</span>
             <span className="mt-0.5 block text-[11px] leading-[1.5] text-fg-muted">
-              Для шаурмы с мясом заполните артикул в каждой ячейке матрицы — иначе «Курица M» и
+              Для шаурмы с мясом заполните артикул и цену в каждой ячейке матрицы — иначе «Курица M» и
               «Свинина M» уйдут в кассу одним SKU.
             </span>
           </span>

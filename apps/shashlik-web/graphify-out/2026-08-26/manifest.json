@@ -1,7 +1,7 @@
 {
   "package.json": {
-    "mtime": 1787471929.6031668,
-    "ast_hash": "ca05e5a9e3a44f72ddf9a3a6692b86b0",
+    "mtime": 1787679934.6166341,
+    "ast_hash": "353b540531a00bf855533083c8351ed3",
     "semantic_hash": ""
   },
   "src/app/App.tsx": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "src/entities/product/ui/ProductCard.tsx": {
-    "mtime": 1787563578.1227717,
-    "ast_hash": "60c5b8fd8ddab759297903b41500ba9d",
+    "mtime": 1787679926.7773528,
+    "ast_hash": "1ae6e027e3cee2972bb8a4ad2db28af3",
     "semantic_hash": ""
   },
   "src/entities/product/ui/ProductCardCompact.tsx": {
@@ -180,13 +180,13 @@
     "semantic_hash": ""
   },
   "src/pages/product/ProductPage.tsx": {
-    "mtime": 1787563536.4220915,
-    "ast_hash": "5648248d45eec02ab8ae41c24342dba7",
+    "mtime": 1787680117.1318927,
+    "ast_hash": "0540639d00b34550b70c6a307c682237",
     "semantic_hash": ""
   },
   "src/pages/product/ui/AddonRow.tsx": {
-    "mtime": 1786988332.891073,
-    "ast_hash": "5dee6a893eed0025a9551992663ca72a",
+    "mtime": 1787680021.0273788,
+    "ast_hash": "baac194e9d9db3f1ad7f4194df683695",
     "semantic_hash": ""
   },
   "src/pages/product/ui/FreshStamp.tsx": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "src/pages/product/ui/NutritionHint.tsx": {
-    "mtime": 1787066096.6345384,
-    "ast_hash": "6016ad40df2b35673cb19de85c562cd1",
+    "mtime": 1787679999.432315,
+    "ast_hash": "698c8e2e4d13dc58872befc95bc79f66",
     "semantic_hash": ""
   },
   "src/shared/config/site.ts": {
@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "src/shared/ui/chip.tsx": {
-    "mtime": 1787497819.1599903,
-    "ast_hash": "db3ad392d90fe32af9cdc856407821c6",
+    "mtime": 1787680004.5220757,
+    "ast_hash": "53797d65be1588a724207278741dc9fb",
     "semantic_hash": ""
   },
   "src/shared/ui/input.tsx": {
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "src/shared/ui/stepper.tsx": {
-    "mtime": 1786987375.0330272,
-    "ast_hash": "bca00f00690574ffe1e9f278277d857d",
+    "mtime": 1787680021.1513188,
+    "ast_hash": "b7eebd863ef72aa370e841cb0a22998f",
     "semantic_hash": ""
   },
   "src/shared/ui/surface.tsx": {
@@ -997,6 +997,11 @@
   "src/pages/profile/ui/LoginPanel.tsx": {
     "mtime": 1787675938.4937184,
     "ast_hash": "d4b79621fd966c233f1f550824c1592e",
+    "semantic_hash": ""
+  },
+  "src/shared/ui/popover.tsx": {
+    "mtime": 1787679973.8377452,
+    "ast_hash": "c774707ad468515f1ea0ff9dc7c96a47",
     "semantic_hash": ""
   }
 }

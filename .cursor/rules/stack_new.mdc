@@ -157,9 +157,9 @@ apps/shashlik-web/
 
 Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
 
-- `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`. Пустой массив валиден (напитки/соусы без выбора мяса); в PB поле **`required: false`**
-- `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул
-- `active` — bool; черновик = `false`. В PB **`required: false`** (иначе `false` → `validation_required`)
+- `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`. Пустой массив валиден (напитки/соусы без выбора мяса); в PB поле **`required: false`**. В админке Δ цены в форме варианта **нет** — правка финальной цены SKU в `ArticleMatrix`
+- `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул. В админке поле цены у размера **нет** — цена SKU в матрице
+- `active` — bool; черновик = `false`. В PB **`required: false`** (иначе `false` → `validation_required`). При создании из UI всегда `false`
 - Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
 - `tags`: slug[] из `product_tags` своей категории (не глобальный enum)
@@ -235,7 +235,11 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 
 Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет.
 
-Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. Поле PB `tagline` в UI — **«Описание»** (создание и редактирование). До 5 фото: `MultiImageField` — **карусель в одном окне** (стрелки / точки / swipe), не ряд превью. При редактировании новые файлы **дозаписываются** через PB-модификатор `image+` (не затирают существующие); удаления — `image-`. Список «Товары» — `SortableList` с **drag&drop** (и стрелками) для `order` на витрине; DnD выключен при поиске/фильтре статуса. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка: поле slug в UI **нет**, slug = `slugFromName(label)` (`shared/lib/slug.ts`) при создании; при переименовании slug не трогаем.
+Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов/цен вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. Поле PB `tagline` в UI — **«Описание»** (создание и редактирование). До 5 фото: `MultiImageField` — **карусель в одном окне** (стрелки / точки / swipe), не ряд превью. При редактировании новые файлы **дозаписываются** через PB-модификатор `image+` (не затирают существующие); удаления — `image-`. Список «Товары» — `SortableList` с **drag&drop** (и стрелками) для `order` на витрине; DnD выключен при поиске/фильтре статуса. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка: поле slug в UI **нет**, slug = `slugFromName(label)` (`shared/lib/slug.ts`) при создании; при переименовании slug не трогаем.
+
+**Создание товара** (`ProductCreateForm`): в UI только фото, название, категория, описание, состав. Slug **не показывается** — авто из названия (`slugFromName`). Размер/цена и тумблер «на витрине» **нет** — черновик: `active: false`, один размер `{ id: "std", label: "Стандарт", price: 0 }`, `variants: []`. Размеры, цены SKU и активность — только в редакторе.
+
+**Редактор:** варианты мяса и размеры — сетка **2 колонки**, без полей Δ цены / цены (компактные карточки: название + иконка / название). Цены конечных SKU — в `ArticleMatrix` справа от артикула в каждой ячейке; запись обратно в `size.price` + `variant.priceDelta` (тот же алгоритм, что cash-sync: база = первый вариант). При **>3 размеров** — горизонтальный скролл матрицы, липкий столбец «вариант». Превью карточки — бейджи **только вариантов** (размеры не показывать), как на витрине.
 
 Layout-анимации (`layoutId`, перестановка строк) требуют `domMax` — включать **вложенным** `LazyMotion` внутри админского чанка (`app/motion-features-max.ts`). Витрина остаётся на `domAnimation`, где layout-фич нет.
 
@@ -249,7 +253,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | bool | значение **строго `true`** (`false` → `validation_required`) | флаги вроде `active`/`published`/`sale` → `required: false` |
 | json | значение **непустое** (`[]` / `{}` / `null` → `validation_required`) | массивы, которые бывают пустыми (`variants`, `tags`) → `required: false`; `sizes` остаётся required (минимум один размер) |
 
-Порядок в админке — **1-based** (`index + 1`, `nextOrder = max + 1`). Создание товара шлёт `variants: []` и может `active: false` — это валидно для домена. После правки `Tasks/schema.json` синхронизировать поля в `/_/` на проде (снять Nonzero / Required).
+Порядок в админке — **1-based** (`index + 1`, `nextOrder = max + 1`). Создание товара шлёт `variants: []` и **`active: false`** (черновик) — это валидно для домена. После правки `Tasks/schema.json` синхронизировать поля в `/_/` на проде (снять Nonzero / Required).
 
 Действия с кассой из админки — **только запись в `frontpad_jobs`**; сам Frontpad зовёт `pb_hooks`. Статус в кассе по API не меняется: наш `status` — зеркало, ручная правка помечается `statusSource="manual"`.
 
@@ -338,8 +342,9 @@ Env процесса `pocketbase`:
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` — absolute top-right PDP, opacity 30%, под текстом |
 | NutritionHint | `pages/product/ui/NutritionHint.tsx` — Popover: hover (ПК) + click (тач), outside close |
 | popover | `shared/ui/popover.tsx` — Radix Popover |
-| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD |
-| ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — создание + карусель фото |
+| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD; варианты/размеры в 2 кол. без цен; превью без бейджей размеров |
+| ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — черновик: без slug/размера/цены/active в UI |
+| ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU в ячейке; scroll при >3 размеров |
 | ProductsSection | `pages/admin/sections/products/ProductsSection.tsx` — список + DnD `order` |
 | SortableList | `pages/admin/ui/SortableList.tsx` — grip DnD + стрелки, layout spring (`domMax`) |
 | MultiImageField | `shared/ui/multi-image-field.tsx` — карусель 1…N, обрезка до `product/format`, diff → `image+` / `image-` |

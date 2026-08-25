@@ -15,10 +15,10 @@ import {
 } from "@/shared/ui/multi-image-field"
 import { Select } from "@/shared/ui/select"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet"
-import { Switch } from "@/shared/ui/switch"
 
 const SLUG_PATTERN = /^[a-z0-9-]+$/
 const MAX_PHOTOS = 5
+const DEFAULT_SIZE = { id: "std", label: "Стандарт", price: 0 }
 
 const DEFAULT_NUTRITION: ProductNutrition = { kcal: 0, fat: 0, protein: 0, carbs: 0 }
 
@@ -37,35 +37,26 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
-  const [slugTouched, setSlugTouched] = useState(false)
   const [categoryId, setCategoryId] = useState("")
   const [tagline, setTagline] = useState("")
   const [composition, setComposition] = useState("")
-  const [price, setPrice] = useState("")
-  const [sizeLabel, setSizeLabel] = useState("Стандарт")
-  const [active, setActive] = useState(true)
   const [photos, setPhotos] = useState<MultiImageItem[]>([])
 
   useEffect(() => {
     if (!open) return
     setName("")
     setSlug("")
-    setSlugTouched(false)
     setCategoryId(defaultCategoryId || categories[0]?.id || "")
     setTagline("")
     setComposition("")
-    setPrice("")
-    setSizeLabel("Стандарт")
-    setActive(true)
     setPhotos([])
   }, [open, defaultCategoryId, categories])
 
   async function submit() {
     const trimmedName = name.trim()
-    const trimmedSlug = slug.trim()
+    const trimmedSlug = (slug.trim() || slugFromName(trimmedName)).trim()
     const trimmedTagline = tagline.trim()
     const trimmedComposition = composition.trim()
-    const priceNum = Number(price.replace(",", "."))
     const files = photos
       .filter((p): p is Extract<MultiImageItem, { kind: "new" }> => p.kind === "new")
       .map((p) => p.file)
@@ -75,7 +66,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
       return
     }
     if (!trimmedSlug || !SLUG_PATTERN.test(trimmedSlug)) {
-      toast.error("Slug: латиница, цифры и дефис")
+      toast.error("Не удалось получить slug из названия")
       return
     }
     if (!categoryId) {
@@ -88,14 +79,6 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
     }
     if (!trimmedComposition) {
       toast.error("Укажите состав")
-      return
-    }
-    if (!Number.isFinite(priceNum) || priceNum < 0) {
-      toast.error("Цена — число ≥ 0")
-      return
-    }
-    if (!sizeLabel.trim()) {
-      toast.error("Укажите размер")
       return
     }
     if (!files.length) {
@@ -112,9 +95,9 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
         composition: trimmedComposition,
         nutrition: DEFAULT_NUTRITION,
         variants: [],
-        sizes: [{ id: "std", label: sizeLabel.trim(), price: priceNum }],
+        sizes: [DEFAULT_SIZE],
         order: products.length ? Math.max(...products.map((p) => p.order)) + 1 : 1,
-        active,
+        active: false,
         image: files.length === 1 ? files[0] : files,
       })
       toast.success("Товар создан")
@@ -131,7 +114,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
         <div className="border-b border-line px-5 py-4 pr-14">
           <SheetTitle className="text-[16px] font-extrabold text-fg">Новый товар</SheetTitle>
           <SheetDescription className="mt-1 text-[12.5px] text-fg-muted">
-            Базовые поля и один размер. Варианты мяса и матрицу артикулов — на странице товара.
+            Черновик: размеры, цены и витрину настраиваете на странице товара.
           </SheetDescription>
         </div>
 
@@ -158,20 +141,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
               onChange={(e) => {
                 const next = e.target.value
                 setName(next)
-                if (!slugTouched) setSlug(slugFromName(next))
-              }}
-              maxLength={200}
-              required
-              disabled={busy}
-            />
-          </Field>
-
-          <Field label="Slug" hint="URL /product/…">
-            <Input
-              value={slug}
-              onChange={(e) => {
-                setSlugTouched(true)
-                setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+                setSlug(slugFromName(next))
               }}
               maxLength={200}
               required
@@ -215,32 +185,6 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
               required
             />
           </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Размер">
-              <Input
-                value={sizeLabel}
-                onChange={(e) => setSizeLabel(e.target.value)}
-                maxLength={40}
-                disabled={busy}
-                required
-              />
-            </Field>
-            <Field label="Цена, ₽">
-              <Input
-                value={price}
-                onChange={(e) => setPrice(e.target.value.replace(/[^\d.,]/g, ""))}
-                inputMode="decimal"
-                disabled={busy}
-                required
-              />
-            </Field>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 rounded-[var(--r-md)] border border-line px-3 py-2.5">
-            <span className="text-[12.5px] font-bold text-fg">Активен на витрине</span>
-            <Switch checked={active} onCheckedChange={setActive} disabled={busy} />
-          </div>
 
           <div className="mt-auto flex gap-2 border-t border-line pt-4">
             <Button
