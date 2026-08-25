@@ -272,7 +272,9 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 |---|---|
 | `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, `onRecordAfterCreateSuccess("frontpad_jobs")`, роуты вебхука и диагностики, `cronAdd` |
 | `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
-| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` — модули, автозагрузку не проходят (нет `.pb.js`) |
+| `pb_hooks/profile.pb.js` | `GET /api/profile/bonus`, `POST /api/profile/link` — бонусы/телефон для `app_users` |
+| `pb_hooks/vkid.pb.js` | `GET /api/auth/vk/start`, `GET /api/auth/vk/callback` — VK ID (PKCE + device_id) |
+| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `prices` / `vkid` — модули, автозагрузку не проходят (нет `.pb.js`) |
 
 Env процесса `pocketbase`:
 
@@ -282,6 +284,8 @@ Env процесса `pocketbase`:
 | `FRONTPAD_HOOK_TOKEN` | **наша** случайная строка ≥32 символов, ею подписан `hook_url` и роут диагностики. Не URL сторонней интеграции |
 | `FRONTPAD_API_URL` | необязательно, по умолчанию `https://app.frontpad.ru/api/index.php` |
 | `FRONTPAD_CRON` | `0` отключает все `cronAdd`. Держать **включённым**: без cron не работает бэкофф и авто-синхронизация |
+| `SITE_URL` | необязательно; публичный origin витрины для редиректов VK ID (дефолт `https://shashlik.loomixx.ru`) |
+| `VK_OAUTH_COOKIE_KEY` | необязательно; ключ шифрования cookie PKCE-state (≥16). Иначе берётся `FRONTPAD_HOOK_TOKEN` |
 
 В git и в бандл env не попадают.
 
@@ -350,9 +354,30 @@ Env процесса `pocketbase`:
 | Кто | Коллекция | Клиент | Вход |
 |---|---|---|---|
 | Персонал | `users` (`role: admin \| manager`) | `shared/api/pb.ts` | email + пароль, гейт `/admin/*` |
-| Клиенты витрины | `app_users` | `shared/api/pb-client.ts` (свой `LocalAuthStore`) | OAuth2 `vk` / `yandex` |
+| Клиенты витрины | `app_users` | `shared/api/pb-client.ts` (свой `LocalAuthStore` `shashlik:client:auth`) | **Яндекс ID** — штатный `authWithOAuth2`; **VK ID** — свой мост в `pb_hooks` |
 
 `pb.authStore` один на экземпляр: если пустить клиента и админа через один `pb`, вход клиента затрёт сессию админки. Клиентов в `users` не заводить — гейт `/admin/*` смотрит `role`, а OAuth2 создаёт запись в той коллекции, через которую авторизуется.
+
+### VK ID vs встроенный `vk`
+
+Встроенный провайдер PocketBase `vk` ходит на legacy `oauth.vk.com` **без PKCE** и **без `device_id`**. Новые приложения из кабинета [id.vk.com](https://id.vk.com) работают по OAuth 2.1 (`id.vk.ru`) и с ним не совместимы → `Security Error`.
+
+Рабочий путь — хуки:
+
+| Роут | Роль |
+|---|---|
+| `GET /api/auth/vk/start` | PKCE + cookie state → редирект на `id.vk.ru/authorize` |
+| `GET /api/auth/vk/callback` | `code` + `device_id` (+ `payload`) → обмен токена → `app_users` → редирект `/auth/callback?token=` |
+
+Файлы: `pb_hooks/vkid.pb.js`, `pb_hooks/lib/vkid.js`. Client id/secret читаются из OAuth2-провайдера `vk` в коллекции `app_users` (как в `/_/`). Cookie state шифруется ключом `FRONTPAD_HOOK_TOKEN` или `VK_OAUTH_COOKIE_KEY`. Публичный origin — `SITE_URL` (иначе `https://shashlik.loomixx.ru`).
+
+В кабинете VK ID в **Trusted redirect URI** должен быть ровно:
+`https://shashlik.loomixx.ru/api/auth/vk/callback`
+(не `/api/oauth2-redirect` — тот только для Яндекса / legacy PB).
+
+Клиент: кнопка «VK ID» → `loginWithVkId()` (full-page redirect); «Яндекс ID» → `authWithOAuth2({ provider: "yandex" })`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап-флоу Яндекса. «Выйти из аккаунта» чистит `shashlik:client:auth` и ведёт на `/`.
+
+`useAccount()` / `getAccount()` кэширует снапшот: `useSyncExternalStore` не терпит новый объект на каждый вызов (React #185, белый экран после логина).
 
 Заказ можно оформить гостем по телефону; баллы, история и адреса — только после входа. Текущий заказ виден и гостю: `orders.viewRule` пустой (просмотр по id, id PB — 15 случайных символов), список заказов — по `userId`. `userId` в заказе ставит **хук**, из запроса он затирается.
 
@@ -481,6 +506,7 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не доверять суммам, `number` и артикулам из клиентского запроса на создание заказа.
 - Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
 - Не держать сессию клиента и сессию персонала в одном экземпляре `pb` и не смешивать их в коллекции `users`.
+- Не пытаться логинить VK ID через встроенный `authWithOAuth2({ provider: "vk" })` — только `pb_hooks` `/api/auth/vk/*`.
 - Не доверять `userId` из клиентского запроса на создание заказа — его ставит хук из `e.auth`.
 - Не пытаться записать цену в справочник кассы и не показывать «состав из кассы»: ни того, ни другого API не отдаёт.
 - Не вешать `backdrop-filter` на полноэкранный оверлей модалки: размывать статичный фон через `filter` на витрине и гасить преломление `StickyBar` на это время.

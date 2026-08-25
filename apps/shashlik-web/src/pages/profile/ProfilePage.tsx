@@ -68,8 +68,16 @@ export default function ProfilePage() {
             <img src={SITE.brandLogo} alt={SITE.name} className="h-10 w-auto object-contain" />
           </Link>
           {user ? (
-            <Button type="button" variant="ghost" size="sm" onClick={() => logout()}>
-              Выйти
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                logout()
+                navigate("/", { replace: true })
+              }}
+            >
+              Выйти из аккаунта
             </Button>
           ) : (
             <Link to="/" className="text-[13px] font-bold text-fg-muted hover:text-brand">

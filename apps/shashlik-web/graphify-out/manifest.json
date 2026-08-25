@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "src/entities/account/api.ts": {
-    "mtime": 1787673973.8336568,
-    "ast_hash": "1c1cfdf6269a82f89e3bfa88bb15e5af",
+    "mtime": 1787676003.5091493,
+    "ast_hash": "8ef6bde04e7bd12cf01ea6eb855e7dd8",
     "semantic_hash": ""
   },
   "src/entities/account/model.ts": {
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "src/pages/auth/AuthCallbackPage.tsx": {
-    "mtime": 1787572364.6218097,
-    "ast_hash": "51d0c05db286812d6be84ee4a892b097",
+    "mtime": 1787675940.2199192,
+    "ast_hash": "ad3b56ce60dd3519a596e1e487d10e58",
     "semantic_hash": ""
   },
   "src/pages/order/OrderTrackPage.tsx": {
@@ -990,13 +990,13 @@
     "semantic_hash": ""
   },
   "src/pages/profile/ProfilePage.tsx": {
-    "mtime": 1787572364.6218097,
-    "ast_hash": "915b5640f903270364848b2bfc7f37e1",
+    "mtime": 1787675940.2199192,
+    "ast_hash": "5e21b011802e985822f69edc6fb3f6d8",
     "semantic_hash": ""
   },
   "src/pages/profile/ui/LoginPanel.tsx": {
-    "mtime": 1787577238.1561186,
-    "ast_hash": "c3d1e50439b05ea0b7922a478c61902e",
+    "mtime": 1787675938.4937184,
+    "ast_hash": "d4b79621fd966c233f1f550824c1592e",
     "semantic_hash": ""
   }
 }

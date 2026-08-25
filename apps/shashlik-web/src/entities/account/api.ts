@@ -123,9 +123,33 @@ async function persistRecord(record: RecordModel): Promise<AppUser> {
 }
 
 export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> {
-  // Абсолютный baseUrl → redirect_uri = https://…/api/oauth2-redirect (не /auth/callback).
+  if (provider === "vk") {
+    loginWithVkId()
+    // Редирект уводит со страницы; Promise не резолвится намеренно.
+    await new Promise<never>(() => undefined)
+  }
   ensurePbBaseUrl(pbClient)
   const auth = await pbClient.collection(COLLECTION).authWithOAuth2({ provider })
+  if (!isAppUserRecord(auth.record)) {
+    pbClient.authStore.clear()
+    throw new Error("Нет доступа к профилю")
+  }
+  return mapAppUser(auth.record)
+}
+
+/** Старт VK ID: сервер редиректит на id.vk.ru, callback пишет token в /auth/callback. */
+export function loginWithVkId(): void {
+  ensurePbBaseUrl(pbClient)
+  const base = pbClient.baseUrl.replace(/\/$/, "")
+  window.location.assign(`${base}/api/auth/vk/start`)
+}
+
+/** Принимает JWT с `/auth/callback?token=` после VK ID. */
+export async function acceptAuthToken(token: string): Promise<AppUser> {
+  const trimmed = token.trim()
+  if (!trimmed) throw new Error("Пустой токен")
+  pbClient.authStore.save(trimmed, null as never)
+  const auth = await pbClient.collection(COLLECTION).authRefresh()
   if (!isAppUserRecord(auth.record)) {
     pbClient.authStore.clear()
     throw new Error("Нет доступа к профилю")
