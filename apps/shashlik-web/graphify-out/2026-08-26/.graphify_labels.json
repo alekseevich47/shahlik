@@ -56,7 +56,13 @@
   "54": "store.ts",
   "55": "ProductPage.tsx",
   "56": "zustand",
+  "57": "coupon/api.ts",
   "58": "coupon/api.ts",
   "59": "category/api.ts",
-  "62": "FloatingActions.tsx"
+  "60": "CashPricesPanel.tsx",
+  "61": "crud.ts",
+  "62": "FloatingActions.tsx",
+  "63": "Sidebar.tsx",
+  "64": "OrderDetails.tsx",
+  "65": "mapFrontpadSettings"
 }

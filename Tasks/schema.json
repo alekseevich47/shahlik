@@ -482,7 +482,7 @@
         "maxSize": 0,
         "name": "sizes",
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "json"
       },

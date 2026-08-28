@@ -18,8 +18,6 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/s
 
 const SLUG_PATTERN = /^[a-z0-9-]+$/
 const MAX_PHOTOS = 5
-const DEFAULT_SIZE = { id: "std", label: "Стандарт", price: 0 }
-
 const DEFAULT_NUTRITION: ProductNutrition = { kcal: 0, fat: 0, protein: 0, carbs: 0 }
 
 type Props = {
@@ -95,7 +93,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
         composition: trimmedComposition,
         nutrition: DEFAULT_NUTRITION,
         variants: [],
-        sizes: [DEFAULT_SIZE],
+        sizes: [],
         order: products.length ? Math.max(...products.map((p) => p.order)) + 1 : 1,
         active: false,
         image: files.length === 1 ? files[0] : files,
@@ -114,7 +112,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
         <div className="border-b border-line px-5 py-4 pr-14">
           <SheetTitle className="text-[16px] font-extrabold text-fg">Новый товар</SheetTitle>
           <SheetDescription className="mt-1 text-[12.5px] text-fg-muted">
-            Черновик: размеры, цены и витрину настраиваете на странице товара.
+            Черновик без размеров. Варианты, размеры, цены и витрину — на странице товара.
           </SheetDescription>
         </div>
 

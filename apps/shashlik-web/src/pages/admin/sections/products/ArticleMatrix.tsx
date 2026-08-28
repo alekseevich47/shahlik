@@ -138,11 +138,21 @@ export function ArticleMatrix({
               <th
                 key={size.id}
                 className={cn(
-                  "px-3 py-2 text-[11px] font-bold whitespace-nowrap text-fg-muted",
+                  "px-2 py-2 text-[11px] font-bold whitespace-nowrap text-fg-muted",
                   scrollSizes && "min-w-[200px]",
                 )}
               >
-                {size.label}
+                <div className="flex flex-col gap-1.5">
+                  <span className="px-1">{size.label}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="min-w-0 flex-1 px-1 font-semibold text-fg-faint">
+                      артикул
+                    </span>
+                    <span className="w-[72px] shrink-0 text-center font-semibold text-fg-faint">
+                      цена
+                    </span>
+                  </div>
+                </div>
               </th>
             ))}
           </tr>

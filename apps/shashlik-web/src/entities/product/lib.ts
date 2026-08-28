@@ -6,6 +6,7 @@ export function priceOf(size: ProductSize, variant?: ProductVariant): number {
 
 /** Минимальная цена по всем комбинациям — «от 340₽» на карточке. */
 export function minPrice(product: Product): number {
+  if (!product.sizes.length) return 0
   const deltas = product.variants.length ? product.variants.map((v) => v.priceDelta) : [0]
   const prices = product.sizes.flatMap((s) => deltas.map((d) => s.price + d))
   return Math.min(...prices)

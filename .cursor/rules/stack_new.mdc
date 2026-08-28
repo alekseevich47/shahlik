@@ -158,8 +158,8 @@ apps/shashlik-web/
 Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
 
 - `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`. Пустой массив валиден (напитки/соусы без выбора мяса); в PB поле **`required: false`**. В админке Δ цены в форме варианта **нет** — правка финальной цены SKU в `ArticleMatrix`
-- `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул. В админке поле цены у размера **нет** — цена SKU в матрице
-- `active` — bool; черновик = `false`. В PB **`required: false`** (иначе `false` → `validation_required`). При создании из UI всегда `false`
+- `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул. В админке поле цены у размера **нет** — цена SKU в матрице. Пустой массив валиден у черновика; в PB **`required: false`**
+- `active` — bool; черновик = `false`. В PB **`required: false`** (иначе `false` → `validation_required`). При создании из UI всегда `false`; публикация (`active: true`) без размеров запрещена в редакторе
 - Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
 - `tags`: slug[] из `product_tags` своей категории (не глобальный enum)
@@ -205,8 +205,8 @@ Desktop (`DesktopHome`, ≥1024):
 1. **Sidebar** — категории + промо `BOSS10` + ссылка «Войти» → `/admin`
 2. **HeroBanner** — карусель баннеров из PB (только `image`), стрелки-хитзоны, dots. Контейнер с `aspect-ratio` из `entities/banner/format.ts` (**1680×460**). Загрузка — обрезка до канона (`BannerImageField`). Опциональная плашка `note` в углу.
 3. **TagFilters** — «Все» + теги активной категории из `product_tags` (spring / `popLayout` при смене категории). На стекле плашки — без layout-анимации.
-4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — название `20px`, бейджи **только вариантов** (размеры не показывать), цена `от {minPrice}` кегль `22px`; плотнее gaps название↔бейджи и состав↔оценка
-5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг и «Добавить» в dark — `text-fg` (белые, звезда тоже). «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Высота блока названия/состава фиксирована (`min-h-[2lh]` / `h-[3lh]`), рейтинг `truncate` + `shrink-0` — без скачка текста при смене ширины колонки.
+4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — название `20px` (без `min-h`), бейджи **только вариантов**, на витрине только общий рейтинг (критерии — на PDP), цена `от {minPrice}` `22px`; плотные gaps название↔бейджи и состав↔оценка
+5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг (без критериев) и «Добавить» в dark — `text-fg`. «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Название/состав без фикс. высоты (`min-h`/`h` в lh) — иначе пустой зазор при коротком тексте.
 
 Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
 
@@ -237,9 +237,11 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 
 Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов/цен вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. Поле PB `tagline` в UI — **«Описание»** (создание и редактирование). До 5 фото: `MultiImageField` — **карусель в одном окне** (стрелки / точки / swipe), не ряд превью. При редактировании новые файлы **дозаписываются** через PB-модификатор `image+` (не затирают существующие); удаления — `image-`. Список «Товары» — `SortableList` с **drag&drop** (и стрелками) для `order` на витрине; DnD выключен при поиске/фильтре статуса. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка: поле slug в UI **нет**, slug = `slugFromName(label)` (`shared/lib/slug.ts`) при создании; при переименовании slug не трогаем.
 
-**Создание товара** (`ProductCreateForm`): в UI только фото, название, категория, описание, состав. Slug **не показывается** — авто из названия (`slugFromName`). Размер/цена и тумблер «на витрине» **нет** — черновик: `active: false`, один размер `{ id: "std", label: "Стандарт", price: 0 }`, `variants: []`. Размеры, цены SKU и активность — только в редакторе.
+**Создание товара** (`ProductCreateForm`): в UI только фото, название, категория, описание, состав. Slug **не показывается** — авто из названия (`slugFromName`). Размер/цена и тумблер «на витрине» **нет** — черновик: `active: false`, `sizes: []`, `variants: []`. Размеры, цены SKU и активность — только в редакторе. Пустой `sizes` валиден в PB (`required: false`); сохранить с `active: true` без размеров нельзя.
 
-**Редактор:** варианты мяса и размеры — сетка **2 колонки**, без полей Δ цены / цены (компактные карточки: название + иконка / название). Цены конечных SKU — в `ArticleMatrix` справа от артикула в каждой ячейке; запись обратно в `size.price` + `variant.priceDelta` (тот же алгоритм, что cash-sync: база = первый вариант). При **>3 размеров** — горизонтальный скролл матрицы, липкий столбец «вариант». Превью карточки — бейджи **только вариантов** (размеры не показывать), как на витрине.
+**Редактор:** блоки «Варианты мяса» и «Размеры» — **рядом в 2 колонки** (`lg:grid-cols-2`); внутри каждого блока карточки **в столбик**. Без полей Δ цены / цены. Цены конечных SKU — в `ArticleMatrix` справа от артикула; в шапке колонки — подписи «артикул» / «цена». Запись обратно в `size.price` + `variant.priceDelta` (как cash-sync: база = первый вариант). При **>3 размеров** — горизонтальный скролл матрицы, липкий столбец «вариант». Превью — бейджи **только вариантов**.
+
+**Select** (`shared/ui/select.tsx`) — кастомный listbox на Radix Popover: скругление `--r-md`/`--r-lg`, fade+zoom+slide open/close (`tw-animate`), API совместим с `<option>` + `onChange`.
 
 Layout-анимации (`layoutId`, перестановка строк) требуют `domMax` — включать **вложенным** `LazyMotion` внутри админского чанка (`app/motion-features-max.ts`). Витрина остаётся на `domAnimation`, где layout-фич нет.
 
@@ -251,7 +253,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 |-----|---------------------------|--------------------------|
 | number | **nonzero** (`0` → `validation_required`) | `order`/`price` с нулём → `required: false` (+ `min`) |
 | bool | значение **строго `true`** (`false` → `validation_required`) | флаги вроде `active`/`published`/`sale` → `required: false` |
-| json | значение **непустое** (`[]` / `{}` / `null` → `validation_required`) | массивы, которые бывают пустыми (`variants`, `tags`) → `required: false`; `sizes` остаётся required (минимум один размер) |
+| json | значение **непустое** (`[]` / `{}` / `null` → `validation_required`) | массивы, которые бывают пустыми (`variants`, `tags`, `sizes` у черновика) → `required: false` |
 
 Порядок в админке — **1-based** (`index + 1`, `nextOrder = max + 1`). Создание товара шлёт `variants: []` и **`active: false`** (черновик) — это валидно для домена. После правки `Tasks/schema.json` синхронизировать поля в `/_/` на проде (снять Nonzero / Required).
 
@@ -327,7 +329,7 @@ Env процесса `pocketbase`:
 | groupByCategory | `pages/home/lib/groupByCategory.ts` — секции каталога по категориям |
 | useCatalogScrollSpy | `pages/home/lib/useCatalogScrollSpy.ts` — активная категория по скроллу |
 | CatalogCategorySection | `pages/home/ui/CatalogCategorySection.tsx` — якорь секции каталога |
-| ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи только вариантов, цена «от min». «Добавить» по hover (`.product-card-add`). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
+| ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи только вариантов, общий рейтинг без критериев, цена «от min». «Добавить» по hover (`.product-card-add`). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | product/format | `entities/product/format.ts` — `PRODUCT_WIDTH` / `PRODUCT_HEIGHT` (1536×1024, 3∶2) |
 | CartPanel | `features/cart/ui/CartPanel.tsx` |
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |
@@ -342,9 +344,10 @@ Env процесса `pocketbase`:
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` — absolute top-right PDP, opacity 30%, под текстом |
 | NutritionHint | `pages/product/ui/NutritionHint.tsx` — Popover: hover (ПК) + click (тач), outside close |
 | popover | `shared/ui/popover.tsx` — Radix Popover |
-| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD; варианты/размеры в 2 кол. без цен; превью без бейджей размеров |
-| ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — черновик: без slug/размера/цены/active в UI |
-| ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU в ячейке; scroll при >3 размеров |
+| ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD; варианты∥размеры в 2 кол. (внутри столбик); превью без бейджей размеров |
+| ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — черновик: без slug/размера/цены/active; `sizes: []` |
+| ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU; шапка «артикул»/«цена»; scroll при >3 размеров |
+| Select | `shared/ui/select.tsx` — кастомный Popover-listbox, анимация open/close |
 | ProductsSection | `pages/admin/sections/products/ProductsSection.tsx` — список + DnD `order` |
 | SortableList | `pages/admin/ui/SortableList.tsx` — grip DnD + стрелки, layout spring (`domMax`) |
 | MultiImageField | `shared/ui/multi-image-field.tsx` — карусель 1…N, обрезка до `product/format`, diff → `image+` / `image-` |
@@ -420,13 +423,13 @@ Env процесса `pocketbase`:
 
 ### Карточки витрины
 
-`.product-card` несёт `contain: layout paint style` + `content-visibility: auto` + `contain-intrinsic-size: auto 545px`.
+`.product-card` несёт `contain: layout paint style` + `content-visibility: auto` + `contain-intrinsic-size: auto 480px`.
 
 - `contain` изолирует раскладку: смена ширины колонки не тянет пересчёт всех карточек сразу.
 - `content-visibility: auto` снимает раскладку с карточек за пределами вьюпорта. Ключевое слово `auto` в `contain-intrinsic-size` обязательно — браузер запоминает реальную высоту, иначе скроллбар дёргается при скролле.
-- Число `545px` — ориентир (карточка с переносом бейджей вариантов/размеров). Но если карточка станет заметно выше или ниже, поправить, иначе первый проход скролла прыгает.
+- Число ориентира — карточка без критериев и без фикс. высоты названия/состава; если высота заметно съедет — поправить, иначе первый проход скролла прыгает.
 - Внутри карточки не заводить `position: sticky` и не рассчитывать на то, что её содержимое видно скриптам всегда: под `content-visibility` оно может быть не отрисовано.
-- Высота блоков названия и состава фиксирована (`min-h-[2lh]` / `h-[3lh]`) — это не только про макет: одинаковая высота карточек держит `contain-intrinsic-size` честным.
+- На витрине только общий рейтинг; критерии — на PDP. Фикс. `min-h-[2lh]` / `h-[3lh]` у названия/состава **не** использовать (давали пустой зазор при коротком тексте).
 
 ### Скролл
 

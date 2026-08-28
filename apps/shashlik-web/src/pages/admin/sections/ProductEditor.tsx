@@ -219,8 +219,8 @@ export function ProductEditor({ product, onBack }: Props) {
       toast.error("Укажите состав")
       return
     }
-    if (!sizes.length) {
-      toast.error("Нужен хотя бы один размер")
+    if (active && !sizes.length) {
+      toast.error("Добавьте размер перед публикацией на витрину")
       return
     }
     if (!photoItems.length) {
@@ -519,31 +519,31 @@ export function ProductEditor({ product, onBack }: Props) {
             </div>
           </AdminCard>
 
-          <AdminCard
-            title="Варианты мяса"
-            action={
-              <button
-                type="button"
-                aria-label="Добавить вариант"
-                onClick={addVariant}
-                disabled={busy}
-                className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
-              >
-                <Plus size={15} strokeWidth={3} />
-              </button>
-            }
-            bodyClassName="p-3"
-          >
-            {!variants.length ? (
-              <p className="px-1 py-2 text-[12.5px] text-fg-muted">
-                Без вариантов — один SKU на размер. Цены — в матрице артикулов.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {variants.map((variant, index) => (
+          <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+            <AdminCard
+              title="Варианты мяса"
+              action={
+                <button
+                  type="button"
+                  aria-label="Добавить вариант"
+                  onClick={addVariant}
+                  disabled={busy}
+                  className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+                >
+                  <Plus size={15} strokeWidth={3} />
+                </button>
+              }
+              bodyClassName="flex flex-col gap-2 p-3"
+            >
+              {!variants.length ? (
+                <p className="px-1 py-2 text-[12.5px] text-fg-muted">
+                  Без вариантов — один SKU на размер. Цены — в матрице артикулов.
+                </p>
+              ) : (
+                variants.map((variant, index) => (
                   <div
                     key={variant.id}
-                    className="grid grid-cols-[1fr_88px_auto] gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
+                    className="grid grid-cols-[13.5rem_minmax(0,1fr)_auto] items-end gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
                   >
                     <Field label="Название">
                       <Input
@@ -589,58 +589,64 @@ export function ProductEditor({ product, onBack }: Props) {
                       <Trash2 size={14} strokeWidth={2.3} />
                     </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </AdminCard>
+                ))
+              )}
+            </AdminCard>
 
-          <AdminCard
-            title="Размеры"
-            action={
-              <button
-                type="button"
-                aria-label="Добавить размер"
-                onClick={addSize}
-                disabled={busy}
-                className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
-              >
-                <Plus size={15} strokeWidth={3} />
-              </button>
-            }
-            bodyClassName="p-3"
-          >
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {sizes.map((size, index) => (
-                <div
-                  key={size.id}
-                  className="grid grid-cols-[1fr_auto] gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
+            <AdminCard
+              title="Размеры"
+              action={
+                <button
+                  type="button"
+                  aria-label="Добавить размер"
+                  onClick={addSize}
+                  disabled={busy}
+                  className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
                 >
-                  <Field label="Название">
-                    <Input
-                      value={size.label}
-                      disabled={busy}
-                      onChange={(e) =>
-                        setSizes((list) =>
-                          list.map((s, i) => (i === index ? { ...s, label: e.target.value } : s)),
-                        )
-                      }
-                    />
-                  </Field>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
-                    aria-label="Удалить размер"
-                    disabled={busy || sizes.length <= 1}
-                    onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+                  <Plus size={15} strokeWidth={3} />
+                </button>
+              }
+              bodyClassName="flex flex-col gap-2 p-3"
+            >
+              {!sizes.length ? (
+                <p className="px-1 py-2 text-[12.5px] text-fg-muted">
+                  Пока без размеров — добавьте, чтобы задать артикулы и цены.
+                </p>
+              ) : (
+                sizes.map((size, index) => (
+                  <div
+                    key={size.id}
+                    className="grid grid-cols-[1fr_auto] gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
                   >
-                    <Trash2 size={14} strokeWidth={2.3} />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </AdminCard>
+                    <Field label="Название">
+                      <Input
+                        value={size.label}
+                        disabled={busy}
+                        onChange={(e) =>
+                          setSizes((list) =>
+                            list.map((s, i) =>
+                              i === index ? { ...s, label: e.target.value } : s,
+                            ),
+                          )
+                        }
+                      />
+                    </Field>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                      aria-label="Удалить размер"
+                      disabled={busy}
+                      onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+                    >
+                      <Trash2 size={14} strokeWidth={2.3} />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </AdminCard>
+          </div>
 
           <AdminCard title="Матрица артикулов и цен (вариант × размер)">
             <ArticleMatrix

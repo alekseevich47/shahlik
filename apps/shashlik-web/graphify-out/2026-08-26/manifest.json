@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "src/entities/product/lib.ts": {
-    "mtime": 1787231928.4526336,
-    "ast_hash": "2adfc7d5b7a50db18a6f7a8339b3ae47",
+    "mtime": 1787702990.0630608,
+    "ast_hash": "779d2062493e9f34e5dc768bb06f19a6",
     "semantic_hash": ""
   },
   "src/entities/product/model.ts": {
@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/sections/ProductEditor.tsx": {
-    "mtime": 1787493645.1342382,
-    "ast_hash": "ea85e6b6436dd6ca642e19d71de91027",
+    "mtime": 1787702973.6037152,
+    "ast_hash": "001c9203eb8672789bd5360ca11bbf4c",
     "semantic_hash": ""
   },
   "src/pages/admin/ui/AdminCard.tsx": {
@@ -655,8 +655,8 @@
     "semantic_hash": ""
   },
   "src/shared/ui/select.tsx": {
-    "mtime": 1787230918.7869582,
-    "ast_hash": "93d06d08210a25bf08e725627b41c920",
+    "mtime": 1787703131.472074,
+    "ast_hash": "dcae141f117ce9aef37268035481e02c",
     "semantic_hash": ""
   },
   "src/shared/ui/switch.tsx": {
@@ -680,13 +680,13 @@
     "semantic_hash": ""
   },
   "src/pages/admin/sections/products/ArticleMatrix.tsx": {
-    "mtime": 1787232202.1976366,
-    "ast_hash": "b52da0a5836825f4dc85d9dc58ddac0a",
+    "mtime": 1787702975.4175136,
+    "ast_hash": "f12de7c81d1a381cb164fdc001435a9a",
     "semantic_hash": ""
   },
   "src/pages/admin/sections/products/ProductCreateForm.tsx": {
-    "mtime": 1787462315.9924269,
-    "ast_hash": "a0af6eaf71bf896186960e91120338a0",
+    "mtime": 1787702978.5071547,
+    "ast_hash": "7a1769aa1da1ca4e933914935d5b4031",
     "semantic_hash": ""
   },
   "src/pages/admin/sections/products/ProductsSection.tsx": {

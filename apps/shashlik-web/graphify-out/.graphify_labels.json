@@ -65,7 +65,8 @@
   "63": "Sidebar.tsx",
   "64": "OrderDetails.tsx",
   "65": "mapFrontpadSettings",
-  "66": "addons.ts",
-  "67": "image-field.tsx",
-  "68": "counts.ts"
+  "66": "files.ts",
+  "67": "getAccount",
+  "68": "counts.ts",
+  "69": "sonner"
 }
