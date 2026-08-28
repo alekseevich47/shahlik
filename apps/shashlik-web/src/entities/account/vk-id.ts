@@ -17,6 +17,20 @@ export function createVkPkce(): { codeVerifier: string; state: string } {
   }
 }
 
+function base64Url(bytes: Uint8Array): string {
+  let binary = ""
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "")
+}
+
+/** S256 challenge для VK Config.init — SDK иногда теряет свой verifier. */
+export async function pkceChallengeFromVerifier(codeVerifier: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier))
+  return base64Url(new Uint8Array(digest))
+}
+
 export function resolveVkAppId(): number {
   const raw = import.meta.env.VITE_VK_APP_ID?.trim() || "54734207"
   const appId = Number(raw)

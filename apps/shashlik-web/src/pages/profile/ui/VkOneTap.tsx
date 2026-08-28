@@ -15,25 +15,29 @@ export function VkOneTap({ disabled, onError }: VkOneTapProps) {
     const container = containerRef.current
     if (!container || disabled) return
 
-    let cancelled = false
-    const frame = requestAnimationFrame(() => {
+    let active = true
+    let detach: (() => void) | null = null
+
+    const timer = window.setTimeout(() => {
       void import("@/entities/account/vk-one-tap-session")
-        .then(({ attachVkOneTap }) => {
-          if (cancelled) return
-          return attachVkOneTap(container, {
+        .then((session) => {
+          detach = session.detachVkOneTap
+          if (!active) return
+          return session.attachVkOneTap(container, {
             onError: (message) => onErrorRef.current(message),
           })
         })
         .catch((err: unknown) => {
-          if (!cancelled) {
+          if (active) {
             onErrorRef.current(err instanceof Error ? err.message : "VK ID недоступен")
           }
         })
-    })
+    }, 0)
 
     return () => {
-      cancelled = true
-      cancelAnimationFrame(frame)
+      active = false
+      window.clearTimeout(timer)
+      detach?.()
     }
   }, [disabled])
 

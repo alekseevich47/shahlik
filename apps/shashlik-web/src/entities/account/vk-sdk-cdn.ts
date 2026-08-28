@@ -7,6 +7,10 @@ declare global {
 export type VkSdkGlobal = {
   Config: {
     init: (data: Record<string, unknown>) => void
+    update?: (data: Record<string, unknown>) => void
+  }
+  ConfigAuthMode: {
+    InNewTab: string
   }
   ConfigResponseMode: {
     Callback: string
@@ -14,10 +18,13 @@ export type VkSdkGlobal = {
   OneTap: new () => {
     render: (params: Record<string, unknown>) => {
       on: (event: string, handler: (payload: unknown) => void) => unknown
+      close?: () => void
     }
   }
   OneTapInternalEvents: {
     LOGIN_SUCCESS: string
+    START_AUTHORIZE: string
+    NOT_AUTHORIZED: string
   }
   WidgetEvents: {
     ERROR: string
