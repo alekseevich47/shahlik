@@ -37,6 +37,8 @@ function parseOptions(children: ReactNode): OptionData[] {
 
 type SelectProps = Omit<ComponentProps<"select">, "size"> & {
   children?: ReactNode
+  /** Кастомный рендер пункта (триггер и список). */
+  formatOption?: (option: OptionData) => ReactNode
 }
 
 export function Select({
@@ -50,6 +52,7 @@ export function Select({
   name,
   required,
   "aria-label": ariaLabel,
+  formatOption,
   ...rest
 }: SelectProps) {
   const listId = useId()
@@ -63,6 +66,9 @@ export function Select({
   const current = controlled ? String(value) : uncontrolled
   const selected = options.find((opt) => opt.value === current) ?? options[0]
   const label = selected?.label ?? ""
+  const selectedContent = selected
+    ? (formatOption?.(selected) ?? label)
+    : (label || "Выберите…")
 
   function commit(next: string) {
     if (!controlled) setUncontrolled(next)
@@ -112,7 +118,7 @@ export function Select({
               open && "border-brand-border shadow-[0_0_0_3px_var(--brand-ring)]",
             )}
           >
-            <span className="min-w-0 truncate">{label || "Выберите…"}</span>
+            <span className="flex min-w-0 items-center gap-2 truncate">{selectedContent}</span>
             <ChevronDown
               size={16}
               strokeWidth={2.4}
@@ -160,7 +166,7 @@ export function Select({
                       opt.disabled && "cursor-not-allowed opacity-40",
                     )}
                   >
-                    {opt.label}
+                    {formatOption?.(opt) ?? opt.label}
                   </button>
                 </li>
               )

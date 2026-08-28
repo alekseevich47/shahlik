@@ -56,10 +56,20 @@ function mapAddresses(raw: unknown): SavedAddress[] {
   return out
 }
 
+function mapExtraEmails(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  const out: string[] = []
+  for (const item of raw) {
+    if (typeof item === "string" && item.trim()) out.push(item.trim())
+  }
+  return out
+}
+
 export function mapAppUser(record: RecordModel): AppUser {
   return {
     id: record.id,
     email: asString(record.email),
+    extraEmails: mapExtraEmails(record.extraEmails),
     phone: asString(record.phone),
     firstName: asString(record.firstName),
     lastName: asString(record.lastName),
@@ -250,9 +260,14 @@ export function useProfileBonus(enabled: boolean) {
 }
 
 /** Привязка телефона к customers + userId у прошлых заказов. */
-export async function linkPhone(phone: string): Promise<void> {
+export async function linkPhone(phone: string): Promise<AppUser> {
   await pbClient.send("/api/profile/link", {
     method: "POST",
     body: { phone },
   })
+  const auth = await pbClient.collection(COLLECTION).authRefresh()
+  if (!isAppUserRecord(auth.record)) {
+    throw new Error("Нет доступа к профилю")
+  }
+  return mapAppUser(auth.record)
 }

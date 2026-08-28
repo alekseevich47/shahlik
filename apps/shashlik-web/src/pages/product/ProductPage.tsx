@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
 import { useExtras, useSauces } from "@/entities/addon/api"
-import type { MeatIcon } from "@/entities/product/model"
+import { criterionScore, criterionStars, type MeatIcon } from "@/entities/product/model"
 import { findSize, findVariant, priceOf } from "@/entities/product/lib"
 import {
   isAddonStopped,
@@ -208,10 +208,10 @@ export function ProductView({ onClose, className }: ProductViewProps) {
                   {criterion.label}
                   <HintMark hint={criterion.hint} />
                 </span>
-                <Stars value={criterion.value} />
+                <Stars value={criterionStars(criterion.value)} />
                 <ScoreValue
-                  value={criterion.value}
-                  max={5}
+                  value={criterionScore(criterion.value)}
+                  max={10}
                   className="ml-auto w-12 text-right text-[13px]"
                 />
               </li>
@@ -405,7 +405,7 @@ function RatingOverlay({
         {criteria.map((criterion) => (
           <span key={criterion.id} className="flex flex-col gap-0.5 leading-tight">
             <span className="text-[10px] text-fg-muted">{criterion.label}</span>
-            <ScoreValue value={criterion.value * 2} max={10} className="text-[12.5px]" />
+            <ScoreValue value={criterionScore(criterion.value)} max={10} className="text-[12.5px]" />
           </span>
         ))}
       </div>

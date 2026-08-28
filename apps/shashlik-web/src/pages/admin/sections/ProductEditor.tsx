@@ -31,6 +31,7 @@ import type {
   ProductVariant,
   RatingCriterion,
 } from "@/entities/product/model"
+import { criterionScore } from "@/entities/product/model"
 import { useAddons } from "@/entities/addon/api"
 import {
   useAdminProducts,
@@ -562,6 +563,14 @@ export function ProductEditor({ product, onBack }: Props) {
                       <Select
                         value={variant.icon ?? ""}
                         disabled={busy}
+                        formatOption={(opt) => (
+                          <span className="flex items-center gap-2">
+                            <MeatIconGlyph
+                              icon={(opt.value === "" ? null : opt.value) as MeatIcon}
+                            />
+                            <span>{opt.label}</span>
+                          </span>
+                        )}
                         onChange={(e) => {
                           const raw = e.target.value
                           const icon = (raw === "" ? null : raw) as MeatIcon
@@ -708,15 +717,15 @@ export function ProductEditor({ product, onBack }: Props) {
                         }
                       />
                     </Field>
-                    <Field label="Оценка /5">
+                    <Field label="Оценка /10">
                       <Input
                         value={String(criterion.value)}
-                        inputMode="decimal"
+                        inputMode="numeric"
                         disabled={busy}
                         onChange={(e) => {
                           const n = Number(e.target.value.replace(",", "."))
                           const clamped = Number.isFinite(n)
-                            ? Math.min(5, Math.max(0, Math.round(n * 2) / 2))
+                            ? Math.min(10, Math.max(0, Math.round(n)))
                             : 0
                           setCriteria((list) =>
                             list.map((c, i) => (i === index ? { ...c, value: clamped } : c)),
@@ -727,9 +736,9 @@ export function ProductEditor({ product, onBack }: Props) {
                   </div>
                   <span
                     className="mt-7 shrink-0 text-[12.5px] font-extrabold tabular-nums"
-                    style={{ color: scoreColor(criterion.value * 2, 10) }}
+                    style={{ color: scoreColor(criterionScore(criterion.value), 10) }}
                   >
-                    {Number((criterion.value * 2).toFixed(1))}/10
+                    {criterionScore(criterion.value)}/10
                   </span>
                   <button
                     type="button"

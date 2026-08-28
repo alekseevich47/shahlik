@@ -20,6 +20,7 @@ export type ProfileBonus = {
 export type AppUser = {
   id: string
   email: string
+  extraEmails: string[]
   phone: string
   firstName: string
   lastName: string

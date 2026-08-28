@@ -8,6 +8,7 @@ import { pb } from "@/shared/api/pb"
 import { queryClient } from "@/shared/api/query-client"
 
 import {
+  criterionScore,
   DEFAULT_CRITERIA,
   type Product,
   type ProductBadge,
@@ -45,6 +46,16 @@ function mapTagSlugs(raw: unknown): ProductTag[] {
   return raw.filter((item): item is string => typeof item === "string" && item.length > 0)
 }
 
+function mapRating(rating: ProductRating): ProductRating {
+  return {
+    ...rating,
+    criteria: rating.criteria.map((c) => ({
+      ...c,
+      value: criterionScore(c.value),
+    })),
+  }
+}
+
 function mapProduct(record: ProductRecord): Product {
   const images = imageUrls(record, "image")
   return {
@@ -63,7 +74,7 @@ function mapProduct(record: ProductRecord): Product {
     tags: mapTagSlugs(record.tags),
     variants: record.variants ?? [],
     sizes: record.sizes ?? [],
-    rating: record.rating,
+    rating: mapRating(record.rating),
     order: record.order,
     active: record.active,
     createdAt: record.created,

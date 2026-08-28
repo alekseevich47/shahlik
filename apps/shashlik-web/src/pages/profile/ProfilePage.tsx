@@ -11,7 +11,7 @@ import {
   updateAccount,
   useProfileBonus,
 } from "@/entities/account/api"
-import type { NewSavedAddress, SavedAddress } from "@/entities/account/model"
+import type { AppUser, NewSavedAddress, SavedAddress } from "@/entities/account/model"
 import { useMyOrders } from "@/entities/order/api"
 import { isActiveOrderStatus, ORDER_STATUS_LABEL, type Order } from "@/entities/order/model"
 import { formatAddressLine } from "@/features/checkout/model/useCheckout"
@@ -27,6 +27,7 @@ import { Field, Input } from "@/shared/ui/input"
 import { Segmented } from "@/shared/ui/segmented"
 
 import { LoginPanel } from "./ui/LoginPanel"
+import { PhoneOnboarding } from "./ui/PhoneOnboarding"
 
 type Tab = "current" | "history" | "data" | "addresses" | "bonus"
 
@@ -47,9 +48,12 @@ export default function ProfilePage() {
   const { user, ready, logout } = useAccount()
   const [tab, setTab] = useState<Tab>("current")
   const tabs = user ? TABS_USER : TABS_GUEST
+  const needsPhone = Boolean(user && !user.phone)
+  const visibleTabs = needsPhone ? tabs.filter((item) => item.value === "current") : tabs
 
   useEffect(() => {
     if (!user && tab !== "current") setTab("current")
+    if (user && !user.phone && tab !== "current") setTab("current")
   }, [user, tab])
 
   if (!ready) {
@@ -109,7 +113,9 @@ export default function ProfilePage() {
               ) : null}
             </div>
 
-            <Segmented value={tab} onChange={setTab} options={tabs} ariaLabel="Разделы профиля" />
+            {needsPhone ? <PhoneOnboarding /> : null}
+
+            <Segmented value={tab} onChange={setTab} options={visibleTabs} ariaLabel="Разделы профиля" />
 
             {tab === "current" ? <CurrentOrderTab /> : null}
             {tab === "history" ? <HistoryTab onOpen={(id) => navigate(`/order/${id}`)} /> : null}
@@ -215,8 +221,23 @@ function HistoryTab({ onOpen }: { onOpen: (id: string) => void }) {
   )
 }
 
+function allEmails(user: AppUser): string[] {
+  const primary = user.email.trim()
+  const extras = user.extraEmails ?? []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const item of [primary, ...extras]) {
+    const email = item.trim()
+    if (!email || seen.has(email)) continue
+    seen.add(email)
+    out.push(email)
+  }
+  return out
+}
+
 function DataTab() {
   const { user } = useAccount()
+  if (!user) return null
   const [firstName, setFirstName] = useState(user?.firstName ?? "")
   const [lastName, setLastName] = useState(user?.lastName ?? "")
   const [phone, setPhone] = useState(user?.phone ?? "")
@@ -257,6 +278,17 @@ function DataTab() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded-[var(--r-xl)] border border-line bg-surface p-4">
+      {user && allEmails(user).length > 0 ? (
+        <Field label="Почта" hint="Сохраняются все адреса с разных входов">
+          <div className="flex flex-col gap-1 rounded-[var(--r-md)] border border-line bg-surface-3 px-3 py-2">
+            {allEmails(user).map((email) => (
+              <span key={email} className="text-[13px] font-semibold text-fg">
+                {email}
+              </span>
+            ))}
+          </div>
+        </Field>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Имя">
           <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={50} />

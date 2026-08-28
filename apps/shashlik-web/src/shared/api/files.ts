@@ -36,7 +36,12 @@ export function toFormData(data: Record<string, unknown>): FormData {
         for (const item of value) form.append(key, item)
         continue
       }
-      if (value.every((item) => typeof item === "string")) {
+      // Только модификаторы файлов (`image-`, `image+`) — несколько append строк.
+      // JSON-поля (`tags`, `variants`, …) сериализуются ниже.
+      if (
+        (key.endsWith("+") || key.endsWith("-")) &&
+        value.every((item) => typeof item === "string")
+      ) {
         for (const item of value) form.append(key, item)
         continue
       }

@@ -281,26 +281,6 @@ function backfillOrders(app, userId, phone) {
 }
 
 /**
- * Телефон из rawUser Яндекса (`login:default_phone` → `default_phone.number`).
- * @param {any} oauth2User
- * @returns {string} нормализованный +7… или ""
- */
-function phoneFromYandexOAuth(oauth2User) {
-  if (!oauth2User) return ""
-  var raw = oauth2User.rawUser || oauth2User.RawUser || null
-  if (!raw || typeof raw !== "object") return ""
-  var dp = raw.default_phone
-  if (!dp) return ""
-  if (typeof dp === "string" || typeof dp === "number") {
-    return normalizePhone(dp)
-  }
-  if (typeof dp === "object") {
-    return normalizePhone(dp.number || dp.phone || "")
-  }
-  return ""
-}
-
-/**
  * Пишет phone + customerId + бэкофилл заказов. Не меняет уже зафиксированный другой номер.
  * @returns {{ phone: string, customerId: string, linkedOrders: number } | null}
  */
@@ -322,7 +302,9 @@ function bindPhoneToUser(app, user, phoneRaw) {
 
   var taken = findAppUserByPhone(app, phone, user.id)
   if (taken) {
-    throw new BadRequestError("Этот телефон уже привязан к другому аккаунту")
+    var oauth = require(__hooks + "/lib/oauth.js")
+    oauth.mergeUsersIntoTarget(app, taken.id, user.id)
+    user = app.findRecordById("app_users", user.id)
   }
 
   var result = { phone: phone, customerId: "", linkedOrders: 0 }
@@ -369,23 +351,30 @@ function handleLink(e) {
   return e.json(200, result)
 }
 
-/** Яндекс OAuth: телефон из default_phone → app_users.phone (+ customers). */
-function handleYandexOAuthPhone(e) {
+/** Яндекс OAuth: имена, email, телефон, слияние по номеру. */
+function handleOAuthAuth(e) {
   if (e.providerName !== "yandex") {
     return e.next()
   }
 
-  var phone = phoneFromYandexOAuth(e.oauth2User)
+  var oauth = require(__hooks + "/lib/oauth.js")
+  var payload = oauth.extractYandexProfile(e.oauth2User)
+
+  if (e.record) {
+    oauth.applyOAuthProfileBeforeSave(e.record, payload)
+  }
+
   e.next()
 
-  if (!phone || !e.record) {
+  if (!e.record) {
     return
   }
+
   try {
-    bindPhoneToUser($app, e.record, phone)
+    oauth.finalizeOAuthLogin($app, e.record, payload)
   } catch (err) {
     var msg = err && err.message ? String(err.message) : String(err)
-    $app.logger().warn("yandex oauth phone bind skipped", "error", msg)
+    $app.logger().warn("yandex oauth profile finalize failed", "error", msg)
   }
 }
 
@@ -415,10 +404,9 @@ function lockAppUserIdentityFields(e) {
 module.exports = {
   CACHE_TTL_MS: CACHE_TTL_MS,
   normalizePhone: normalizePhone,
-  phoneFromYandexOAuth: phoneFromYandexOAuth,
   bindPhoneToUser: bindPhoneToUser,
   handleBonus: handleBonus,
   handleLink: handleLink,
-  handleYandexOAuthPhone: handleYandexOAuthPhone,
+  handleOAuthAuth: handleOAuthAuth,
   lockAppUserIdentityFields: lockAppUserIdentityFields,
 }

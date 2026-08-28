@@ -221,22 +221,46 @@ function findExternalUser(providerId) {
 }
 
 function findOrCreateUser(vkUser, accessEmail) {
+  var oauth = require(__hooks + "/lib/oauth.js")
   var providerId = String(vkUser.user_id || vkUser.id || "")
   if (!providerId) {
     throw new BadRequestError("VK ID не вернул user_id")
   }
 
+  var payload = oauth.extractVkProfile(vkUser, accessEmail)
+
   var existing = findExternalUser(providerId)
   if (existing) {
-    return existing
+    oauth.addEmailsToRecord(existing, payload.emails)
+    oauth.applyNames(existing, payload.names, true)
+    $app.save(existing)
+    oauth.finalizeOAuthLogin($app, existing, payload)
+    return $app.findRecordById(COLLECTION, existing.id)
   }
 
-  var email = accessEmail || vkUser.email || ""
+  var phone = oauth.normalizePhone(payload.phone)
+  if (phone) {
+    var byPhone = oauth.findAppUserByPhone($app, phone, "")
+    if (byPhone) {
+      linkExternal(byPhone, providerId)
+      oauth.addEmailsToRecord(byPhone, payload.emails)
+      oauth.applyNames(byPhone, payload.names, true)
+      $app.save(byPhone)
+      oauth.finalizeOAuthLogin($app, byPhone, payload)
+      return $app.findRecordById(COLLECTION, byPhone.id)
+    }
+  }
+
+  var email = payload.emails.length ? payload.emails[0] : ""
   if (email) {
     try {
       var byEmail = $app.findAuthRecordByEmail(COLLECTION, email)
       linkExternal(byEmail, providerId)
-      return byEmail
+      oauth.addEmailsToRecord(byEmail, payload.emails)
+      oauth.applyNames(byEmail, payload.names, true)
+      $app.save(byEmail)
+      oauth.finalizeOAuthLogin($app, byEmail, payload)
+      return $app.findRecordById(COLLECTION, byEmail.id)
     } catch (err) {
       // нет записи с таким email
     }
@@ -247,16 +271,20 @@ function findOrCreateUser(vkUser, accessEmail) {
   if (email) {
     record.set("email", email)
   }
+  oauth.addEmailsToRecord(record, payload.emails)
   record.set("emailVisibility", false)
   record.setVerified(true)
   var password = $security.randomString(24)
   record.setPassword(password)
   record.set("passwordConfirm", password)
-  record.set("firstName", vkUser.first_name || vkUser.firstName || "")
-  record.set("lastName", vkUser.last_name || vkUser.lastName || "")
+  oauth.applyNames(record, payload.names, false)
+  if (phone) {
+    record.set("phone", phone)
+  }
   $app.save(record)
   linkExternal(record, providerId)
-  return record
+  oauth.finalizeOAuthLogin($app, record, payload)
+  return $app.findRecordById(COLLECTION, record.id)
 }
 
 function linkExternal(authRecord, providerId) {
@@ -313,7 +341,7 @@ function handleStart(e) {
       encodeURIComponent(challenge) +
       "&code_challenge_method=S256" +
       "&scope=" +
-      encodeURIComponent("email") +
+      encodeURIComponent("email phone") +
       "&lang_id=0"
 
     return e.redirect(302, url)

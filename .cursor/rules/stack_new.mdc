@@ -166,7 +166,7 @@ apps/shashlik-web/
 - `badge`: slug из `product_badges` (текст, не select). Справочник CRUD в модалке редактора товара; дефолты hit / new / spicy
 - `images[]` (до 5) — PB multi-file `image`; `image` = первое для карточек/PDP. **Канон растра — 1536×1024 (3∶2)**, константы в `entities/product/format.ts`; витрина и PDP — `aspect-ratio` из формата, загрузка в админке — обрезка в `MultiImageField` (как баннеры)
 - `nutrition`: `{ kcal, fat, protein, carbs }` на 100 г. Дефолт по категории в `mocks/products.ts` (`NUTRITION_BY_CATEGORY`)
-- `rating.overall` 0–10, `criteria[].value` 0–5 шаг ½. Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
+- `rating.overall` 0–10, `criteria[].value` 0–10 шаг 1 (в админке целые). На PDP — 5 звёзд с половинками (`criterionStars` = value/2). Legacy 0–5 в PB нормализуется при чтении (`criterionScore`). Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
 
 Не парсить мясо/размер из `name`. Не делать `groupId` + массив SKU как в старом `App.tsx`.
 
@@ -281,7 +281,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
 | `pb_hooks/profile.pb.js` | `GET /api/profile/bonus`, `POST /api/profile/link` — бонусы/телефон для `app_users` |
 | `pb_hooks/vkid.pb.js` | `GET /api/auth/vk/start`, `GET /api/auth/vk/callback` — VK ID (PKCE + device_id) |
-| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `prices` / `vkid` — модули, автозагрузку не проходят (нет `.pb.js`) |
+| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `oauth` / `prices` / `vkid` — модули, автозагрузку не проходят (нет `.pb.js`) |
 
 Env процесса `pocketbase`:
 
@@ -347,7 +347,7 @@ Env процесса `pocketbase`:
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD; варианты∥размеры в 2 кол. (внутри столбик); превью без бейджей размеров |
 | ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — черновик: без slug/размера/цены/active; `sizes: []` |
 | ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU; шапка «артикул»/«цена»; scroll при >3 размеров |
-| Select | `shared/ui/select.tsx` — кастомный Popover-listbox, анимация open/close |
+| Select | `shared/ui/select.tsx` — кастомный Popover-listbox, анимация open/close; опционально `formatOption` (иконка + текст в вариантах мяса) |
 | ProductsSection | `pages/admin/sections/products/ProductsSection.tsx` — список + DnD `order` |
 | SortableList | `pages/admin/ui/SortableList.tsx` — grip DnD + стрелки, layout spring (`domMax`) |
 | MultiImageField | `shared/ui/multi-image-field.tsx` — карусель 1…N, обрезка до `product/format`, diff → `image+` / `image-` |
@@ -385,7 +385,21 @@ Env процесса `pocketbase`:
 `https://shashlik.loomixx.ru/api/auth/vk/callback`
 (не `/api/oauth2-redirect` — тот только для Яндекса / legacy PB).
 
-Клиент: кнопка «VK ID» → `loginWithVkId()` (full-page redirect); «Яндекс ID» → `authWithOAuth2({ provider: "yandex", scopes: login:email|avatar|info|default_phone })`. Хук `onRecordAuthWithOAuth2Request` пишет `default_phone` в `app_users.phone` и линкует `customers`. Телефон (как день рождения) после первой записи не меняется — UI disabled + `onRecordUpdateRequest` / `POST /api/profile/link`. В кабинете Яндекса включить право `login:default_phone`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап-флоу Яндекса. «Выйти из аккаунта» чистит `shashlik:client:auth` и ведёт на `/`.
+Клиент: кнопка «VK ID» → `loginWithVkId()` (full-page redirect); «Яндекс ID» → `authWithOAuth2({ provider: "yandex", scopes: login:email|avatar|info|default_phone })`.
+
+**Профиль OAuth** (`pb_hooks/lib/oauth.js`, `profile.pb.js` → `handleOAuthAuth`):
+
+| Что | Как |
+|---|---|
+| Телефон | Канонический ключ аккаунта: `+7XXXXXXXXXX`. Яндекс — `default_phone` / `phones[]` из `rawUser` (до и после `e.next()`). VK — scope `email phone`, поле `user.phone` из `user_info`. |
+| Слияние | Один номер → один `app_users`: при совпадении телефона старая запись **сливается в текущую** (токен входа сохраняется), переносятся `_externalAuths`, заказы, адреса, `customerId`. |
+| Почта | Основная — `email`; дополнительные с других входов — `extraEmails` (json-массив). Хук добавляет без дублей. |
+| Имена | Яндекс: `first_name`/`last_name`, иначе split `real_name`/`display_name` (PB `mappedFields.name→firstName` не используем как финал). VK — `first_name`/`last_name`. |
+| Customers | `bindPhoneToUser` → `customers` + `backfillOrders` (гостевые заказы по телефону). |
+
+Телефон (как день рождения) после фиксации не меняется — `onRecordUpdateRequest` / `POST /api/profile/link`. Если OAuth не отдал номер — `PhoneOnboarding` на `/profile` (блокирует историю/бонусы/адреса до ввода).
+
+В кабинете **Яндекса** — `login:default_phone`; в **VK ID** — доступ `phone` (нужен подтверждённый бизнес-профиль) + scope `email phone`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап Яндекса. «Выйти» чистит `shashlik:client:auth`.
 
 `useAccount()` / `getAccount()` кэширует снапшот: `useSyncExternalStore` не терпит новый объект на каждый вызов (React #185, белый экран после логина).
 
@@ -465,7 +479,7 @@ Env процесса `pocketbase`:
 - Моки править в `src/mocks/*`. Типы — в `entities`. Не класть seed в JSX.
 - Медиа: фото → `public/products`, иконки категорий → `public/icons`, лого → `public/logo`. Исходники в `temp/` не импортировать в бандл.
 - Frontpad: спецификация в `.cursor/rules/API.mdc`, план — `Tasks/TASK_inter.md`. Ни клиент, ни админка кассу не зовут — только `pb_hooks` (действия из админки ставятся джобом в `frontpad_jobs`). Секрет — только env на сервере, не в git и не в бандл. Хук-роуты — под `/api/...`, иначе Nginx их не проксирует.
-- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`. Multi-file **update** (PB ≥0.23): дозапись — ключ `field+`, удаление — `field-` (имена файлов); голый `field` **заменяет** весь набор.
+- Фильтры PB — через `pb.filter("f = {:v}", { v })`, не конкатенацией. Файлы — `pb.files.getURL` (не deprecated `getUrl`), в таблицах с `{ thumb }`; загрузки с картинкой — `toUploadFormData` / `compressImage`. Multi-file **update** (PB ≥0.23): дозапись — ключ `field+`, удаление — `field-` (имена файлов); голый `field` **заменяет** весь набор. JSON-массивы (`tags`, `variants`, …) — только через `JSON.stringify` в FormData; множественный append строк — только для `field+` / `field-`.
 - PB `required`: number = nonzero, bool = только `true`, json = не `[]`/`{}`. Допустимые пустые/false — `required: false` в `Tasks/schema.json` (+ sync `/_/` на проде). UI порядок 1-based.
 - Не плодить несколько независимых `useAdminAuth` с локальным `authRefresh().catch(clear)` — только `AdminAuthProvider`.
 - Клиентские суммы заказа недостоверны: деньги пересчитывает хук `onRecordCreateRequest("orders")`.

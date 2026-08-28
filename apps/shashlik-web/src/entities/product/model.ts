@@ -25,8 +25,19 @@ export type RatingCriterion = {
   id: string
   label: string
   hint: string
-  /** Оценка по 5-балльной шкале с шагом 0.5. */
+  /** Оценка 0–10, шаг 1 в админке; на витрине — 5 звёзд с половинками (value / 2). */
   value: number
+}
+
+/** Нормализует value критерия к шкале 0–10 (legacy 0–5 ×2). */
+export function criterionScore(value: number): number {
+  if (Number.isInteger(value) && value > 5) return Math.min(10, Math.max(0, value))
+  return Math.min(10, Math.max(0, Math.round(value * 2)))
+}
+
+/** Звёзды 0–5 (½) для критерия со шкалой 0–10. */
+export function criterionStars(value: number): number {
+  return criterionScore(value) / 2
 }
 
 export type ProductRating = {

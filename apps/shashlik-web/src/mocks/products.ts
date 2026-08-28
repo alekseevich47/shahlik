@@ -40,6 +40,7 @@ type Spec = {
   nutrition?: ProductNutrition
   overall: number
   votes: number
+  /** Критерии 0–10 (шаг 1); в seed — legacy 0–5, при чтении ×2 в `mapProduct`. */
   criteria: [number, number, number]
   articles?: [string, string, string, string]
 }

@@ -24,7 +24,7 @@ routerAdd(
 onRecordAuthWithOAuth2Request(
   function (e) {
     var profile = require(__hooks + "/lib/profile.js")
-    return profile.handleYandexOAuthPhone(e)
+    return profile.handleOAuthAuth(e)
   },
   "app_users",
 )

@@ -1214,6 +1214,16 @@
         "type": "json"
       },
       {
+        "hidden": false,
+        "id": "json_app_users_extraEmails",
+        "maxSize": 0,
+        "name": "extraEmails",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
         "cascadeDelete": false,
         "collectionId": "pbc_shahlik_customers",
         "hidden": false,
