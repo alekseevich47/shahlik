@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { ClientResponseError } from "pocketbase"
 
 import {
+  getClientAuthEpoch,
   isAppUserRecord,
   loginWithOAuth as loginWithOAuthApi,
   logout as logoutApi,
@@ -33,12 +34,18 @@ function refreshAuth(): Promise<void> {
   if (!pbClient.authStore.isValid) return Promise.resolve()
   if (refreshInflight) return refreshInflight
 
+  const epoch = getClientAuthEpoch()
   refreshInflight = pbClient
     .collection("app_users")
     .authRefresh({ requestKey: "client-auth-refresh" })
-    .then(() => undefined)
+    .then(() => {
+      if (getClientAuthEpoch() !== epoch) {
+        pbClient.authStore.clear()
+      }
+    })
     .catch((err: unknown) => {
       if (isAbortError(err)) return
+      if (getClientAuthEpoch() !== epoch) return
       pbClient.authStore.clear()
     })
     .finally(() => {
@@ -81,6 +88,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
+    refreshInflight = null
     logoutApi()
   }
 

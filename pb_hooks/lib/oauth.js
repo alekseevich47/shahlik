@@ -26,7 +26,13 @@ function normalizeEmail(raw) {
 
 function asObject(raw) {
   if (!raw) return null
-  if (typeof raw === "object") return raw
+  if (typeof raw === "object") {
+    try {
+      return JSON.parse(JSON.stringify(raw))
+    } catch (err) {
+      return raw
+    }
+  }
   if (typeof raw === "string") {
     try {
       return JSON.parse(raw)
@@ -35,6 +41,14 @@ function asObject(raw) {
     }
   }
   return null
+}
+
+function getCreateDataBag(e) {
+  if (!e) return null
+  if (e.createData && typeof e.createData === "object") return e.createData
+  if (e.CreateData && typeof e.CreateData === "object") return e.CreateData
+  e.createData = {}
+  return e.createData
 }
 
 function splitFullName(full) {
@@ -333,15 +347,10 @@ function fetchYandexUserInfo(accessToken) {
   }
 }
 
-function oauthAccessToken(oauth2User) {
-  if (!oauth2User) return ""
-  return String(oauth2User.accessToken || oauth2User.AccessToken || "")
-}
-
-function phoneFromYandexOAuth(oauth2User) {
-  if (!oauth2User) return ""
-  var profile = extractYandexProfile(oauth2User)
-  return profile.phone || ""
+function oauthAccessToken(source) {
+  if (!source) return ""
+  var plain = asObject(source) || source
+  return String(plain.accessToken || plain.AccessToken || "")
 }
 
 function extractYandexProfile(oauth2User) {
@@ -349,20 +358,25 @@ function extractYandexProfile(oauth2User) {
     return { phone: "", names: { firstName: "", lastName: "" }, emails: [] }
   }
 
-  var token = oauthAccessToken(oauth2User)
+  var plain = asObject(oauth2User) || oauth2User
+  var token = oauthAccessToken(plain)
   var apiRaw = token ? fetchYandexUserInfo(token) : null
-  var raw = apiRaw || asObject(oauth2User.rawUser || oauth2User.RawUser)
+  var raw = apiRaw || asObject(plain.rawUser || plain.RawUser)
 
   var phone = phoneFromYandexData(raw)
   if (!phone) {
-    phone = normalizePhone(oauth2User.phone || oauth2User.Phone)
+    phone = normalizePhone(plain.phone || plain.Phone)
   }
 
   return {
     phone: phone,
-    names: namesFromYandexData(raw, oauth2User),
-    emails: emailsFromYandexOAuth(oauth2User),
+    names: namesFromYandexData(raw, plain),
+    emails: emailsFromYandexOAuth(plain),
   }
+}
+
+function extractYandexProfileFromMeta(meta) {
+  return extractYandexProfile(asObject(meta) || meta)
 }
 
 function namesFromYandexData(raw, oauth2User) {
@@ -436,11 +450,8 @@ function applyOAuthProfileBeforeSave(record, payload) {
 
 function ensureCreateDataField(e, key, value) {
   if (!e || value === undefined || value === null || value === "") return
-  var bag = e.createData
-  if (!bag || typeof bag !== "object") {
-    e.createData = {}
-    bag = e.createData
-  }
+  var bag = getCreateDataBag(e)
+  if (!bag) return
   if (bag[key] === undefined || bag[key] === null || bag[key] === "") {
     bag[key] = value
   }
@@ -497,7 +508,10 @@ module.exports = {
   applyNames: applyNames,
   findAppUserByPhone: findAppUserByPhone,
   mergeUsersIntoTarget: mergeUsersIntoTarget,
-  phoneFromYandexOAuth: phoneFromYandexOAuth,
+  phoneFromYandexOAuth: function (oauth2User) {
+    return extractYandexProfile(oauth2User).phone || ""
+  },
+  extractYandexProfileFromMeta: extractYandexProfileFromMeta,
   namesFromYandexOAuth: namesFromYandexOAuth,
   emailsFromYandexOAuth: emailsFromYandexOAuth,
   phoneFromVkUser: phoneFromVkUser,

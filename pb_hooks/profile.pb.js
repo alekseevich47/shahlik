@@ -29,6 +29,14 @@ onRecordAuthWithOAuth2Request(
   "app_users",
 )
 
+onRecordAuthRequest(
+  function (e) {
+    var profile = require(__hooks + "/lib/profile.js")
+    return profile.handleOAuthAuthSuccess(e)
+  },
+  "app_users",
+)
+
 onRecordUpdateRequest(
   function (e) {
     var profile = require(__hooks + "/lib/profile.js")

@@ -351,7 +351,7 @@ function handleLink(e) {
   return e.json(200, result)
 }
 
-/** Яндекс OAuth: имена, email, телефон, слияние по номеру. */
+/** Яндекс OAuth: createData + имена до создания записи. */
 function handleOAuthAuth(e) {
   if (e.providerName !== "yandex") {
     return e.next()
@@ -369,18 +369,34 @@ function handleOAuthAuth(e) {
     oauth.ensureCreateDataProfile(e, payload)
   }
 
-  e.next()
+  return e.next()
+}
 
-  if (!e.record) {
-    return
+/** После успешного OAuth2: телефон из meta (надёжнее, чем код сразу после e.next()). */
+function handleOAuthAuthSuccess(e) {
+  if (e.authMethod !== "oauth2") {
+    return e.next()
+  }
+
+  var record = e.record
+  if (!record || record.collection().name !== "app_users") {
+    return e.next()
+  }
+
+  var oauth = require(__hooks + "/lib/oauth.js")
+  var payload = oauth.extractYandexProfileFromMeta(e.meta)
+  if (!payload.phone) {
+    return e.next()
   }
 
   try {
-    oauth.finalizeOAuthLogin($app, e.record, payload)
+    oauth.finalizeOAuthLogin($app, record, payload)
   } catch (err) {
     var msg = err && err.message ? String(err.message) : String(err)
-    $app.logger().warn("yandex oauth profile finalize failed", "error", msg)
+    $app.logger().warn("oauth auth phone finalize failed", "error", msg)
   }
+
+  return e.next()
 }
 
 /** Клиент не может менять phone/birthday после первой записи. */
@@ -413,5 +429,6 @@ module.exports = {
   handleBonus: handleBonus,
   handleLink: handleLink,
   handleOAuthAuth: handleOAuthAuth,
+  handleOAuthAuthSuccess: handleOAuthAuthSuccess,
   lockAppUserIdentityFields: lockAppUserIdentityFields,
 }

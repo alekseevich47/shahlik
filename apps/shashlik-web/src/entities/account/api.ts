@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react"
 
 import { ensurePbBaseUrl } from "@/shared/api/pb"
 import { pbClient } from "@/shared/api/pb-client"
+import { queryClient } from "@/shared/api/query-client"
 
 import type {
   AppUser,
@@ -84,6 +85,18 @@ export function isAppUserRecord(record: RecordModel | null): boolean {
   return record?.collectionName === COLLECTION
 }
 
+/** Инкремент при logout — отменяет поздний authRefresh, который иначе восстанавливает сессию. */
+let clientAuthEpoch = 0
+
+export function getClientAuthEpoch(): number {
+  return clientAuthEpoch
+}
+
+function resetAccountCache(): void {
+  accountSnapshotKey = ""
+  accountSnapshot = null
+}
+
 /** Кэш снапшота: useSyncExternalStore требует стабильную ссылку, иначе React #185. */
 let accountSnapshot: AppUser | null = null
 let accountSnapshotKey = ""
@@ -110,7 +123,7 @@ export function getAccount(): AppUser | null {
 
 function subscribeAccount(onStoreChange: () => void) {
   return pbClient.authStore.onChange(() => {
-    accountSnapshotKey = ""
+    resetAccountCache()
     onStoreChange()
   })
 }
@@ -159,6 +172,43 @@ function openYandexOAuthPopup(authUrl: string): void {
   }
 }
 
+function normalizeClientPhone(raw: unknown): string {
+  let digits = String(raw ?? "").replace(/\D/g, "")
+  if (digits.length === 11 && digits.startsWith("8")) digits = `7${digits.slice(1)}`
+  if (digits.length === 10 && digits.startsWith("9")) digits = `7${digits}`
+  if (digits.length !== 11 || !digits.startsWith("7")) return ""
+  return `+${digits}`
+}
+
+function phoneFromYandexMeta(meta: unknown): string {
+  if (!meta || typeof meta !== "object") return ""
+  const row = meta as Record<string, unknown>
+  const raw = (row.rawUser ?? row) as Record<string, unknown>
+  const dp = raw.default_phone
+  if (typeof dp === "string" || typeof dp === "number") {
+    const fromDp = normalizeClientPhone(dp)
+    if (fromDp) return fromDp
+  }
+  if (dp && typeof dp === "object") {
+    const phoneRow = dp as Record<string, unknown>
+    const fromObj = normalizeClientPhone(phoneRow.number ?? phoneRow.phone ?? phoneRow.value)
+    if (fromObj) return fromObj
+  }
+  return normalizeClientPhone(raw.phone ?? row.phone)
+}
+
+async function syncYandexPhoneFromMeta(record: RecordModel, meta: unknown): Promise<AppUser> {
+  if (asString(record.phone)) return mapAppUser(record)
+  const phone = phoneFromYandexMeta(meta)
+  if (!phone) return mapAppUser(record)
+  await linkPhone(phone)
+  const refreshed = await pbClient.collection(COLLECTION).authRefresh()
+  if (!isAppUserRecord(refreshed.record)) {
+    throw new Error("Не удалось обновить профиль после привязки телефона")
+  }
+  return mapAppUser(refreshed.record)
+}
+
 export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> {
   if (provider === "vk") {
     loginWithVkId()
@@ -175,7 +225,10 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
     pbClient.authStore.clear()
     throw new Error("Нет доступа к профилю")
   }
-  // Хук на сервере пишет phone; refresh подхватывает, если create/update успели.
+  const meta = (auth as { meta?: unknown }).meta
+  if (!asString(auth.record.phone)) {
+    return syncYandexPhoneFromMeta(auth.record, meta)
+  }
   const refreshed = await pbClient.collection(COLLECTION).authRefresh()
   if (isAppUserRecord(refreshed.record)) {
     return mapAppUser(refreshed.record)
@@ -204,7 +257,11 @@ export async function acceptAuthToken(token: string): Promise<AppUser> {
 }
 
 export function logout(): void {
+  clientAuthEpoch++
+  resetAccountCache()
   pbClient.authStore.clear()
+  void queryClient.removeQueries({ queryKey: accountKeys.bonus })
+  void queryClient.removeQueries({ queryKey: ["orders", "mine"] })
 }
 
 export async function updateAccount(input: UpdateAccountInput): Promise<AppUser> {
