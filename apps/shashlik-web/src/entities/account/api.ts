@@ -197,14 +197,71 @@ function phoneFromYandexMeta(meta: unknown): string {
   return normalizeClientPhone(raw.phone ?? row.phone)
 }
 
-async function syncYandexPhoneFromMeta(record: RecordModel, meta: unknown): Promise<AppUser> {
-  if (asString(record.phone)) return mapAppUser(record)
+function splitClientFullName(full: string): { firstName: string; lastName: string } {
+  const parts = full.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return { firstName: "", lastName: "" }
+  if (parts.length === 1) return { firstName: parts[0].slice(0, 50), lastName: "" }
+  return {
+    firstName: parts[0].slice(0, 50),
+    lastName: parts.slice(1).join(" ").slice(0, 50),
+  }
+}
+
+function yandexNamePairClient(firstRaw: string, lastRaw: string): { firstName: string; lastName: string } {
+  let first = firstRaw.trim()
+  const last = lastRaw.trim()
+  if (first && last) {
+    const parts = first.split(/\s+/).filter(Boolean)
+    if (parts.length > 1) first = parts[0]
+    return { firstName: first.slice(0, 50), lastName: last.slice(0, 50) }
+  }
+  if (first) return splitClientFullName(first)
+  if (last) return { firstName: "", lastName: last.slice(0, 50) }
+  return { firstName: "", lastName: "" }
+}
+
+function namesFromYandexMeta(meta: unknown): { firstName: string; lastName: string } {
+  if (!meta || typeof meta !== "object") return { firstName: "", lastName: "" }
+  const row = meta as Record<string, unknown>
+  const raw = (row.rawUser ?? row) as Record<string, unknown>
+  const first = asString(raw.first_name ?? raw.firstName)
+  const last = asString(raw.last_name ?? raw.lastName)
+  if (first || last) return yandexNamePairClient(first, last)
+  const full = asString(raw.real_name ?? raw.display_name ?? raw.name ?? row.name)
+  return splitClientFullName(full)
+}
+
+function needsYandexNameFix(
+  record: RecordModel,
+  names: { firstName: string; lastName: string },
+): boolean {
+  if (!names.firstName) return false
+  const curFirst = asString(record.firstName)
+  const curLast = asString(record.lastName)
+  if (curFirst.includes(" ") && (!curLast || curFirst.endsWith(curLast))) return true
+  return curFirst !== names.firstName || (names.lastName !== "" && curLast !== names.lastName)
+}
+
+async function syncYandexProfileFromMeta(record: RecordModel, meta: unknown): Promise<AppUser> {
+  const names = namesFromYandexMeta(meta)
   const phone = phoneFromYandexMeta(meta)
-  if (!phone) return mapAppUser(record)
-  await linkPhone(phone)
+  const nameFix = needsYandexNameFix(record, names)
+  const needsPhone = !asString(record.phone) && Boolean(phone)
+
+  if (nameFix && names.firstName) {
+    await updateAccount({
+      firstName: names.firstName,
+      lastName: names.lastName,
+    })
+  }
+  if (needsPhone && phone) {
+    await linkPhone(phone)
+  }
+  if (!nameFix && !needsPhone) return mapAppUser(record)
+
   const refreshed = await pbClient.collection(COLLECTION).authRefresh()
   if (!isAppUserRecord(refreshed.record)) {
-    throw new Error("Не удалось обновить профиль после привязки телефона")
+    throw new Error("Не удалось обновить профиль после входа через Яндекс")
   }
   return mapAppUser(refreshed.record)
 }
@@ -226,8 +283,8 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
     throw new Error("Нет доступа к профилю")
   }
   const meta = (auth as { meta?: unknown }).meta
-  if (!asString(auth.record.phone)) {
-    return syncYandexPhoneFromMeta(auth.record, meta)
+  if (!asString(auth.record.phone) || needsYandexNameFix(auth.record, namesFromYandexMeta(meta))) {
+    return syncYandexProfileFromMeta(auth.record, meta)
   }
   const refreshed = await pbClient.collection(COLLECTION).authRefresh()
   if (isAppUserRecord(refreshed.record)) {

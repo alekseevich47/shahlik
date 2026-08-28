@@ -140,26 +140,50 @@ function addEmailsToRecord(record, incoming) {
 }
 
 function applyNames(record, names, onlyEmpty) {
-  if (!record || !names) return
-  var first = String(names.firstName || "").trim().slice(0, 50)
-  var last = String(names.lastName || "").trim().slice(0, 50)
+  if (!record) return
+  fixStoredNameFields(record)
+  if (!names) return
+
+  var pair = sanitizeNamePair(names.firstName, names.lastName)
+  var first = pair.firstName
+  var last = pair.lastName
   if (!first && !last) return
 
   if (onlyEmpty) {
-    var curFirst = record.getString("firstName").trim()
-    var curLast = record.getString("lastName").trim()
-    if (curFirst && curLast) {
-      var fixed = yandexNamePair(curFirst, curLast)
-      if (fixed.firstName && fixed.firstName !== curFirst) {
-        record.set("firstName", fixed.firstName)
-      }
-    }
     if (first && !record.getString("firstName")) record.set("firstName", first)
     if (last && !record.getString("lastName")) record.set("lastName", last)
     return
   }
   if (first) record.set("firstName", first)
   if (last) record.set("lastName", last)
+}
+
+/** PB часто пишет oauth2 `name` целиком в firstName, lastName пустой. */
+function fixStoredNameFields(record) {
+  if (!record) return
+  var curFirst = record.getString("firstName").trim()
+  var curLast = record.getString("lastName").trim()
+  if (!curFirst) return
+
+  var fixed = sanitizeNamePair(curFirst, curLast)
+  if (fixed.firstName && fixed.firstName !== curFirst) {
+    record.set("firstName", fixed.firstName)
+  }
+  if (fixed.lastName && fixed.lastName !== curLast) {
+    record.set("lastName", fixed.lastName)
+  }
+}
+
+function applyOAuthNames(record, names) {
+  if (!record || !names) return
+  fixStoredNameFields(record)
+  var pair = sanitizeNamePair(names.firstName, names.lastName)
+  if (pair.firstName) record.set("firstName", pair.firstName)
+  if (pair.lastName) record.set("lastName", pair.lastName)
+}
+
+function sanitizeNamePair(firstRaw, lastRaw) {
+  return yandexNamePair(firstRaw, lastRaw)
 }
 
 function readAddresses(record) {
@@ -411,7 +435,7 @@ function namesFromYandexData(raw, oauth2User) {
     var first = String(raw.first_name || raw.firstName || "").trim()
     var last = String(raw.last_name || raw.lastName || "").trim()
     if (first || last) {
-      return yandexNamePair(first, last)
+      return sanitizeNamePair(first, last)
     }
     var fullApi = String(raw.real_name || raw.display_name || raw.name || "").trim()
     if (fullApi) return splitFullName(fullApi)
@@ -429,7 +453,7 @@ function namesFromYandexOAuth(oauth2User) {
   var last = String(raw.last_name || raw.lastName || "").trim()
 
   if (first || last) {
-    return yandexNamePair(first, last)
+    return sanitizeNamePair(first, last)
   }
 
   var full = String(raw.real_name || raw.display_name || raw.name || "").trim()
@@ -468,7 +492,7 @@ function extractVkProfile(vkUser, accessEmail) {
  */
 function applyOAuthProfileBeforeSave(record, payload) {
   if (!record || !payload) return
-  applyNames(record, payload.names, true)
+  applyOAuthNames(record, payload.names)
   addEmailsToRecord(record, payload.emails || [])
 }
 
@@ -490,10 +514,12 @@ function ensureCreateDataPhone(e, phone) {
 function ensureCreateDataProfile(e, payload) {
   if (!payload) return
   ensureCreateDataPhone(e, payload.phone)
-  if (payload.names) {
-    ensureCreateDataField(e, "firstName", payload.names.firstName)
-    ensureCreateDataField(e, "lastName", payload.names.lastName)
-  }
+  if (!payload.names) return
+  var bag = getCreateDataBag(e)
+  if (!bag) return
+  var pair = sanitizeNamePair(payload.names.firstName, payload.names.lastName)
+  if (pair.firstName) bag.firstName = pair.firstName
+  if (pair.lastName) bag.lastName = pair.lastName
 }
 
 /**
@@ -506,7 +532,7 @@ function finalizeOAuthLogin(app, record, payload) {
   var fresh = app.findRecordById(COLLECTION, record.id)
 
   addEmailsToRecord(fresh, payload.emails || [])
-  applyNames(fresh, payload.names, true)
+  applyOAuthNames(fresh, payload.names)
   app.save(fresh)
 
   var phone = normalizePhone(payload.phone)

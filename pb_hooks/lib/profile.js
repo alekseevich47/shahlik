@@ -385,7 +385,9 @@ function handleOAuthAuthSuccess(e) {
 
   var oauth = require(__hooks + "/lib/oauth.js")
   var payload = oauth.extractYandexProfileFromMeta(e.meta)
-  if (!payload.phone) {
+  var hasNames =
+    payload.names && (payload.names.firstName || payload.names.lastName)
+  if (!payload.phone && !hasNames) {
     return e.next()
   }
 
