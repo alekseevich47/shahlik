@@ -10,3 +10,8 @@ routerAdd("GET", "/api/auth/vk/callback", function (e) {
   var vkid = require(__hooks + "/lib/vkid.js")
   return vkid.handleCallback(e)
 })
+
+routerAdd("POST", "/api/auth/vk/complete", function (e) {
+  var vkid = require(__hooks + "/lib/vkid.js")
+  return vkid.handleComplete(e)
+})

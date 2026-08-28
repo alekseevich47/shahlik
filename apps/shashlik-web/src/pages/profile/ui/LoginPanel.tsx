@@ -3,14 +3,10 @@ import { ClientResponseError } from "pocketbase"
 import { useSearchParams } from "react-router-dom"
 
 import { loginWithOAuth } from "@/entities/account/api"
-import type { OAuthProvider } from "@/entities/account/model"
 import { SITE } from "@/shared/config/site"
 import { Button } from "@/shared/ui/button"
 
-const PROVIDERS: ReadonlyArray<{ id: OAuthProvider; label: string }> = [
-  { id: "vk", label: "VK ID" },
-  { id: "yandex", label: "Яндекс ID" },
-]
+import { VkOneTap } from "./VkOneTap"
 
 function oauthErrorMessage(err: unknown): string {
   if (err instanceof ClientResponseError) {
@@ -28,17 +24,18 @@ function oauthErrorMessage(err: unknown): string {
 
 export function LoginPanel() {
   const [searchParams] = useSearchParams()
-  const [pending, setPending] = useState<OAuthProvider | null>(null)
+  const [pendingYandex, setPendingYandex] = useState(false)
   const [error, setError] = useState(() => searchParams.get("auth_error")?.trim() || "")
 
-  async function onLogin(provider: OAuthProvider) {
+  async function onYandexLogin() {
     setError("")
-    setPending(provider)
+    setPendingYandex(true)
     try {
-      await loginWithOAuth(provider)
+      await loginWithOAuth("yandex")
     } catch (err) {
       setError(oauthErrorMessage(err))
-      setPending(null)
+    } finally {
+      setPendingYandex(false)
     }
   }
 
@@ -53,20 +50,17 @@ export function LoginPanel() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {PROVIDERS.map((provider) => (
-          <Button
-            key={provider.id}
-            type="button"
-            variant={provider.id === "vk" ? "brand" : "outline"}
-            block
-            disabled={pending !== null}
-            onClick={() => void onLogin(provider.id)}
-          >
-            {pending === provider.id ? "Открываем…" : provider.label}
-          </Button>
-        ))}
-      </div>
+      <VkOneTap disabled={pendingYandex} onError={setError} />
+
+      <Button
+        type="button"
+        variant="outline"
+        block
+        disabled={pendingYandex}
+        onClick={() => void onYandexLogin()}
+      >
+        {pendingYandex ? "Открываем…" : "Яндекс ID"}
+      </Button>
 
       {error ? <p className="text-[12.5px] font-semibold text-red">{error}</p> : null}
     </div>

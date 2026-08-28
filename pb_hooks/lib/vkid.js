@@ -362,6 +362,67 @@ function handleCallback(e) {
   }
 }
 
+function exchangeAuthCode(code, deviceId, codeVerifier, stateParam) {
+  var creds = getVkCredentials()
+  var redirectUri = callbackUrl()
+
+  var tokenBody = {
+    grant_type: "authorization_code",
+    code: String(code),
+    code_verifier: String(codeVerifier),
+    client_id: creds.clientId,
+    device_id: String(deviceId),
+    redirect_uri: redirectUri,
+  }
+  if (stateParam) {
+    tokenBody.state = String(stateParam)
+  }
+
+  var serviceToken = $os.getenv("VK_ID_SERVICE_TOKEN") || ""
+  if (serviceToken) {
+    tokenBody.service_token = String(serviceToken)
+  } else if (creds.clientSecret) {
+    tokenBody.client_secret = creds.clientSecret
+  }
+
+  var tokenData = httpForm(TOKEN_URL, tokenBody)
+  if (!tokenData || !tokenData.access_token) {
+    throw new BadRequestError("VK ID не выдал access_token")
+  }
+
+  var userInfo = httpForm(USER_INFO_URL, {
+    access_token: tokenData.access_token,
+    client_id: creds.clientId,
+  })
+
+  var vkUser = (userInfo && userInfo.user) || userInfo || {}
+  if (!vkUser.user_id && tokenData.user_id) {
+    vkUser.user_id = tokenData.user_id
+  }
+
+  return vkUser
+}
+
+function sessionTokenFromVkUser(vkUser) {
+  var record = findOrCreateUser(vkUser, vkUser.email || "")
+  if (record.getBool("blocked")) {
+    throw new BadRequestError("Аккаунт заблокирован")
+  }
+  return record.newAuthToken()
+}
+
+function readJsonBody(e) {
+  try {
+    var info = e.requestInfo()
+    if (info && info.body && typeof info.body === "object") {
+      return info.body
+    }
+  } catch (err) {
+    // ignore
+  }
+  return {}
+}
+
 function handleCallbackInner(e) {
   var params = parseCallbackParams(e)
   if (params.error) {
@@ -381,69 +442,54 @@ function handleCallbackInner(e) {
     return redirectError(e, String(err.message || err))
   }
 
-  var creds = getVkCredentials()
-  var redirectUri = stored.redirectUri || callbackUrl()
-
-  var tokenBody = {
-    grant_type: "authorization_code",
-    code: params.code,
-    code_verifier: stored.verifier,
-    client_id: creds.clientId,
-    device_id: params.deviceId,
-    redirect_uri: redirectUri,
-    state: params.state,
-  }
-  var serviceToken = $os.getenv("VK_ID_SERVICE_TOKEN") || ""
-  if (serviceToken) {
-    tokenBody.service_token = String(serviceToken)
-  } else if (creds.clientSecret) {
-    tokenBody.client_secret = creds.clientSecret
-  }
-
-  var tokenData
+  var vkUser
   try {
-    tokenData = httpForm(TOKEN_URL, tokenBody)
+    vkUser = exchangeAuthCode(
+      params.code,
+      params.deviceId,
+      stored.verifier,
+      params.state,
+    )
   } catch (err) {
     return redirectError(e, String(err.message || err))
   }
 
-  if (!tokenData || !tokenData.access_token) {
-    return redirectError(e, "VK ID не выдал access_token")
-  }
-
-  var userInfo
+  var token
   try {
-    userInfo = httpForm(USER_INFO_URL, {
-      access_token: tokenData.access_token,
-      client_id: creds.clientId,
-    })
-  } catch (err) {
-    return redirectError(e, "Не удалось получить профиль VK ID")
-  }
-
-  var vkUser = (userInfo && userInfo.user) || userInfo || {}
-  if (!vkUser.user_id && tokenData.user_id) {
-    vkUser.user_id = tokenData.user_id
-  }
-
-  var record
-  try {
-    record = findOrCreateUser(vkUser, vkUser.email || "")
+    token = sessionTokenFromVkUser(vkUser)
   } catch (err) {
     return redirectError(e, String(err.message || err))
   }
 
-  if (record.getBool("blocked")) {
-    return redirectError(e, "Аккаунт заблокирован")
-  }
-
-  var token = record.newAuthToken()
   var finish =
     siteOrigin() + "/auth/callback?token=" + encodeURIComponent(token)
   return e.redirect(302, finish)
 }
 
+function handleComplete(e) {
+  try {
+    var body = readJsonBody(e)
+    var code = String(body.code || "").trim()
+    var deviceId = String(body.device_id || body.deviceId || "").trim()
+    var codeVerifier = String(body.code_verifier || body.codeVerifier || "").trim()
+    var stateParam = String(body.state || "").trim()
+
+    if (!code || !deviceId || !codeVerifier) {
+      throw new BadRequestError("Неполные данные VK ID (code/device_id/code_verifier)")
+    }
+
+    var vkUser = exchangeAuthCode(code, deviceId, codeVerifier, stateParam)
+    var token = sessionTokenFromVkUser(vkUser)
+    return e.json(200, { token: token })
+  } catch (err) {
+    var msg = err && err.message ? String(err.message) : String(err)
+    $app.logger().error("vkid complete failed", "error", msg)
+    throw new BadRequestError(msg)
+  }
+}
+
 module.exports = {
   handleStart: handleStart,
   handleCallback: handleCallback,
+  handleComplete: handleComplete,
 }

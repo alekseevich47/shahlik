@@ -268,9 +268,7 @@ async function syncYandexProfileFromMeta(record: RecordModel, meta: unknown): Pr
 
 export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> {
   if (provider === "vk") {
-    loginWithVkId()
-    // Редирект уводит со страницы; Promise не резолвится намеренно.
-    await new Promise<never>(() => undefined)
+    throw new Error("Вход через VK — кнопка One Tap на экране входа")
   }
   ensurePbBaseUrl(pbClient)
   const auth = await pbClient.collection(COLLECTION).authWithOAuth2({
@@ -293,7 +291,29 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
   return mapAppUser(auth.record)
 }
 
-/** Старт VK ID: сервер редиректит на id.vk.ru, callback пишет token в /auth/callback. */
+/** One Tap VK ID: обмен code на сессию PocketBase без редиректа в основной вкладке. */
+export async function completeVkOneTap(input: {
+  code: string
+  deviceId: string
+  codeVerifier: string
+  state?: string
+}): Promise<AppUser> {
+  ensurePbBaseUrl(pbClient)
+  const data = await pbClient.send<{ token?: string }>("/api/auth/vk/complete", {
+    method: "POST",
+    body: {
+      code: input.code,
+      device_id: input.deviceId,
+      code_verifier: input.codeVerifier,
+      state: input.state || "",
+    },
+  })
+  const token = data.token?.trim()
+  if (!token) throw new Error("VK ID не вернул токен сессии")
+  return acceptAuthToken(token)
+}
+
+/** @deprecated Редиректный flow — оставлен для fallback callback. */
 export function loginWithVkId(): void {
   ensurePbBaseUrl(pbClient)
   const base = pbClient.baseUrl.replace(/\/$/, "")
