@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/package.json": {
-    "mtime": 1787890727.200819,
-    "ast_hash": "f431d85e0d9026065a47685a12cb0dd0",
+    "mtime": 1787892317.6662877,
+    "ast_hash": "46b3ab26cbd5fe2044895b979499e4ea",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/App.tsx": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/AdminPage.tsx": {
-    "mtime": 1787891938.4227421,
-    "ast_hash": "ef5f75eff54aac4cd68b9089a997c8e7",
+    "mtime": 1787891994.6226404,
+    "ast_hash": "a2fcdf15ab1c20988ed7c8b95013b759",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/model.ts": {
@@ -470,7 +470,7 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/vite.config.ts": {
-    "mtime": 1787188657.935707,
+    "mtime": 1787892313.0755813,
     "ast_hash": "a0118759da4a1a67d5c784afb2f9f946",
     "semantic_hash": ""
   },
@@ -1260,7 +1260,7 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/profile/ui/LoginPanel.tsx": {
-    "mtime": 1787890176.8063397,
+    "mtime": 1787892157.4341314,
     "ast_hash": "8073f7515eb7cc70c0172278ed7e3f56",
     "semantic_hash": ""
   },
@@ -1295,18 +1295,23 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/profile/ui/VkOneTap.tsx": {
-    "mtime": 1787890596.8868167,
-    "ast_hash": "8075ef40d4fc65a39f49dae1dabec484",
+    "mtime": 1787892247.560193,
+    "ast_hash": "1a3b2d24f93a7aac55aea025f7a6da29",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/account/vk-one-tap-session.ts": {
-    "mtime": 1787890631.5562623,
-    "ast_hash": "f6487fb93e17afcfb05f4c5a889842c5",
+    "mtime": 1787892407.0116897,
+    "ast_hash": "67d87f7b096cfb9038ed1471f25ae2c4",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/lib/VitrineScroll.tsx": {
     "mtime": 1787890851.076228,
     "ast_hash": "78afdd653f572402b8781ae58198d5a3",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/entities/account/vk-sdk-cdn.ts": {
+    "mtime": 1787892306.7345428,
+    "ast_hash": "d75bf2b6f3da3a58ad68dfc8552717f7",
     "semantic_hash": ""
   }
 }

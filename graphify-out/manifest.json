@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/package.json": {
-    "mtime": 1787892317.6662877,
-    "ast_hash": "46b3ab26cbd5fe2044895b979499e4ea",
+    "mtime": 1787892719.9663305,
+    "ast_hash": "4a26ea16fad9e09802e78da272cbe274",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/App.tsx": {
@@ -1310,8 +1310,18 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/account/vk-sdk-cdn.ts": {
-    "mtime": 1787892306.7345428,
-    "ast_hash": "d75bf2b6f3da3a58ad68dfc8552717f7",
+    "mtime": 1787892719.1834815,
+    "ast_hash": "8f8e7a15baac56626c1af591de73dd14",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/public/vk/vkid-sdk.js": {
+    "mtime": 1787890006.3772838,
+    "ast_hash": "8273b4e5f588ad08266914bd7c39c087",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/scripts/copy-vkid-sdk.mjs": {
+    "mtime": 1787892715.9620056,
+    "ast_hash": "1c5f03605273280f84a9480fe8ae60e8",
     "semantic_hash": ""
   }
 }

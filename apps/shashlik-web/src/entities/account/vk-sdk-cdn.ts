@@ -24,9 +24,28 @@ export type VkSdkGlobal = {
   }
 }
 
-const VK_SDK_URL = "https://unpkg.com/@vkid/sdk@2.6.8/dist-sdk/umd/index.js"
+/** Same-origin — unpkg на проде часто недоступен / блокируется. */
+const VK_SDK_SELF = "/vk/vkid-sdk.js"
+const VK_SDK_CDN = "https://unpkg.com/@vkid/sdk@2.6.8/dist-sdk/umd/index.js"
 
 let sdkPromise: Promise<VkSdkGlobal> | null = null
+
+function loadScript(url: string): Promise<VkSdkGlobal> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script")
+    script.src = url
+    script.async = true
+    script.onload = () => {
+      if (window.VKIDSDK) {
+        resolve(window.VKIDSDK)
+        return
+      }
+      reject(new Error("VK ID SDK не инициализировался"))
+    }
+    script.onerror = () => reject(new Error(`Не удалось загрузить VK ID SDK (${url})`))
+    document.head.appendChild(script)
+  })
+}
 
 export function loadVkSdkFromCdn(): Promise<VkSdkGlobal> {
   if (typeof window === "undefined") {
@@ -37,20 +56,7 @@ export function loadVkSdkFromCdn(): Promise<VkSdkGlobal> {
   }
   if (sdkPromise) return sdkPromise
 
-  sdkPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script")
-    script.src = VK_SDK_URL
-    script.async = true
-    script.onload = () => {
-      if (window.VKIDSDK) {
-        resolve(window.VKIDSDK)
-        return
-      }
-      reject(new Error("VK ID SDK не инициализировался"))
-    }
-    script.onerror = () => reject(new Error("Не удалось загрузить VK ID SDK"))
-    document.head.appendChild(script)
-  })
+  sdkPromise = loadScript(VK_SDK_SELF).catch(() => loadScript(VK_SDK_CDN))
 
   return sdkPromise
 }
