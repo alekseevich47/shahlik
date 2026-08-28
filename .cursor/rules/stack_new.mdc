@@ -392,7 +392,7 @@ Env процесса `pocketbase`:
 `https://shashlik.loomixx.ru/api/auth/vk/callback`
 (не `/api/oauth2-redirect` — тот только для Яндекса / legacy PB).
 
-Клиент: **VK ID One Tap** — `VkOneTap.tsx` + `@vkid/sdk` **не в бандле**: `scripts/copy-vkid-sdk.mjs` (`prebuild`/`dev`) копирует UMD в `public/vk/vkid-sdk.js`, грузится через `vk-sdk-cdn.ts` (unpkg — только fallback). После деплоя проверить `GET /vk/vkid-sdk.js` → 200. «Яндекс ID» → `authWithOAuth2` + `withYandexPhoneScope()` в `urlCallback`.
+Клиент: **VK ID One Tap** — `VkOneTap.tsx` + `@vkid/sdk` **не в бандле**: UMD лежит в `public/vk/vkid-sdk.js` (в git). После смены версии `@vkid/sdk` локально: `pnpm copy:vk-sdk` и коммит. В `dev` копия обновляется только если исходник новее. «Яндекс ID» → `authWithOAuth2` + `withYandexPhoneScope()` в `urlCallback`.
 
 **Профиль OAuth** (`pb_hooks/lib/oauth.js`, `profile.pb.js` → `handleOAuthAuth`):
 
@@ -510,17 +510,16 @@ Env процесса `pocketbase`:
 
 Несколько сайтов на одном белом IP — один вход 80/443, дальше по `server_name`. Блок шашлыка **не** `default_server`. Неизвестный Host и `loomixx.ru` — отдельные server (заглушка / другой root), иначе Nginx отдаст шашлык на все домены. С роутера 80/443 на несколько VM не дублировать.
 
-Деплой (витрина + `pb_hooks` + рестарт PB) — скрипт в корне репозитория `deploy.sh`:
+Деплой — `deploy.sh` в корне репозитория. Корень по умолчанию — каталог скрипта; на проде обычно `DEPLOY_ROOT=/var/www/shashlik`.
 
 ```bash
-cd /var/www/shashlik
 chmod +x deploy.sh   # один раз
 ./deploy.sh
+# или: DEPLOY_ROOT=/var/www/shashlik ./deploy.sh
+# только фронт: SKIP_PB=1 ./deploy.sh
 ```
 
-Скрипт: `git pull` → `pnpm install && pnpm build` в `apps/shashlik-web` → `rsync pb_hooks/` в `/opt/pocketbase/pb_hooks/` → `systemctl restart pocketbase` → проверка `systemctl is-active` + `GET http://127.0.0.1:8090/api/health` (до 30 с, иначе exit 1 и `systemctl status`). Nginx читает `dist` из репозитория — отдельный rsync статики не нужен.
-
-Ручной health-check: `curl -fsS http://127.0.0.1:8090/api/health`.
+Скрипт: `git pull` → `pnpm install && pnpm build` → `rsync pb_hooks/` → `systemctl restart pocketbase` → `/api/health`. Nginx читает `dist` из репозитория.
 
 Не слушать PB на `0.0.0.0`. Не класть `pb_data`, `.env`, секреты Frontpad в репозиторий. `pb_hooks` — мост к Frontpad, схема в `Tasks/TASK_DB.md`; заводится на стороне PocketBase, вне `apps/shashlik-web`.
 

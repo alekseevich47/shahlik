@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/copy-vkid-sdk.mjs && vite",
-    "prebuild": "node scripts/copy-vkid-sdk.mjs",
+    "copy:vk-sdk": "node scripts/copy-vkid-sdk.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit"
