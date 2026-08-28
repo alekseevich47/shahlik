@@ -80,17 +80,10 @@
   "78": "router.tsx",
   "79": "profile.pb.js",
   "80": "lucide-react",
-  "81": "getAccount",
-  "82": "localOrders.ts",
-  "83": "useCatalogScrollSpy.ts",
-  "84": "CategoryForm.tsx",
-  "85": "tailwind-merge",
   "86": "lucide-react",
   "87": "@radix-ui/react-popover",
-  "88": "@radix-ui/react-tooltip",
   "89": "zustand",
   "90": "vkid.pb.js",
   "91": "NutritionHint.tsx",
-  "92": "theme.tsx",
-  "93": "query-client.ts"
+  "92": "theme.tsx"
 }

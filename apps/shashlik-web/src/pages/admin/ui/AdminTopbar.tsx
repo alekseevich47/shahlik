@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { ArrowLeft, Bell, ChevronDown, LogOut, RefreshCw } from "lucide-react"
+import { ArrowLeft, Bell, ChevronDown, LogOut, Menu, RefreshCw } from "lucide-react"
 import { useEffect, useId, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
@@ -19,7 +19,12 @@ async function fetchNewOrdersCount(): Promise<number> {
   return result.totalItems
 }
 
-export function AdminTopbar() {
+type AdminTopbarProps = {
+  showMenu?: boolean
+  onMenuClick?: () => void
+}
+
+export function AdminTopbar({ showMenu = false, onMenuClick }: AdminTopbarProps) {
   const { user, logout } = useAdminAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -62,7 +67,18 @@ export function AdminTopbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-line bg-surface-2/92 px-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b border-line bg-surface-2/92 px-3 backdrop-blur-xl sm:gap-3 sm:px-4">
+      {showMenu ? (
+        <button
+          type="button"
+          aria-label="Открыть меню"
+          onClick={onMenuClick}
+          className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-[var(--r-sm)] border border-line bg-surface text-fg-muted transition-colors hover:text-brand"
+        >
+          <Menu size={18} strokeWidth={2.4} />
+        </button>
+      ) : null}
+
       <Link
         to="/"
         className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-fg-muted transition-colors hover:text-brand"
@@ -71,7 +87,7 @@ export function AdminTopbar() {
         На сайт
       </Link>
 
-      <h1 className="text-[19px] leading-none font-extrabold tracking-[-0.01em] text-fg">
+      <h1 className="min-w-0 truncate text-[17px] leading-none font-extrabold tracking-[-0.01em] text-fg sm:text-[19px]">
         Админ-панель
       </h1>
 

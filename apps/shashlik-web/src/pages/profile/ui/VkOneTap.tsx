@@ -1,13 +1,11 @@
 import { useEffect, useRef } from "react"
 
-import { attachVkOneTap, detachVkOneTapHost } from "@/entities/account/vk-one-tap-session"
-
 type VkOneTapProps = {
   disabled?: boolean
   onError: (message: string) => void
 }
 
-/** VK ID One Tap: callback mode, без редиректа основной вкладки. */
+/** VK ID One Tap: SDK грузится отдельным чанком, чтобы не ронять /profile в prod. */
 export function VkOneTap({ disabled, onError }: VkOneTapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onErrorRef = useRef(onError)
@@ -17,12 +15,25 @@ export function VkOneTap({ disabled, onError }: VkOneTapProps) {
     const container = containerRef.current
     if (!container || disabled) return
 
-    attachVkOneTap(container, {
-      onError: (message) => onErrorRef.current(message),
+    let cancelled = false
+    const frame = requestAnimationFrame(() => {
+      void import("@/entities/account/vk-one-tap-session")
+        .then(({ attachVkOneTap }) => {
+          if (cancelled) return
+          return attachVkOneTap(container, {
+            onError: (message) => onErrorRef.current(message),
+          })
+        })
+        .catch((err: unknown) => {
+          if (!cancelled) {
+            onErrorRef.current(err instanceof Error ? err.message : "VK ID недоступен")
+          }
+        })
     })
 
     return () => {
-      detachVkOneTapHost()
+      cancelled = true
+      cancelAnimationFrame(frame)
     }
   }, [disabled])
 

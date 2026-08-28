@@ -234,7 +234,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role`: `admin` | `manager`), гейт на `/admin/*` в `router.tsx`. Сессия — один `AdminAuthProvider` (`shared/api/auth.tsx`): общий `authRefresh` с `requestKey`, отмена запроса **не** чистит `authStore` (иначе логин ↔ админка мерцают).
 
-Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет.
+Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет. **Desktop (≥1024):** сайдбар `220px`, sticky слева. **Mobile (<1024):** сайдбар скрыт; бургер в `AdminTopbar` открывает `Sheet side="left"` (`280px` / `88vw`) с `backdrop-blur-md` на оверлее; выезд `slide-in-from-left`, `ease-out-soft`, 300 ms; закрытие по пункту меню, оверлею или Escape.
 
 Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов/цен вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. Поле PB `tagline` в UI — **«Описание»** (создание и редактирование). До 5 фото: `MultiImageField` — **карусель в одном окне** (стрелки / точки / swipe), не ряд превью. При редактировании новые файлы **дозаписываются** через PB-модификатор `image+` (не затирают существующие); удаления — `image-`. Список «Товары» — `SortableList` с **drag&drop** (и стрелками) для `order` на витрине; DnD выключен при поиске/фильтре статуса. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка: поле slug в UI **нет**, slug = `slugFromName(label)` (`shared/lib/slug.ts`) при создании; при переименовании slug не трогаем.
 
@@ -356,7 +356,8 @@ Env процесса `pocketbase`:
 | BadgeManagerDialog | `pages/admin/sections/products/BadgeManagerDialog.tsx` — авто-slug, без поля slug |
 | product_badges | `entities/badge` + `mocks/badges.ts` |
 | slugFromName | `shared/lib/slug.ts` — транслит для slug товара/бейджа |
-| AdminSidebar | `pages/admin/ui/AdminSidebar.tsx` — меню + счётчики + layout pill |
+| AdminSidebar | `pages/admin/ui/AdminSidebar.tsx` — меню + счётчики + layout pill; desktop rail `220px`, mobile drawer в `Sheet` |
+| AdminTopbar | `pages/admin/ui/AdminTopbar.tsx` — шапка; на mobile бургер → drawer |
 | ADMIN_NAV | `pages/admin/model.ts` — порядок пунктов, `AdminSectionId`, минимальная роль |
 
 ## Аккаунты и сессии

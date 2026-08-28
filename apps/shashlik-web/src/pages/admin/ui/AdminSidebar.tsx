@@ -15,9 +15,18 @@ const PILL = { type: "spring", stiffness: 480, damping: 36, mass: 0.65 } as cons
 type Props = {
   role: AdminRole
   counts: Partial<Record<AdminSectionId, number>>
+  className?: string
+  mode?: "rail" | "drawer"
+  onNavigate?: () => void
 }
 
-export function AdminSidebar({ role, counts }: Props) {
+export function AdminSidebar({
+  role,
+  counts,
+  className,
+  mode = "rail",
+  onNavigate,
+}: Props) {
   const location = useLocation()
 
   const items = ADMIN_NAV.filter(
@@ -25,8 +34,16 @@ export function AdminSidebar({ role, counts }: Props) {
   )
 
   return (
-    <aside className="sticky top-0 flex h-dvh w-[188px] shrink-0 flex-col border-r border-line bg-surface-2 p-3">
-      <Link to="/" className="mb-4 flex flex-col items-center gap-0.5 pt-2">
+    <aside
+      className={cn(
+        "flex flex-col bg-surface-2 p-3",
+        mode === "rail"
+          ? "sticky top-0 h-dvh w-[220px] shrink-0 border-r border-line"
+          : "h-full w-full",
+        className,
+      )}
+    >
+      <Link to="/" onClick={onNavigate} className="mb-4 flex flex-col items-center gap-0.5 pt-2">
         <img src={SITE.brandLogo} alt={SITE.name} className="h-14 w-auto object-contain" />
         <span className="text-[10px] font-bold tracking-[0.14em] text-fg-faint">admin</span>
       </Link>
@@ -44,6 +61,7 @@ export function AdminSidebar({ role, counts }: Props) {
               <Link
                 key={item.id}
                 to={href}
+                onClick={onNavigate}
                 className={cn(
                   "relative flex h-9.5 items-center gap-2 rounded-[var(--r-sm)] px-2.5 text-left",
                   "text-[12.5px] font-bold transition-colors",

@@ -23,9 +23,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
-      '@vkid/sdk':
-        specifier: ^2.6.8
-        version: 2.6.8
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -717,9 +714,6 @@ packages:
       babel-plugin-react-compiler:
         optional: true
 
-  '@vkid/sdk@2.6.8':
-    resolution: {integrity: sha512-8XGUcpWWqNGICY0c3zWlhHwiURf87cyo4nJmn80CHDLcM6OedSpyD2DGIN2AAvMVxngj4drxiNc16ikzYy57Rw==}
-
   aria-hidden@1.2.6:
     resolution: {integrity: sha512-ik3ZgC9dY/lYVVM++OISsaYDeg1tb0VtP5uL3ouh1koGOaUMDPpbFIei4JkFimWUFPn90sbMNMXQAIVOlnYKJA==}
     engines: {node: '>=10'}
@@ -734,10 +728,6 @@ packages:
   cookie@1.1.1:
     resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
     engines: {node: '>=18'}
-
-  crypto-js@4.2.0:
-    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
-    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -1663,10 +1653,6 @@ snapshots:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.2.1(@types/node@26.2.0)(jiti@2.7.0)
 
-  '@vkid/sdk@2.6.8':
-    dependencies:
-      crypto-js: 4.2.0
-
   aria-hidden@1.2.6:
     dependencies:
       tslib: 2.8.1
@@ -1678,8 +1664,6 @@ snapshots:
   clsx@2.1.1: {}
 
   cookie@1.1.1: {}
-
-  crypto-js@4.2.0: {}
 
   csstype@3.2.3: {}
 

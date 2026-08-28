@@ -1,6 +1,6 @@
 import { LazyMotion } from "motion/react"
-import type { ReactNode } from "react"
-import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom"
+import { type ReactNode, useEffect, useState } from "react"
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom"
 
 import { useAdminProducts } from "@/entities/product/api"
 import type { AdminSectionId } from "./model"
@@ -21,12 +21,25 @@ import { AdminSidebar } from "./ui/AdminSidebar"
 import { AdminTopbar } from "./ui/AdminTopbar"
 import { can, useAdminAuth } from "@/shared/api/auth"
 import { useAdminCounts } from "@/shared/api/counts"
+import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
+import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
 
 const loadDomMax = () => import("@/app/motion-features-max").then((mod) => mod.default)
 
 export default function AdminPage() {
   const { role } = useAdminAuth()
   const { data: countsData } = useAdminCounts()
+  const isDesktop = useIsDesktop()
+  const location = useLocation()
+  const [navOpen, setNavOpen] = useState(false)
+
+  useEffect(() => {
+    setNavOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (isDesktop) setNavOpen(false)
+  }, [isDesktop])
 
   const counts: Partial<Record<AdminSectionId, number>> = {
     products: countsData?.products,
@@ -40,10 +53,32 @@ export default function AdminPage() {
   return (
     <LazyMotion features={loadDomMax} strict>
       <div className="flex min-h-dvh bg-canvas">
-        <AdminSidebar role={role ?? "manager"} counts={counts} />
+        {isDesktop ? (
+          <AdminSidebar role={role ?? "manager"} counts={counts} />
+        ) : (
+          <Sheet open={navOpen} onOpenChange={setNavOpen}>
+            <SheetContent
+              side="left"
+              hideClose
+              overlayClassName="backdrop-blur-md"
+              className="gap-0 border-0 bg-surface-2 p-0 shadow-[var(--shadow-panel)]"
+            >
+              <SheetTitle className="sr-only">Навигация админ-панели</SheetTitle>
+              <AdminSidebar
+                role={role ?? "manager"}
+                counts={counts}
+                mode="drawer"
+                onNavigate={() => setNavOpen(false)}
+              />
+            </SheetContent>
+          </Sheet>
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <AdminTopbar />
+          <AdminTopbar
+            showMenu={!isDesktop}
+            onMenuClick={() => setNavOpen(true)}
+          />
 
           <main className="flex-1 p-4">
             <Routes>
