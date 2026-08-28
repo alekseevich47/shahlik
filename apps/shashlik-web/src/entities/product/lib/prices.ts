@@ -100,37 +100,12 @@ export function planCashPrices(product: Product, stock: StockPriceMap): CashPric
     }
   }
 
-  const sizePrices = product.sizes.map((size) => {
-    const article = (articleFor(product, size.id, rows[0]?.id) ?? "").trim()
-    return stock.get(article) ?? 0
-  })
-
-  if (product.variants.length > 1) {
-    for (let v = 1; v < product.variants.length; v++) {
-      const variant = product.variants[v]
-      const deltas = product.sizes.map((size, si) => {
-        const article = (articleFor(product, size.id, variant.id) ?? "").trim()
-        return (stock.get(article) ?? 0) - sizePrices[si]
-      })
-      if (deltas.some((d) => d !== deltas[0])) {
-        return {
-          ...base,
-          status: "blocked",
-          reason: `надбавка «${variant.label}» разная по размерам`,
-        }
-      }
-    }
-  }
-
-  let changed = product.sizes.some((size, si) => roundPrice(size.price) !== sizePrices[si])
-  if (!changed && product.variants.length) {
-    if (roundPrice(product.variants[0].priceDelta) !== 0) changed = true
-    for (let v = 1; v < product.variants.length && !changed; v++) {
-      const variant = product.variants[v]
-      const size = product.sizes[0]
-      const article = (articleFor(product, size.id, variant.id) ?? "").trim()
-      const delta = (stock.get(article) ?? 0) - sizePrices[0]
-      if (roundPrice(variant.priceDelta) !== delta) changed = true
+  let changed = false
+  for (const cell of cells) {
+    if (cell.cashPrice === null) continue
+    if (roundPrice(cell.ourPrice) !== roundPrice(cell.cashPrice)) {
+      changed = true
+      break
     }
   }
 

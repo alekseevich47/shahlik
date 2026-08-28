@@ -1,10 +1,9 @@
-/** Применение цен кассы к products.sizes[].price и variants[].priceDelta.
+/** Применение цен кассы к products.sizes[].price / sizes[].priceByVariant.
  * Алгоритм дублируется в entities/product/lib/prices.ts — менять оба.
  *
- * База = первый вариант: size.price = цена кассы ячейки [вариант0, size],
- * variant.priceDelta = цена[вариантN, size] − size.price.
- * Если артикул не у всех ячеек или priceDelta расходится по размерам —
- * товар не трогаем, строка в отчёт. Пишем только при priceSource = frontpad.
+ * Каждая ячейка матрицы «вариант × размер» получает свою цену из кассы.
+ * variants[].priceDelta не используется (всегда 0).
+ * Пишем только при priceSource = frontpad.
  */
 
 var PAGE = 200
@@ -72,6 +71,10 @@ function cloneSize(size, order, parseJsonField) {
     label: String(getField(size, "label") || ""),
     price: roundPrice(getField(size, "price")),
   }
+  var weight = getField(size, "weight")
+  if (weight !== undefined && weight !== null && String(weight).trim()) {
+    out.weight = String(weight).trim()
+  }
   var article = getField(size, "article")
   if (article !== undefined && article !== null && String(article).trim()) {
     out.article = String(article).trim()
@@ -108,6 +111,34 @@ function cloneSize(size, order, parseJsonField) {
       out.articleByVariant = byVar
     }
   }
+  var rawPriceByVar = getField(size, "priceByVariant")
+  if (typeof rawPriceByVar === "string") {
+    rawPriceByVar = parseJsonField(rawPriceByVar, null)
+  } else if (rawPriceByVar && typeof rawPriceByVar === "object") {
+    try {
+      var priceText = String(rawPriceByVar)
+      if (priceText && priceText !== "[object Object]" && priceText.charAt(0) === "{") {
+        rawPriceByVar = parseJsonField(priceText, rawPriceByVar)
+      }
+    } catch (err2) {
+      // Go-map
+    }
+  }
+  if (rawPriceByVar && typeof rawPriceByVar === "object") {
+    var priceByVar = {}
+    var hasPrice = false
+    for (var pk in rawPriceByVar) {
+      var pval = rawPriceByVar[pk]
+      if (pval === undefined || pval === null) {
+        continue
+      }
+      priceByVar[String(pk)] = roundPrice(pval)
+      hasPrice = true
+    }
+    if (hasPrice) {
+      out.priceByVariant = priceByVar
+    }
+  }
   return out
 }
 
@@ -117,7 +148,7 @@ function cloneVariant(variant, order) {
   var out = {
     id: String(getField(variant, "id") || ""),
     label: String(getField(variant, "label") || ""),
-    priceDelta: roundPrice(getField(variant, "priceDelta")),
+    priceDelta: 0,
   }
   if (icon === "chicken" || icon === "pork") {
     out.icon = icon
@@ -161,11 +192,25 @@ function planProduct(record, stockMap, order, parseJsonField) {
   }
 
   var newSizes = []
-  var base = rows[0]
-  var baseId = base ? order.getField(base, "id") : ""
   for (si = 0; si < sizes.length; si++) {
     var cloned = cloneSize(sizes[si], order, parseJsonField)
-    cloned.price = stockMap[order.articleFor(sizes[si], baseId)]
+    if (!variants.length) {
+      var articleBase = order.articleFor(sizes[si], "")
+      cloned.price = stockMap[articleBase]
+    } else {
+      cloned.priceByVariant = {}
+      var minPrice = null
+      for (vi = 0; vi < variants.length; vi++) {
+        var vId = order.getField(variants[vi], "id")
+        var art = order.articleFor(sizes[si], vId)
+        var cash = stockMap[art]
+        cloned.priceByVariant[vId] = cash
+        if (minPrice === null || cash < minPrice) {
+          minPrice = cash
+        }
+      }
+      cloned.price = minPrice !== null ? minPrice : 0
+    }
     newSizes.push(cloned)
   }
 
@@ -174,38 +219,42 @@ function planProduct(record, stockMap, order, parseJsonField) {
     newVariants.push(cloneVariant(variants[vi], order))
   }
 
-  if (newVariants.length) {
-    newVariants[0].priceDelta = 0
-    for (vi = 1; vi < newVariants.length; vi++) {
-      var deltas = []
-      var vId = order.getField(variants[vi], "id")
-      for (si = 0; si < sizes.length; si++) {
-        var cash = stockMap[order.articleFor(sizes[si], vId)]
-        deltas.push(cash - newSizes[si].price)
-      }
-      var firstDelta = deltas[0]
-      for (var di = 1; di < deltas.length; di++) {
-        if (deltas[di] !== firstDelta) {
-          return {
-            skip: true,
-            reason: "надбавка «" + variantLabel(variants[vi], order) + "» разная по размерам",
-          }
+  var changed = false
+  for (vi = 0; vi < rows.length; vi++) {
+    var rowVariant = rows[vi]
+    var rowVariantId = rowVariant ? order.getField(rowVariant, "id") : ""
+    for (si = 0; si < sizes.length; si++) {
+      var articleCell = order.articleFor(sizes[si], rowVariantId)
+      var cashPrice = stockMap[articleCell]
+      var currentPrice
+      if (!variants.length) {
+        currentPrice = roundPrice(order.getField(sizes[si], "price"))
+      } else {
+        var rawByVar = order.getField(sizes[si], "priceByVariant")
+        var fromByVar =
+          rawByVar && rowVariantId ? order.getField(rawByVar, rowVariantId) : undefined
+        if (fromByVar !== undefined && fromByVar !== null) {
+          currentPrice = roundPrice(fromByVar)
+        } else if (rowVariant) {
+          var delta = Number(order.getField(rowVariant, "priceDelta")) || 0
+          currentPrice = roundPrice(order.getField(sizes[si], "price")) + delta
+        } else {
+          currentPrice = roundPrice(order.getField(sizes[si], "price"))
         }
       }
-      newVariants[vi].priceDelta = firstDelta
+      if (currentPrice !== cashPrice) {
+        changed = true
+        break
+      }
     }
-  }
-
-  var changed = false
-  for (si = 0; si < sizes.length; si++) {
-    if (roundPrice(order.getField(sizes[si], "price")) !== newSizes[si].price) {
-      changed = true
+    if (changed) {
       break
     }
   }
-  if (!changed) {
+
+  if (!changed && variants.length) {
     for (vi = 0; vi < variants.length; vi++) {
-      if (roundPrice(order.getField(variants[vi], "priceDelta")) !== newVariants[vi].priceDelta) {
+      if (roundPrice(order.getField(variants[vi], "priceDelta")) !== 0) {
         changed = true
         break
       }

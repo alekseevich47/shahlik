@@ -158,8 +158,8 @@ apps/shashlik-web/
 
 Один `Product` = одна карточка. Варианты мяса и размеры **внутри** объекта:
 
-- `variants[]`: `{ id, label, icon, priceDelta }` — цена = `size.price + variant.priceDelta`. Пустой массив валиден (напитки/соусы без выбора мяса); в PB поле **`required: false`**. В админке Δ цены в форме варианта **нет** — правка финальной цены SKU в `ArticleMatrix`
-- `sizes[]`: `{ id, label, price, article?, articleByVariant? }` — **артикул кассы живёт на размере**; у товара с несколькими вариантами мяса SKU кассы = пара «вариант × размер», поэтому переопределение — `articleByVariant[variantId]`. Читать только через `articleFor()` (`entities/product/lib.ts`), иначе в кассу уедет не тот артикул. В админке поле цены у размера **нет** — цена SKU в матрице. Пустой массив валиден у черновика; в PB **`required: false`**
+- `variants[]`: `{ id, label, icon, priceDelta }` — `priceDelta` **не используется** (legacy, при сохранении = 0). Пустой массив валиден (напитки/соусы без выбора мяса); в PB поле **`required: false`**
+- `sizes[]`: `{ id, label, price, weight?, article?, articleByVariant?, priceByVariant? }` — **артикул и цена SKU** на размере; у товара с несколькими вариантами мяса пара «вариант × размер» = `articleByVariant[variantId]` и `priceByVariant[variantId]` (каждая ячейка матрицы **независима**, без Δ). Читать артикул только через `articleFor()` (`entities/product/lib.ts`), цену — через `priceOf()`. `weight` — граммовка («300 г»). Пустой массив валиден у черновика; в PB **`required: false`**
 - `active` — bool; черновик = `false`. В PB **`required: false`** (иначе `false` → `validation_required`). При создании из UI всегда `false`; публикация (`active: true`) без размеров запрещена в редакторе
 - Цена карточки: `minPrice(product)` (`entities/product/lib.ts`)
 - `needsChooser` = >1 варианта **или** >1 размера → клик «Добавить» ведёт на `/product/:slug`, иначе сразу в корзину
@@ -240,7 +240,7 @@ CRUD через PocketBase (`pb.collection(...).create/update/delete`), дост
 
 **Создание товара** (`ProductCreateForm`): в UI только фото, название, категория, описание, состав. Slug **не показывается** — авто из названия (`slugFromName`). Размер/цена и тумблер «на витрине» **нет** — черновик: `active: false`, `sizes: []`, `variants: []`. Размеры, цены SKU и активность — только в редакторе. Пустой `sizes` валиден в PB (`required: false`); сохранить с `active: true` без размеров нельзя.
 
-**Редактор:** блоки «Варианты мяса» и «Размеры» — **рядом в 2 колонки** (`lg:grid-cols-2`); внутри каждого блока карточки **в столбик**. Без полей Δ цены / цены. Цены конечных SKU — в `ArticleMatrix` справа от артикула; в шапке колонки — подписи «артикул» / «цена». Запись обратно в `size.price` + `variant.priceDelta` (как cash-sync: база = первый вариант). При **>3 размеров** — горизонтальный скролл матрицы, липкий столбец «вариант». Превью — бейджи **только вариантов**.
+**Редактор:** блоки «Варианты мяса» и «Размеры» — **рядом в 2 колонки** (`lg:grid-cols-2`); внутри каждого блока карточки **в столбик**. Без полей Δ цены / цены у вариантов. **Размеры:** столбцы «шаблон» (из `size_templates` или «свой»), «название», «вес»; кнопка «Шаблоны» → `SizeTemplateManagerDialog` (CRUD справочника). Цены конечных SKU — в `ArticleMatrix` справа от артикула; запись в `size.price` (без вариантов) или `size.priceByVariant[variantId]` (с вариантами), **без priceDelta**. При **>3 размеров** — горизонтальный скролл матрицы, липкий столбец «вариант». Превью — бейджи **только вариантов**.
 
 **Select** (`shared/ui/select.tsx`) — кастомный listbox на Radix Popover: скругление `--r-md`/`--r-lg`, fade+zoom+slide open/close (`tw-animate`), API совместим с `<option>` + `onChange`.
 
@@ -348,7 +348,9 @@ Env процесса `pocketbase`:
 | popover | `shared/ui/popover.tsx` — Radix Popover |
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, бейджи CRUD, критерии DnD; варианты∥размеры в 2 кол. (внутри столбик); превью без бейджей размеров |
 | ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — черновик: без slug/размера/цены/active; `sizes: []` |
-| ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU; шапка «артикул»/«цена»; scroll при >3 размеров |
+| ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU; `priceByVariant` / `size.price`; шапка «артикул»/«цена»; scroll при >3 размеров |
+| SizeTemplateManagerDialog | `pages/admin/sections/products/SizeTemplateManagerDialog.tsx` — CRUD `size_templates` (название + вес) |
+| size_templates | `entities/size-template` + `mocks/size-templates.ts` — шаблоны размеров для редактора товара |
 | Select | `shared/ui/select.tsx` — кастомный Popover-listbox, анимация open/close; опционально `formatOption` (иконка + текст в вариантах мяса) |
 | ProductsSection | `pages/admin/sections/products/ProductsSection.tsx` — список + DnD `order` |
 | SortableList | `pages/admin/ui/SortableList.tsx` — grip DnD + стрелки, layout spring (`domMax`) |

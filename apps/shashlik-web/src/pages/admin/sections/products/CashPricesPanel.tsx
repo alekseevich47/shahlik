@@ -254,8 +254,8 @@ export function CashPricesPanel() {
         <p className="text-[13px] leading-snug text-fg-muted">
           Сравнение с <span className="font-mono text-[12px]">frontpad_stock</span> после
           «Обновить товары кассы». Пишем{" "}
-          <span className="font-mono text-[12px]">sizes[].price</span> и{" "}
-          <span className="font-mono text-[12px]">variants[].priceDelta</span> только при
+          <span className="font-mono text-[12px]">sizes[].price</span> /{" "}
+          <span className="font-mono text-[12px]">sizes[].priceByVariant</span> только при
           источнике «касса».
         </p>
         <p className="mt-2 text-[12.5px] font-semibold text-fg">

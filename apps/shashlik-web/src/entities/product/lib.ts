@@ -1,14 +1,24 @@
 import type { Product, ProductSize, ProductVariant } from "./model"
 
 export function priceOf(size: ProductSize, variant?: ProductVariant): number {
-  return size.price + (variant?.priceDelta ?? 0)
+  if (variant) {
+    const byVariant = size.priceByVariant?.[variant.id]
+    if (byVariant !== undefined) return byVariant
+    // legacy: до priceByVariant цена = size.price + variant.priceDelta
+    return size.price + (variant.priceDelta ?? 0)
+  }
+  return size.price
 }
 
 /** Минимальная цена по всем комбинациям — «от 340₽» на карточке. */
 export function minPrice(product: Product): number {
   if (!product.sizes.length) return 0
-  const deltas = product.variants.length ? product.variants.map((v) => v.priceDelta) : [0]
-  const prices = product.sizes.flatMap((s) => deltas.map((d) => s.price + d))
+  const variants = product.variants.length
+    ? product.variants.map((v) => v as ProductVariant | null)
+    : [null]
+  const prices = variants.flatMap((variant) =>
+    product.sizes.map((size) => priceOf(size, variant ?? undefined)),
+  )
   return Math.min(...prices)
 }
 

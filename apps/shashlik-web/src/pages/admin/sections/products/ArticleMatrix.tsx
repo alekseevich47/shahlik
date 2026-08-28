@@ -15,7 +15,6 @@ type Props = {
   variants: ProductVariant[]
   sizes: ProductSize[]
   onSizesChange: (sizes: ProductSize[]) => void
-  onVariantsChange: (variants: ProductVariant[]) => void
   disabled?: boolean
 }
 
@@ -49,43 +48,27 @@ function cellArticle(size: ProductSize, variantId: string | null): string {
   return size.article ?? ""
 }
 
-/** Запись финальной цены SKU обратно в size.price + variant.priceDelta (как cash-sync). */
+/** Запись финальной цены SKU в size.price или size.priceByVariant[variantId]. */
 function applySkuPrice(
   sizes: ProductSize[],
   variants: ProductVariant[],
   sizeId: string,
   variantId: string | null,
   raw: string,
-): { sizes: ProductSize[]; variants: ProductVariant[] } {
+): ProductSize[] {
   const parsed = Number(raw.replace(",", "."))
   const value = Number.isFinite(parsed) && parsed >= 0 ? roundPrice(parsed) : 0
 
-  if (!variants.length || !variantId) {
-    return {
-      sizes: sizes.map((size) => (size.id === sizeId ? { ...size, price: value } : size)),
-      variants,
+  return sizes.map((size) => {
+    if (size.id !== sizeId) return size
+    if (!variants.length || !variantId) {
+      return { ...size, price: value }
     }
-  }
-
-  const base = variants[0]
-  const size = sizes.find((s) => s.id === sizeId)
-  if (!size) return { sizes, variants }
-
-  if (variantId === base.id) {
     return {
-      sizes: sizes.map((s) =>
-        s.id === sizeId ? { ...s, price: value - base.priceDelta } : s,
-      ),
-      variants,
+      ...size,
+      priceByVariant: { ...(size.priceByVariant ?? {}), [variantId]: value },
     }
-  }
-
-  return {
-    sizes,
-    variants: variants.map((v) =>
-      v.id === variantId ? { ...v, priceDelta: value - size.price } : v,
-    ),
-  }
+  })
 }
 
 export function ArticleMatrix({
@@ -93,7 +76,6 @@ export function ArticleMatrix({
   variants,
   sizes,
   onSizesChange,
-  onVariantsChange,
   disabled,
 }: Props) {
   const { data: products = [] } = useAdminProducts()
@@ -143,7 +125,12 @@ export function ArticleMatrix({
                 )}
               >
                 <div className="flex flex-col gap-1.5">
-                  <span className="px-1">{size.label}</span>
+                  <span className="px-1">
+                    {size.label}
+                    {size.weight ? (
+                      <span className="ml-1 font-normal text-fg-faint">({size.weight})</span>
+                    ) : null}
+                  </span>
                   <div className="flex items-center gap-1.5">
                     <span className="min-w-0 flex-1 px-1 font-semibold text-fg-faint">
                       артикул
@@ -226,17 +213,17 @@ export function ArticleMatrix({
                           placeholder="₽"
                           aria-label={`Цена ${variant?.label ?? "база"} ${size.label}`}
                           className="h-9 w-[72px] shrink-0 text-[12.5px] tabular-nums"
-                          onChange={(e) => {
-                            const next = applySkuPrice(
-                              sizes,
-                              variants,
-                              size.id,
-                              variant?.id ?? null,
-                              e.target.value.replace(/[^\d.,]/g, ""),
+                          onChange={(e) =>
+                            onSizesChange(
+                              applySkuPrice(
+                                sizes,
+                                variants,
+                                size.id,
+                                variant?.id ?? null,
+                                e.target.value.replace(/[^\d.,]/g, ""),
+                              ),
                             )
-                            onSizesChange(next.sizes)
-                            if (next.variants !== variants) onVariantsChange(next.variants)
-                          }}
+                          }
                         />
                       </div>
                       {error ? (

@@ -77,8 +77,27 @@ function findVariant(variants, variantId) {
 }
 
 function priceOf(size, variant) {
-  var delta = variant ? Number(getField(variant, "priceDelta")) || 0 : 0
-  return (Number(getField(size, "price")) || 0) + delta
+  if (variant) {
+    var variantId = String(getField(variant, "id") || "")
+    var byVariant = getField(size, "priceByVariant")
+    if (byVariant && typeof byVariant === "object" && variantId) {
+      var override = getField(byVariant, variantId)
+      if (override !== undefined && override !== null) {
+        return roundPrice(override)
+      }
+    }
+    var delta = Number(getField(variant, "priceDelta")) || 0
+    return roundPrice(getField(size, "price")) + delta
+  }
+  return roundPrice(getField(size, "price"))
+}
+
+function roundPrice(value) {
+  var n = Number(value)
+  if (isNaN(n)) {
+    return 0
+  }
+  return Math.round(n)
 }
 
 function articleFor(size, variantId) {

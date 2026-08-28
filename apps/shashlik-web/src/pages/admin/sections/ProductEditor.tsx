@@ -40,8 +40,11 @@ import {
   useUpdateProduct,
 } from "@/entities/product/api"
 import { useCategoryTags } from "@/entities/tag/api"
+import { useSizeTemplates } from "@/entities/size-template/api"
+import type { SizeTemplate } from "@/entities/size-template/model"
 import { ArticleMatrix } from "@/pages/admin/sections/products/ArticleMatrix"
 import { BadgeManagerDialog } from "@/pages/admin/sections/products/BadgeManagerDialog"
+import { SizeTemplateManagerDialog } from "@/pages/admin/sections/products/SizeTemplateManagerDialog"
 import { slugFromName } from "@/shared/lib/slug"
 import { AdminCard } from "@/pages/admin/ui/AdminCard"
 import { cn } from "@/shared/lib/cn"
@@ -73,6 +76,7 @@ const MEAT_OPTIONS: Array<{ value: MeatIcon; label: string }> = [
 ]
 
 const MAX_PHOTOS = 5
+const CUSTOM_SIZE_TEMPLATE = "__custom__"
 
 function newId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`
@@ -96,12 +100,24 @@ function moveCriterion(list: RatingCriterion[], from: number, to: number): Ratin
   return next
 }
 
+function matchedTemplateId(
+  size: ProductSize,
+  templates: ReadonlyArray<SizeTemplate>,
+): string | null {
+  const label = size.label.trim()
+  const weight = (size.weight ?? "").trim()
+  if (!label) return null
+  const hit = templates.find((t) => t.label === label && t.weight === weight)
+  return hit?.id ?? null
+}
+
 export function ProductEditor({ product, onBack }: Props) {
   const navigate = useNavigate()
   const { data: categories = [] } = useCategories()
   const { data: products = [] } = useAdminProducts()
   const { data: addons = [] } = useAddons()
   const { data: badges = [] } = useBadges()
+  const { data: sizeTemplates = [] } = useSizeTemplates()
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
   const duplicateProduct = useDuplicateProduct()
@@ -117,6 +133,7 @@ export function ProductEditor({ product, onBack }: Props) {
   const [composition, setComposition] = useState(product.composition)
   const [badge, setBadge] = useState<"" | ProductBadge>(product.badge ?? "")
   const [badgeManagerOpen, setBadgeManagerOpen] = useState(false)
+  const [sizeTemplateManagerOpen, setSizeTemplateManagerOpen] = useState(false)
   const [nutrition, setNutrition] = useState<ProductNutrition>(product.nutrition)
   const [tags, setTags] = useState<string[]>(product.tags)
   const [variants, setVariants] = useState<ProductVariant[]>(product.variants)
@@ -237,15 +254,35 @@ export function ProductEditor({ product, onBack }: Props) {
     try {
       const variantIds = new Set(variants.map((v) => v.id))
       const cleanedSizes = sizes.map((size) => {
-        if (!size.articleByVariant) return size
-        const next = Object.fromEntries(
-          Object.entries(size.articleByVariant).filter(([id]) => variantIds.has(id)),
-        )
-        return {
-          ...size,
-          articleByVariant: Object.keys(next).length ? next : undefined,
+        let next: ProductSize = { ...size }
+        if (size.articleByVariant) {
+          const articles = Object.fromEntries(
+            Object.entries(size.articleByVariant).filter(([id]) => variantIds.has(id)),
+          )
+          next = {
+            ...next,
+            articleByVariant: Object.keys(articles).length ? articles : undefined,
+          }
         }
+        if (variants.length) {
+          const prices: Record<string, number> = {}
+          for (const variant of variants) {
+            const existing = size.priceByVariant?.[variant.id]
+            prices[variant.id] =
+              existing !== undefined ? existing : size.price + (variant.priceDelta ?? 0)
+          }
+          next = { ...next, priceByVariant: prices }
+        } else if (size.priceByVariant) {
+          const { priceByVariant: _p, ...rest } = next
+          next = rest
+        }
+        if (next.weight?.trim() === "") {
+          const { weight: _w, ...rest } = next
+          next = rest
+        }
+        return next
       })
+      const normalizedVariants = variants.map((v) => ({ ...v, priceDelta: 0 }))
 
       const { files, remove } = multiImageDiff(initialFilenames, photoItems)
 
@@ -260,7 +297,7 @@ export function ProductEditor({ product, onBack }: Props) {
           badge,
           nutrition,
           tags,
-          variants,
+          variants: normalizedVariants,
           sizes: cleanedSizes,
           active,
           rating: { ...product.rating, criteria },
@@ -605,15 +642,25 @@ export function ProductEditor({ product, onBack }: Props) {
             <AdminCard
               title="Размеры"
               action={
-                <button
-                  type="button"
-                  aria-label="Добавить размер"
-                  onClick={addSize}
-                  disabled={busy}
-                  className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
-                >
-                  <Plus size={15} strokeWidth={3} />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setSizeTemplateManagerOpen(true)}
+                    className="h-7 cursor-pointer rounded-[var(--r-xs)] border border-dashed border-brand-border px-2 text-[11px] font-bold text-brand transition-colors hover:bg-brand-soft disabled:opacity-50"
+                  >
+                    Шаблоны
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Добавить размер"
+                    onClick={addSize}
+                    disabled={busy}
+                    className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+                  >
+                    <Plus size={15} strokeWidth={3} />
+                  </button>
+                </div>
               }
               bodyClassName="flex flex-col gap-2 p-3"
             >
@@ -622,37 +669,84 @@ export function ProductEditor({ product, onBack }: Props) {
                   Пока без размеров — добавьте, чтобы задать артикулы и цены.
                 </p>
               ) : (
-                sizes.map((size, index) => (
-                  <div
-                    key={size.id}
-                    className="grid grid-cols-[1fr_auto] gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
-                  >
-                    <Field label="Название">
-                      <Input
-                        value={size.label}
-                        disabled={busy}
-                        onChange={(e) =>
-                          setSizes((list) =>
-                            list.map((s, i) =>
-                              i === index ? { ...s, label: e.target.value } : s,
-                            ),
-                          )
-                        }
-                      />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
-                      aria-label="Удалить размер"
-                      disabled={busy}
-                      onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+                sizes.map((size, index) => {
+                  const templateId = matchedTemplateId(size, sizeTemplates)
+                  return (
+                    <div
+                      key={size.id}
+                      className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_auto] items-end gap-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2"
                     >
-                      <Trash2 size={14} strokeWidth={2.3} />
-                    </Button>
-                  </div>
-                ))
+                      <Field label="Шаблон">
+                        <Select
+                          value={templateId ?? CUSTOM_SIZE_TEMPLATE}
+                          disabled={busy}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            if (value === CUSTOM_SIZE_TEMPLATE) return
+                            const template = sizeTemplates.find((t) => t.id === value)
+                            if (!template) return
+                            setSizes((list) =>
+                              list.map((s, i) =>
+                                i === index
+                                  ? {
+                                      ...s,
+                                      label: template.label,
+                                      weight: template.weight,
+                                    }
+                                  : s,
+                              ),
+                            )
+                          }}
+                        >
+                          <option value={CUSTOM_SIZE_TEMPLATE}>Свой размер</option>
+                          {sizeTemplates.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.label} · {template.weight}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                      <Field label="Название">
+                        <Input
+                          value={size.label}
+                          disabled={busy}
+                          onChange={(e) =>
+                            setSizes((list) =>
+                              list.map((s, i) =>
+                                i === index ? { ...s, label: e.target.value } : s,
+                              ),
+                            )
+                          }
+                        />
+                      </Field>
+                      <Field label="Вес">
+                        <Input
+                          value={size.weight ?? ""}
+                          disabled={busy}
+                          placeholder="300 г"
+                          onChange={(e) =>
+                            setSizes((list) =>
+                              list.map((s, i) =>
+                                i === index ? { ...s, weight: e.target.value } : s,
+                              ),
+                            )
+                          }
+                        />
+                      </Field>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="self-end text-fg-faint hover:bg-red-soft hover:text-red"
+                        aria-label="Удалить размер"
+                        disabled={busy}
+                        onClick={() => setSizes((list) => list.filter((_, i) => i !== index))}
+                      >
+                        <Trash2 size={14} strokeWidth={2.3} />
+                      </Button>
+                    </div>
+                  )
+                })
               )}
             </AdminCard>
           </div>
@@ -663,7 +757,6 @@ export function ProductEditor({ product, onBack }: Props) {
               variants={variants}
               sizes={sizes}
               onSizesChange={setSizes}
-              onVariantsChange={setVariants}
               disabled={busy}
             />
           </AdminCard>
@@ -950,6 +1043,10 @@ export function ProductEditor({ product, onBack }: Props) {
       </div>
       {dialog}
       <BadgeManagerDialog open={badgeManagerOpen} onOpenChange={setBadgeManagerOpen} />
+      <SizeTemplateManagerDialog
+        open={sizeTemplateManagerOpen}
+        onOpenChange={setSizeTemplateManagerOpen}
+      />
     </div>
   )
 }

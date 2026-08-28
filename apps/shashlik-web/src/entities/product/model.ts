@@ -2,11 +2,12 @@ import type { CategoryId } from "@/entities/category/model"
 
 export type MeatIcon = "chicken" | "pork" | null
 
-/** Вариант мяса внутри карточки товара. Цена = size.price + variant.priceDelta. */
+/** Вариант мяса внутри карточки товара. Цена SKU — в `size.price` / `size.priceByVariant`. */
 export type ProductVariant = {
   id: string
   label: string
   icon: MeatIcon
+  /** @deprecated Не используется в расчёте цены; оставлено для совместимости PB. */
   priceDelta: number
 }
 
@@ -14,11 +15,16 @@ export type ProductVariant = {
 export type ProductSize = {
   id: string
   label: string
+  /** Базовая цена (без вариантов) или fallback при чтении legacy-данных. */
   price: number
+  /** Граммовка: «300 г», «0,5 л». */
+  weight?: string
   /** Дефолтный артикул размера (если нет переопределения по варианту). */
   article?: string
   /** Переопределение артикула для варианта мяса: «Курица M» ≠ «Свинина M». */
   articleByVariant?: Record<string, string>
+  /** Цена SKU по варианту мяса — каждая ячейка матрицы независима. */
+  priceByVariant?: Record<string, number>
 }
 
 export type RatingCriterion = {
