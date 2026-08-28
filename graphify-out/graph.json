@@ -81,15 +81,15 @@
       "norm_label": "dev"
     },
     {
-      "label": "prebuild",
+      "label": "copy:vk-sdk",
       "file_type": "code",
       "source_file": "apps/shashlik-web/package.json",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "apps_shashlik_web_package_scripts_prebuild",
+      "id": "apps_shashlik_web_package_scripts_copy_vk_sdk",
       "community": 44,
       "community_name": "package.json",
-      "norm_label": "prebuild"
+      "norm_label": "copy:vk-sdk"
     },
     {
       "label": "build",
@@ -142,8 +142,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_shashlik_web_package_dependencies_radix_ui_react_dialog",
-      "community": 86,
-      "community_name": "lucide-react",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "@radix-ui/react-dialog"
     },
     {
@@ -153,8 +153,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "radix_ui_react_dialog",
-      "community": 86,
-      "community_name": "lucide-react",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "@radix-ui/react-dialog"
     },
     {
@@ -186,8 +186,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_shashlik_web_package_dependencies_radix_ui_react_slot",
-      "community": 8,
-      "community_name": "package.json",
+      "community": 76,
+      "community_name": "AdminTopbar.tsx",
       "norm_label": "@radix-ui/react-slot"
     },
     {
@@ -197,8 +197,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "radix_ui_react_slot",
-      "community": 8,
-      "community_name": "package.json",
+      "community": 76,
+      "community_name": "AdminTopbar.tsx",
       "norm_label": "@radix-ui/react-slot"
     },
     {
@@ -274,8 +274,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_shashlik_web_package_dependencies_clsx",
-      "community": 53,
-      "community_name": "sonner",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "clsx"
     },
     {
@@ -285,8 +285,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "clsx",
-      "community": 53,
-      "community_name": "sonner",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "clsx"
     },
     {
@@ -296,8 +296,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_shashlik_web_package_dependencies_lenis",
-      "community": 60,
-      "community_name": "banner-image-field.tsx",
+      "community": 70,
+      "community_name": "HeroBanner.tsx",
       "norm_label": "lenis"
     },
     {
@@ -307,8 +307,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "lenis",
-      "community": 60,
-      "community_name": "banner-image-field.tsx",
+      "community": 70,
+      "community_name": "HeroBanner.tsx",
       "norm_label": "lenis"
     },
     {
@@ -450,8 +450,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_package_dependencies_react_router_dom",
-      "community": 102,
-      "community_name": "react-router-dom",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "react-router-dom"
     },
     {
@@ -461,8 +461,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "react_router_dom",
-      "community": 102,
-      "community_name": "react-router-dom",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "react-router-dom"
     },
     {
@@ -516,8 +516,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_shashlik_web_package_dependencies_zustand",
-      "community": 97,
-      "community_name": "zustand",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "zustand"
     },
     {
@@ -527,8 +527,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "zustand",
-      "community": 97,
-      "community_name": "zustand",
+      "community": 8,
+      "community_name": "package.json",
       "norm_label": "zustand"
     },
     {
@@ -1753,6 +1753,17 @@
       "norm_label": "dest"
     },
     {
+      "label": "needsCopy()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/copy-vkid-sdk.mjs",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_copy_vkid_sdk_needscopy",
+      "community": 88,
+      "community_name": "copy-vkid-sdk.mjs",
+      "norm_label": "needscopy()"
+    },
+    {
       "label": "gen-glass-noise.mjs",
       "file_type": "code",
       "source_file": "apps/shashlik-web/scripts/gen-glass-noise.mjs",
@@ -1938,6 +1949,215 @@
       "community": 23,
       "community_name": "gen-glass-noise.mjs",
       "norm_label": "png"
+    },
+    {
+      "label": "sync-products-from-cash.mjs",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "sync-products-from-cash.mjs"
+    },
+    {
+      "label": "__dir",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_dir",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "__dir"
+    },
+    {
+      "label": "repoRoot",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_reporoot",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "reporoot"
+    },
+    {
+      "label": "dryRun",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_dryrun",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "dryrun"
+    },
+    {
+      "label": "MEAT_VARIANTS",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_meat_variants",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "meat_variants"
+    },
+    {
+      "label": "TAGLINES",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_taglines",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "taglines"
+    },
+    {
+      "label": "parseCatalog()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_parsecatalog",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "parsecatalog()"
+    },
+    {
+      "label": "parseSkuName()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_parseskuname",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "parseskuname()"
+    },
+    {
+      "label": "flavorKey()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_flavorkey",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "flavorkey()"
+    },
+    {
+      "label": "FLAVOR_ALIASES",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_flavor_aliases",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "flavor_aliases"
+    },
+    {
+      "label": "matchProduct()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_matchproduct",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "matchproduct()"
+    },
+    {
+      "label": "buildCatalogMap()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L136",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_buildcatalogmap",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "buildcatalogmap()"
+    },
+    {
+      "label": "buildSizes()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L154",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_buildsizes",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "buildsizes()"
+    },
+    {
+      "label": "buildDefaultSizes()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L184",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_builddefaultsizes",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "builddefaultsizes()"
+    },
+    {
+      "label": "auth()",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L203",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_auth",
+      "community": 96,
+      "community_name": "pocketbase",
+      "norm_label": "auth()"
+    },
+    {
+      "label": "html",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L213",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_html",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "html"
+    },
+    {
+      "label": "items",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L214",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_items",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "items"
+    },
+    {
+      "label": "catalogByFlavor",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L215",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_catalogbyflavor",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "catalogbyflavor"
+    },
+    {
+      "label": "pb",
+      "file_type": "code",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L217",
+      "_origin": "ast",
+      "id": "apps_shashlik_web_scripts_sync_products_from_cash_pb",
+      "community": 26,
+      "community_name": "category/api.ts",
+      "norm_label": "pb"
     },
     {
       "label": "App.tsx",
@@ -2320,8 +2540,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_asstring",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "asstring()"
     },
     {
@@ -2331,8 +2551,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_asid",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "asid()"
     },
     {
@@ -2342,8 +2562,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_mapaddress",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "mapaddress()"
     },
     {
@@ -2353,8 +2573,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_mapaddresses",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "mapaddresses()"
     },
     {
@@ -2364,8 +2584,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_mapextraemails",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "mapextraemails()"
     },
     {
@@ -2375,8 +2595,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_mapappuser",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "mapappuser()"
     },
     {
@@ -2386,8 +2606,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_isappuserrecord",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "isappuserrecord()"
     },
     {
@@ -2408,8 +2628,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_resetaccountcache",
-      "community": 51,
-      "community_name": "ProductCard.tsx",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "resetaccountcache()"
     },
     {
@@ -2419,8 +2639,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_accountcachekey",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "accountcachekey()"
     },
     {
@@ -2430,8 +2650,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_getaccount",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "getaccount()"
     },
     {
@@ -2441,8 +2661,8 @@
       "source_location": "L124",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_subscribeaccount",
-      "community": 51,
-      "community_name": "ProductCard.tsx",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "subscribeaccount()"
     },
     {
@@ -2463,8 +2683,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_requireaccountid",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "requireaccountid()"
     },
     {
@@ -2474,8 +2694,8 @@
       "source_location": "L143",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_persistrecord",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "persistrecord()"
     },
     {
@@ -2540,8 +2760,8 @@
       "source_location": "L200",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_splitclientfullname",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "splitclientfullname()"
     },
     {
@@ -2551,8 +2771,8 @@
       "source_location": "L210",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_yandexnamepairclient",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "yandexnamepairclient()"
     },
     {
@@ -2562,8 +2782,8 @@
       "source_location": "L223",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_namesfromyandexmeta",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "namesfromyandexmeta()"
     },
     {
@@ -2573,8 +2793,8 @@
       "source_location": "L234",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_needsyandexnamefix",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "needsyandexnamefix()"
     },
     {
@@ -2584,8 +2804,8 @@
       "source_location": "L245",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_syncyandexprofilefrommeta",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "syncyandexprofilefrommeta()"
     },
     {
@@ -2595,8 +2815,8 @@
       "source_location": "L269",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_loginwithoauth",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "loginwithoauth()"
     },
     {
@@ -2661,8 +2881,8 @@
       "source_location": "L363",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_updateaccount",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "updateaccount()"
     },
     {
@@ -2672,8 +2892,8 @@
       "source_location": "L369",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_saveaddresses",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "saveaddresses()"
     },
     {
@@ -2683,8 +2903,8 @@
       "source_location": "L375",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_withdefault",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "withdefault()"
     },
     {
@@ -2694,8 +2914,8 @@
       "source_location": "L379",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_addaddress",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "addaddress()"
     },
     {
@@ -2705,8 +2925,8 @@
       "source_location": "L388",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_updateaddress",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "updateaddress()"
     },
     {
@@ -2716,8 +2936,8 @@
       "source_location": "L395",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_removeaddress",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "removeaddress()"
     },
     {
@@ -2727,8 +2947,8 @@
       "source_location": "L405",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_setdefaultaddress",
-      "community": 50,
-      "community_name": "invalidateProductRatings",
+      "community": 40,
+      "community_name": "MobileHome.tsx",
       "norm_label": "setdefaultaddress()"
     },
     {
@@ -2771,8 +2991,8 @@
       "source_location": "L436",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_account_api_linkphone",
-      "community": 65,
-      "community_name": "@radix-ui/react-dialog",
+      "community": 50,
+      "community_name": "invalidateProductRatings",
       "norm_label": "linkphone()"
     },
     {
@@ -3167,8 +3387,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_addon_api_useaddons",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "useaddons()"
     },
     {
@@ -3189,8 +3409,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_addon_api_useextras",
-      "community": 56,
-      "community_name": "CouponForm.tsx",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "useextras()"
     },
     {
@@ -3200,8 +3420,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_addon_api_usesauces",
-      "community": 56,
-      "community_name": "CouponForm.tsx",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "usesauces()"
     },
     {
@@ -3299,8 +3519,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_addon_model",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addon/model.ts"
     },
     {
@@ -3310,8 +3530,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_addon_model_addonkind",
-      "community": 56,
-      "community_name": "CouponForm.tsx",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "addonkind"
     },
     {
@@ -3321,8 +3541,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_addon_model_addon",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addon"
     },
     {
@@ -3398,8 +3618,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_badge_api_usebadges",
-      "community": 52,
-      "community_name": "@radix-ui/react-slot",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "usebadges()"
     },
     {
@@ -3431,8 +3651,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_badge_api_usecreatebadge",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "usecreatebadge()"
     },
     {
@@ -3442,8 +3662,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_badge_api_useupdatebadge",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "useupdatebadge()"
     },
     {
@@ -3453,8 +3673,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_badge_api_usedeletebadge",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "usedeletebadge()"
     },
     {
@@ -3640,8 +3860,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_banner_api_bannerformdata",
-      "community": 5,
-      "community_name": "Sushi Catalog UI",
+      "community": 53,
+      "community_name": "sonner",
       "norm_label": "bannerformdata()"
     },
     {
@@ -3651,8 +3871,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_banner_api_usecreatebanner",
-      "community": 5,
-      "community_name": "Sushi Catalog UI",
+      "community": 53,
+      "community_name": "sonner",
       "norm_label": "usecreatebanner()"
     },
     {
@@ -3662,8 +3882,8 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_banner_api_useupdatebanner",
-      "community": 5,
-      "community_name": "Sushi Catalog UI",
+      "community": 53,
+      "community_name": "sonner",
       "norm_label": "useupdatebanner()"
     },
     {
@@ -3673,8 +3893,8 @@
       "source_location": "L153",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_banner_api_usedeletebanner",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 5,
+      "community_name": "Sushi Catalog UI",
       "norm_label": "usedeletebanner()"
     },
     {
@@ -3794,8 +4014,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_category_api_usecategories",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 92,
+      "community_name": "theme.tsx",
       "norm_label": "usecategories()"
     },
     {
@@ -3849,8 +4069,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_category_api_usecreatecategory",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "usecreatecategory()"
     },
     {
@@ -3860,8 +4080,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_category_api_useupdatecategory",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "useupdatecategory()"
     },
     {
@@ -3871,8 +4091,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_category_api_usedeletecategory",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "usedeletecategory()"
     },
     {
@@ -4146,8 +4366,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_coupon_api_checkpromo",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "checkpromo()"
     },
     {
@@ -4157,8 +4377,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_coupon_model",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "coupon/model.ts"
     },
     {
@@ -4168,8 +4388,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_coupon_model_couponkind",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "couponkind"
     },
     {
@@ -4190,8 +4410,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_coupon_model_appliedcoupon",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "appliedcoupon"
     },
     {
@@ -4212,8 +4432,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_coupon_model_calccoupondiscount",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "calccoupondiscount()"
     },
     {
@@ -4223,8 +4443,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "customer/api.ts"
     },
     {
@@ -4234,8 +4454,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_customerrecord",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "customerrecord"
     },
     {
@@ -4245,8 +4465,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_customerspageparams",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "customerspageparams"
     },
     {
@@ -4256,8 +4476,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_customerspageresult",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "customerspageresult"
     },
     {
@@ -4267,8 +4487,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_updatecustomerinput",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "updatecustomerinput"
     },
     {
@@ -4278,8 +4498,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_mapcustomer",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "mapcustomer()"
     },
     {
@@ -4289,8 +4509,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_buildcustomersfilter",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "buildcustomersfilter()"
     },
     {
@@ -4300,8 +4520,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_buildcustomerssort",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "buildcustomerssort()"
     },
     {
@@ -4311,8 +4531,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_customerkeys",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "customerkeys"
     },
     {
@@ -4322,8 +4542,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_customermutations",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "customermutations"
     },
     {
@@ -4333,8 +4553,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_fetchcustomerspage",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "fetchcustomerspage()"
     },
     {
@@ -4344,8 +4564,8 @@
       "source_location": "L134",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_fetchcustomerbyid",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "fetchcustomerbyid()"
     },
     {
@@ -4355,8 +4575,8 @@
       "source_location": "L143",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_usecustomerspage",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "usecustomerspage()"
     },
     {
@@ -4366,8 +4586,8 @@
       "source_location": "L151",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_customer_api_usecustomer",
-      "community": 32,
-      "community_name": "order/api.ts",
+      "community": 28,
+      "community_name": "StickyBar.tsx",
       "norm_label": "usecustomer()"
     },
     {
@@ -4553,8 +4773,8 @@
       "source_location": "L180",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_mapjob",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 1,
+      "community_name": "UI Layout Components",
       "norm_label": "mapjob()"
     },
     {
@@ -4630,8 +4850,8 @@
       "source_location": "L264",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_invalidateproductratings",
-      "community": 1,
-      "community_name": "UI Layout Components",
+      "community": 65,
+      "community_name": "@radix-ui/react-dialog",
       "norm_label": "invalidateproductratings()"
     },
     {
@@ -4685,8 +4905,8 @@
       "source_location": "L305",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_fetchmyorders",
-      "community": 73,
-      "community_name": "category/api.ts",
+      "community": 1,
+      "community_name": "UI Layout Components",
       "norm_label": "fetchmyorders()"
     },
     {
@@ -4729,8 +4949,8 @@
       "source_location": "L339",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_fetchactiveresendjobs",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 1,
+      "community_name": "UI Layout Components",
       "norm_label": "fetchactiveresendjobs()"
     },
     {
@@ -4762,8 +4982,8 @@
       "source_location": "L363",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_useorder",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "useorder()"
     },
     {
@@ -4828,8 +5048,8 @@
       "source_location": "L410",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_useorderjobs",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "useorderjobs()"
     },
     {
@@ -4872,8 +5092,8 @@
       "source_location": "L461",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_useupdateorderstatus",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "useupdateorderstatus()"
     },
     {
@@ -4883,8 +5103,8 @@
       "source_location": "L472",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_resendorder",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 1,
+      "community_name": "UI Layout Components",
       "norm_label": "resendorder()"
     },
     {
@@ -4894,8 +5114,8 @@
       "source_location": "L486",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_useresendorder",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "useresendorder()"
     },
     {
@@ -4905,8 +5125,8 @@
       "source_location": "L495",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_usecreatereview",
-      "community": 1,
-      "community_name": "UI Layout Components",
+      "community": 65,
+      "community_name": "@radix-ui/react-dialog",
       "norm_label": "usecreatereview()"
     },
     {
@@ -4916,8 +5136,8 @@
       "source_location": "L509",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_api_useupdatereview",
-      "community": 1,
-      "community_name": "UI Layout Components",
+      "community": 65,
+      "community_name": "@radix-ui/react-dialog",
       "norm_label": "useupdatereview()"
     },
     {
@@ -4971,8 +5191,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_model_deliverymode",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 57,
+      "community_name": "SettingsSection.tsx",
       "norm_label": "deliverymode"
     },
     {
@@ -4982,8 +5202,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_model_orderstatus",
-      "community": 99,
-      "community_name": "settings/model.ts",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderstatus"
     },
     {
@@ -5004,8 +5224,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_model_orderaddressparts",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 57,
+      "community_name": "SettingsSection.tsx",
       "norm_label": "orderaddressparts"
     },
     {
@@ -5037,8 +5257,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_model_order",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "order"
     },
     {
@@ -5048,8 +5268,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_model_isfrontpadwarning",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "isfrontpadwarning()"
     },
     {
@@ -5059,8 +5279,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_order_model_order_status_label",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "order_status_label"
     },
     {
@@ -5224,8 +5444,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_frontpadstockkeys",
-      "community": 34,
-      "community_name": "banner/api.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "frontpadstockkeys"
     },
     {
@@ -5235,8 +5455,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_fetchproducts",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 34,
+      "community_name": "banner/api.ts",
       "norm_label": "fetchproducts()"
     },
     {
@@ -5290,8 +5510,8 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_useproducts",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 60,
+      "community_name": "banner-image-field.tsx",
       "norm_label": "useproducts()"
     },
     {
@@ -5301,8 +5521,8 @@
       "source_location": "L151",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_useadminproducts",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "useadminproducts()"
     },
     {
@@ -5323,8 +5543,8 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_useproductbyslug",
-      "community": 34,
-      "community_name": "banner/api.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "useproductbyslug()"
     },
     {
@@ -5345,8 +5565,8 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_usefrontpadstockarticles",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "usefrontpadstockarticles()"
     },
     {
@@ -5488,8 +5708,8 @@
       "source_location": "L378",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_usecreateproduct",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 34,
+      "community_name": "banner/api.ts",
       "norm_label": "usecreateproduct()"
     },
     {
@@ -5499,8 +5719,8 @@
       "source_location": "L387",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_useupdateproduct",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "useupdateproduct()"
     },
     {
@@ -5510,8 +5730,8 @@
       "source_location": "L396",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_usedeleteproduct",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "usedeleteproduct()"
     },
     {
@@ -5521,8 +5741,8 @@
       "source_location": "L400",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_useduplicateproduct",
-      "community": 34,
-      "community_name": "banner/api.ts",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "useduplicateproduct()"
     },
     {
@@ -5532,8 +5752,8 @@
       "source_location": "L412",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_api_usetoggleproductactive",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 34,
+      "community_name": "banner/api.ts",
       "norm_label": "usetoggleproductactive()"
     },
     {
@@ -5565,8 +5785,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "lib.ts"
     },
     {
@@ -5598,8 +5818,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_needschooser",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 67,
+      "community_name": "DesktopHome.tsx",
       "norm_label": "needschooser()"
     },
     {
@@ -5609,8 +5829,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_findvariant",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "findvariant()"
     },
     {
@@ -5620,8 +5840,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_findsize",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "findsize()"
     },
     {
@@ -5642,8 +5862,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_skucell",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "skucell"
     },
     {
@@ -5653,8 +5873,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_skumatrix",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "skumatrix()"
     },
     {
@@ -5664,8 +5884,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_hasmissingarticle",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "hasmissingarticle()"
     },
     {
@@ -5675,8 +5895,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_cartlinetitle",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "cartlinetitle()"
     },
     {
@@ -5785,8 +6005,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_prices_stockpricemap",
-      "community": 83,
-      "community_name": "App.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "stockpricemap"
     },
     {
@@ -5840,8 +6060,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_prices_roundprice",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "roundprice()"
     },
     {
@@ -5895,8 +6115,8 @@
       "source_location": "L122",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_prices_celldelta",
-      "community": 83,
-      "community_name": "App.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "celldelta()"
     },
     {
@@ -5950,8 +6170,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_stock_fetchstoppedarticles",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "fetchstoppedarticles()"
     },
     {
@@ -6005,8 +6225,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_lib_stock_isaddonstopped",
-      "community": 58,
-      "community_name": "AdminPage.tsx",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "isaddonstopped()"
     },
     {
@@ -6049,8 +6269,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_model_meaticon",
-      "community": 24,
-      "community_name": "cn",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "meaticon"
     },
     {
@@ -6060,8 +6280,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_model_productvariant",
-      "community": 24,
-      "community_name": "cn",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "productvariant"
     },
     {
@@ -6071,8 +6291,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_model_productsize",
-      "community": 24,
-      "community_name": "cn",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "productsize"
     },
     {
@@ -6115,8 +6335,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_model_productrating",
-      "community": 24,
-      "community_name": "cn",
+      "community": 34,
+      "community_name": "banner/api.ts",
       "norm_label": "productrating"
     },
     {
@@ -6159,8 +6379,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_model_product",
-      "community": 83,
-      "community_name": "App.tsx",
+      "community": 67,
+      "community_name": "DesktopHome.tsx",
       "norm_label": "product"
     },
     {
@@ -6170,8 +6390,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_product_model_default_criteria",
-      "community": 24,
-      "community_name": "cn",
+      "community": 34,
+      "community_name": "banner/api.ts",
       "norm_label": "default_criteria"
     },
     {
@@ -6335,8 +6555,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_settingskeys",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "settingskeys"
     },
     {
@@ -6346,8 +6566,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_frontpadsettingskeys",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "frontpadsettingskeys"
     },
     {
@@ -6357,8 +6577,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_stoppedstockkeys",
-      "community": 20,
-      "community_name": "FloatingActions.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "stoppedstockkeys"
     },
     {
@@ -6434,8 +6654,8 @@
       "source_location": "L152",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_mapsettings",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "mapsettings()"
     },
     {
@@ -6467,8 +6687,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_mapjob",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "mapjob()"
     },
     {
@@ -6478,8 +6698,8 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_fetchsettings",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "fetchsettings()"
     },
     {
@@ -6511,8 +6731,8 @@
       "source_location": "L255",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_fetchactivesyncjobs",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "fetchactivesyncjobs()"
     },
     {
@@ -6522,8 +6742,8 @@
       "source_location": "L264",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_usesettings",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "usesettings()"
     },
     {
@@ -6544,8 +6764,8 @@
       "source_location": "L283",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_usestoppedstock",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "usestoppedstock()"
     },
     {
@@ -6555,8 +6775,8 @@
       "source_location": "L291",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_useactivesyncjobs",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "useactivesyncjobs()"
     },
     {
@@ -6566,8 +6786,8 @@
       "source_location": "L299",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_updatesettings",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "updatesettings()"
     },
     {
@@ -6577,8 +6797,8 @@
       "source_location": "L313",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_useupdatesettings",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "useupdatesettings()"
     },
     {
@@ -6599,8 +6819,8 @@
       "source_location": "L339",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_useupdatefrontpadsettings",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "useupdatefrontpadsettings()"
     },
     {
@@ -6610,8 +6830,8 @@
       "source_location": "L349",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_enqueuesyncjob",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "enqueuesyncjob()"
     },
     {
@@ -6621,8 +6841,8 @@
       "source_location": "L365",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_useenqueuesyncjob",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "useenqueuesyncjob()"
     },
     {
@@ -6643,8 +6863,8 @@
       "source_location": "L381",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_usefrontpadstock",
-      "community": 20,
-      "community_name": "FloatingActions.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "usefrontpadstock()"
     },
     {
@@ -6665,8 +6885,8 @@
       "source_location": "L401",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_useapplypricesjobs",
-      "community": 20,
-      "community_name": "FloatingActions.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "useapplypricesjobs()"
     },
     {
@@ -6676,8 +6896,8 @@
       "source_location": "L409",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_api_enqueueapplypricesjob",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "enqueueapplypricesjob()"
     },
     {
@@ -6698,8 +6918,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_model",
-      "community": 99,
-      "community_name": "settings/model.ts",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "settings/model.ts"
     },
     {
@@ -6709,8 +6929,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_model_settings",
-      "community": 99,
-      "community_name": "settings/model.ts",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "settings"
     },
     {
@@ -6720,8 +6940,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_model_pricesource",
-      "community": 99,
-      "community_name": "settings/model.ts",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "pricesource"
     },
     {
@@ -6731,8 +6951,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_model_frontpadsettings",
-      "community": 99,
-      "community_name": "settings/model.ts",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "frontpadsettings"
     },
     {
@@ -6742,8 +6962,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_model_frontpadstockitem",
-      "community": 99,
-      "community_name": "settings/model.ts",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "frontpadstockitem"
     },
     {
@@ -6764,8 +6984,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_settings_model_settingsfallback",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "settingsfallback()"
     },
     {
@@ -6852,8 +7072,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_size_template_api_usesizetemplates",
-      "community": 74,
-      "community_name": "App.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "usesizetemplates()"
     },
     {
@@ -7061,8 +7281,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_staff_api_usestaff",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 6,
+      "community_name": "Meal Add-ons UI",
       "norm_label": "usestaff()"
     },
     {
@@ -7083,8 +7303,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_staff_api_useupdatestaff",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 6,
+      "community_name": "Meal Add-ons UI",
       "norm_label": "useupdatestaff()"
     },
     {
@@ -7094,8 +7314,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_staff_api_usedeletestaff",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 6,
+      "community_name": "Meal Add-ons UI",
       "norm_label": "usedeletestaff()"
     },
     {
@@ -7105,8 +7325,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_staff_api_userequeststaffpasswordreset",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 6,
+      "community_name": "Meal Add-ons UI",
       "norm_label": "userequeststaffpasswordreset()"
     },
     {
@@ -7292,8 +7512,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_entities_tag_model_categorytag",
-      "community": 45,
-      "community_name": "AdminSidebar.tsx",
+      "community": 0,
+      "community_name": "addon/api.ts",
       "norm_label": "categorytag"
     },
     {
@@ -7303,8 +7523,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_lib_useaddproduct",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 67,
+      "community_name": "DesktopHome.tsx",
       "norm_label": "useaddproduct.ts"
     },
     {
@@ -7314,8 +7534,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_lib_useaddproduct_useaddproduct",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 67,
+      "community_name": "DesktopHome.tsx",
       "norm_label": "useaddproduct()"
     },
     {
@@ -7358,8 +7578,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "selectors.ts"
     },
     {
@@ -7369,8 +7589,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors_productfromcache",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "productfromcache()"
     },
     {
@@ -7380,8 +7600,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors_addonfromcache",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "addonfromcache()"
     },
     {
@@ -7391,8 +7611,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors_resolvedaddon",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "resolvedaddon"
     },
     {
@@ -7402,8 +7622,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors_resolvedline",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "resolvedline"
     },
     {
@@ -7413,8 +7633,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors_resolveline",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "resolveline()"
     },
     {
@@ -7424,8 +7644,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_selectors_carttotals",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "carttotals"
     },
     {
@@ -7446,8 +7666,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "store.ts"
     },
     {
@@ -7457,8 +7677,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_empty_address_parts",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "empty_address_parts"
     },
     {
@@ -7468,8 +7688,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_cartaddon",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "cartaddon"
     },
     {
@@ -7479,8 +7699,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_cartitem",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "cartitem"
     },
     {
@@ -7490,8 +7710,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_addpayload",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addpayload"
     },
     {
@@ -7501,8 +7721,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_cartstate",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "cartstate"
     },
     {
@@ -7512,8 +7732,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_uid",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "uid()"
     },
     {
@@ -7523,8 +7743,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_cart_model_store_sameline",
-      "community": 75,
-      "community_name": "files.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "sameline()"
     },
     {
@@ -7776,8 +7996,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_checkout_model_usecheckout_formataddressline",
-      "community": 73,
-      "community_name": "category/api.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "formataddressline()"
     },
     {
@@ -8029,8 +8249,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_order_tracking_ui_orderdetails",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderdetails.tsx"
     },
     {
@@ -8040,8 +8260,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_order_tracking_ui_orderdetails_formataddress",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "formataddress()"
     },
     {
@@ -8051,8 +8271,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_order_tracking_ui_orderdetails_linerow",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "linerow()"
     },
     {
@@ -8062,8 +8282,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_order_tracking_ui_orderdetails_props",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "props"
     },
     {
@@ -8073,8 +8293,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_features_order_tracking_ui_orderdetails_orderdetails",
-      "community": 57,
-      "community_name": "SettingsSection.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderdetails()"
     },
     {
@@ -8161,8 +8381,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_addons",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addons.ts"
     },
     {
@@ -8172,8 +8392,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_addons_img",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "img"
     },
     {
@@ -8183,8 +8403,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_addons_addons",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addons"
     },
     {
@@ -8194,8 +8414,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_addons_extras",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "extras"
     },
     {
@@ -8205,8 +8425,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_addons_sauces",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "sauces"
     },
     {
@@ -8216,8 +8436,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_addons_addonbyid",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addonbyid()"
     },
     {
@@ -8502,8 +8722,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_tags",
-      "community": 45,
-      "community_name": "AdminSidebar.tsx",
+      "community": 0,
+      "community_name": "addon/api.ts",
       "norm_label": "tags.ts"
     },
     {
@@ -8513,8 +8733,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_mocks_tags_producttags",
-      "community": 45,
-      "community_name": "AdminSidebar.tsx",
+      "community": 0,
+      "community_name": "addon/api.ts",
       "norm_label": "producttags"
     },
     {
@@ -8535,8 +8755,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_adminlogin_adminlogin",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "adminlogin()"
     },
     {
@@ -8568,8 +8788,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_adminpage_adminpage",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "adminpage()"
     },
     {
@@ -8590,8 +8810,8 @@
       "source_location": "L146",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_adminpage_producteditorroute",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "producteditorroute()"
     },
     {
@@ -8722,8 +8942,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "producteditor.tsx"
     },
     {
@@ -8733,8 +8953,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_props",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "props"
     },
     {
@@ -8744,8 +8964,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_meat_options",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "meat_options"
     },
     {
@@ -8755,8 +8975,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_newid",
-      "community": 52,
-      "community_name": "@radix-ui/react-slot",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "newid()"
     },
     {
@@ -8766,8 +8986,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_imagesfromproduct",
-      "community": 52,
-      "community_name": "@radix-ui/react-slot",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "imagesfromproduct()"
     },
     {
@@ -8777,8 +8997,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_movecriterion",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "movecriterion()"
     },
     {
@@ -8788,8 +9008,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_matchedtemplateid",
-      "community": 52,
-      "community_name": "@radix-ui/react-slot",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "matchedtemplateid()"
     },
     {
@@ -8799,41 +9019,41 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
-      "community": 52,
-      "community_name": "@radix-ui/react-slot",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "producteditor()"
     },
     {
       "label": "MeatIconGlyph()",
       "file_type": "code",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1051",
+      "source_location": "L1054",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_meaticonglyph",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "meaticonglyph()"
     },
     {
       "label": "PreviewToggle()",
       "file_type": "code",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1057",
+      "source_location": "L1060",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_previewtoggle",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "previewtoggle()"
     },
     {
       "label": "StatRow()",
       "file_type": "code",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1084",
+      "source_location": "L1087",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_producteditor_statrow",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "statrow()"
     },
     {
@@ -8865,8 +9085,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_addons_addonform_addonform",
-      "community": 56,
-      "community_name": "CouponForm.tsx",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "addonform()"
     },
     {
@@ -8942,8 +9162,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_banners_bannerform_bannerform",
-      "community": 5,
-      "community_name": "Sushi Catalog UI",
+      "community": 53,
+      "community_name": "sonner",
       "norm_label": "bannerform()"
     },
     {
@@ -8953,8 +9173,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_banners_bannerssection",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "bannerssection.tsx"
     },
     {
@@ -8964,8 +9184,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_banners_bannerssection_bannerssection",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 5,
+      "community_name": "Sushi Catalog UI",
       "norm_label": "bannerssection()"
     },
     {
@@ -8975,8 +9195,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_categories_categoriessection",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "categoriessection.tsx"
     },
     {
@@ -8986,8 +9206,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_categories_categoriessection_categoriessection",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "categoriessection()"
     },
     {
@@ -8997,8 +9217,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_categories_categoryform",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "categoryform.tsx"
     },
     {
@@ -9008,8 +9228,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_categories_categoryform_props",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "props"
     },
     {
@@ -9019,8 +9239,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_categories_categoryform_categoryform",
-      "community": 30,
-      "community_name": "FloatingActions.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "categoryform()"
     },
     {
@@ -9217,8 +9437,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_customers_customerssection",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "customerssection.tsx"
     },
     {
@@ -9228,8 +9448,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_customers_customerssection_customerssection",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "customerssection()"
     },
     {
@@ -9371,8 +9591,8 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_dashboard_dashboardsection_dashboardsection",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "dashboardsection()"
     },
     {
@@ -9382,8 +9602,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderdrawer",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderdrawer.tsx"
     },
     {
@@ -9393,8 +9613,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderdrawer_props",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "props"
     },
     {
@@ -9404,8 +9624,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderdrawer_formataddress",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "formataddress()"
     },
     {
@@ -9415,8 +9635,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderdrawer_moneyrow",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "moneyrow()"
     },
     {
@@ -9426,8 +9646,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderdrawer_orderdrawer",
-      "community": 70,
-      "community_name": "HeroBanner.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderdrawer()"
     },
     {
@@ -9437,8 +9657,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderssection",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderssection.tsx"
     },
     {
@@ -9448,8 +9668,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderssection_status_filters",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "status_filters"
     },
     {
@@ -9459,8 +9679,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderssection_statusfromsearch",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "statusfromsearch()"
     },
     {
@@ -9470,8 +9690,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_orders_orderssection_orderssection",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "orderssection()"
     },
     {
@@ -9481,8 +9701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_articlematrix",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "articlematrix.tsx"
     },
     {
@@ -9492,8 +9712,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_articlematrix_props",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "props"
     },
     {
@@ -9503,8 +9723,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_articlematrix_setcellarticle",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "setcellarticle()"
     },
     {
@@ -9514,8 +9734,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_articlematrix_cellarticle",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "cellarticle()"
     },
     {
@@ -9525,8 +9745,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_articlematrix_applyskuprice",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "applyskuprice()"
     },
     {
@@ -9536,8 +9756,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_articlematrix_articlematrix",
-      "community": 43,
-      "community_name": "pb.ts",
+      "community": 75,
+      "community_name": "files.ts",
       "norm_label": "articlematrix()"
     },
     {
@@ -9547,8 +9767,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_badgemanagerdialog",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "badgemanagerdialog.tsx"
     },
     {
@@ -9558,8 +9778,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_badgemanagerdialog_props",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "props"
     },
     {
@@ -9569,8 +9789,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_badgemanagerdialog_uniqueslug",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "uniqueslug()"
     },
     {
@@ -9580,8 +9800,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_badgemanagerdialog_badgemanagerdialog",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 77,
+      "community_name": "NutritionHint.tsx",
       "norm_label": "badgemanagerdialog()"
     },
     {
@@ -9591,8 +9811,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "cashpricespanel.tsx"
     },
     {
@@ -9602,8 +9822,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel_row_filters",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "row_filters"
     },
     {
@@ -9613,8 +9833,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel_pricerow",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "pricerow"
     },
     {
@@ -9624,8 +9844,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel_status_label",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "status_label"
     },
     {
@@ -9635,8 +9855,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel_formatsigned",
-      "community": 83,
-      "community_name": "App.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "formatsigned()"
     },
     {
@@ -9646,8 +9866,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel_flattenplans",
-      "community": 83,
-      "community_name": "App.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "flattenplans()"
     },
     {
@@ -9657,8 +9877,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_cashpricespanel_cashpricespanel",
-      "community": 83,
-      "community_name": "App.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "cashpricespanel()"
     },
     {
@@ -9701,8 +9921,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_productcreateform_productcreateform",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "productcreateform()"
     },
     {
@@ -9712,8 +9932,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_productssection",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "productssection.tsx"
     },
     {
@@ -9723,8 +9943,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_productssection_status_filters",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "status_filters"
     },
     {
@@ -9734,8 +9954,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_productssection_applyfilteredreorder",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "applyfilteredreorder()"
     },
     {
@@ -9745,8 +9965,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_products_productssection_productssection",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "productssection()"
     },
     {
@@ -9844,8 +10064,8 @@
       "source_location": "L261",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_reviews_reviewssection_reviewform",
-      "community": 1,
-      "community_name": "UI Layout Components",
+      "community": 65,
+      "community_name": "@radix-ui/react-dialog",
       "norm_label": "reviewform()"
     },
     {
@@ -9855,8 +10075,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "frontpadpanel.tsx"
     },
     {
@@ -9866,8 +10086,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_price_source_options",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "price_source_options"
     },
     {
@@ -9877,8 +10097,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_splittokens",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "splittokens()"
     },
     {
@@ -9888,8 +10108,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_parsedigitcodes",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "parsedigitcodes()"
     },
     {
@@ -9899,8 +10119,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_toastdiscarded",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "toastdiscarded()"
     },
     {
@@ -9910,8 +10130,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_productssyncgate",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "productssyncgate()"
     },
     {
@@ -9921,8 +10141,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_formatremaining",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "formatremaining()"
     },
     {
@@ -9932,8 +10152,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_status_options",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "status_options"
     },
     {
@@ -9943,8 +10163,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_props",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "props"
     },
     {
@@ -9954,8 +10174,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_frontpadpanel_frontpadpanel",
-      "community": 84,
-      "community_name": "FrontpadPanel",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "frontpadpanel()"
     },
     {
@@ -9965,8 +10185,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_settingssection",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "settingssection.tsx"
     },
     {
@@ -9976,8 +10196,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_settingssection_tabid",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "tabid"
     },
     {
@@ -9987,8 +10207,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_settingssection_tabs",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "tabs"
     },
     {
@@ -9998,8 +10218,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_settingssection_parsenonneg",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "parsenonneg()"
     },
     {
@@ -10009,8 +10229,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_settings_settingssection_settingssection",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "settingssection()"
     },
     {
@@ -10053,8 +10273,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_sections_staff_staffsection_staffsection",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 6,
+      "community_name": "Meal Add-ons UI",
       "norm_label": "staffsection()"
     },
     {
@@ -10075,8 +10295,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admincard",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "admincard.tsx"
     },
     {
@@ -10086,8 +10306,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admincard_props",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "props"
     },
     {
@@ -10097,8 +10317,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admincard_admincard",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "admincard()"
     },
     {
@@ -10152,8 +10372,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admintopbar",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "admintopbar.tsx"
     },
     {
@@ -10163,8 +10383,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admintopbar_neworderskey",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "neworderskey"
     },
     {
@@ -10174,8 +10394,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admintopbar_fetchneworderscount",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "fetchneworderscount()"
     },
     {
@@ -10185,8 +10405,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admintopbar_admintopbarprops",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "admintopbarprops"
     },
     {
@@ -10196,8 +10416,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_admintopbar_admintopbar",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "admintopbar()"
     },
     {
@@ -10207,8 +10427,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_datatable",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "datatable.tsx"
     },
     {
@@ -10218,8 +10438,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_datatable_sortdir",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "sortdir"
     },
     {
@@ -10229,8 +10449,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_datatable_column",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "column"
     },
     {
@@ -10240,8 +10460,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_datatable_props",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "props"
     },
     {
@@ -10251,8 +10471,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_datatable_datatable",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 81,
+      "community_name": "pbErrorMessage",
       "norm_label": "datatable()"
     },
     {
@@ -10361,8 +10581,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_sortablelist",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "sortablelist.tsx"
     },
     {
@@ -10372,8 +10592,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_sortablelist_props",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "props"
     },
     {
@@ -10383,8 +10603,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_sortablelist_move",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "move()"
     },
     {
@@ -10394,8 +10614,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_sortablelist_sortablelist",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "sortablelist()"
     },
     {
@@ -10460,8 +10680,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_statcard",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "statcard.tsx"
     },
     {
@@ -10471,8 +10691,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_statcard_props",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "props"
     },
     {
@@ -10482,8 +10702,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_admin_ui_statcard_statcard",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "statcard()"
     },
     {
@@ -10559,8 +10779,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_homepage",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 60,
+      "community_name": "banner-image-field.tsx",
       "norm_label": "homepage.tsx"
     },
     {
@@ -10570,8 +10790,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_homepage_homemobiletabbar",
-      "community": 66,
-      "community_name": "react-router-dom",
+      "community": 60,
+      "community_name": "banner-image-field.tsx",
       "norm_label": "homemobiletabbar()"
     },
     {
@@ -10581,8 +10801,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_homepage_homepage",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 60,
+      "community_name": "banner-image-field.tsx",
       "norm_label": "homepage()"
     },
     {
@@ -10680,8 +10900,8 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_lib_vitrinescroll_usevitrinescroll",
-      "community": 66,
-      "community_name": "react-router-dom",
+      "community": 60,
+      "community_name": "banner-image-field.tsx",
       "norm_label": "usevitrinescroll()"
     },
     {
@@ -10713,8 +10933,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_lib_groupbycategory",
-      "community": 24,
-      "community_name": "cn",
+      "community": 67,
+      "community_name": "DesktopHome.tsx",
       "norm_label": "groupbycategory.ts"
     },
     {
@@ -10724,8 +10944,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_lib_groupbycategory_groupproductsbycategory",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 67,
+      "community_name": "DesktopHome.tsx",
       "norm_label": "groupproductsbycategory()"
     },
     {
@@ -10856,8 +11076,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_ui_mobilehome",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "mobilehome.tsx"
     },
     {
@@ -10867,8 +11087,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_ui_mobilehome_props",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "props"
     },
     {
@@ -10878,8 +11098,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_ui_mobilehome_mobilehome",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 60,
+      "community_name": "banner-image-field.tsx",
       "norm_label": "mobilehome()"
     },
     {
@@ -10889,8 +11109,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_home_ui_mobilehome_scrollsection",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "scrollsection()"
     },
     {
@@ -10955,8 +11175,8 @@
       "source_location": "L316",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_productpage_productpage",
-      "community": 34,
-      "community_name": "banner/api.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "productpage()"
     },
     {
@@ -10966,8 +11186,8 @@
       "source_location": "L331",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_productpage_productmodal",
-      "community": 34,
-      "community_name": "banner/api.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "productmodal()"
     },
     {
@@ -10999,8 +11219,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_ui_addonrow",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addonrow.tsx"
     },
     {
@@ -11010,8 +11230,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_ui_addonrow_props",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "props"
     },
     {
@@ -11021,8 +11241,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_ui_addonrow_addonrow",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addonrow()"
     },
     {
@@ -11032,8 +11252,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_ui_freshstamp",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "freshstamp.tsx"
     },
     {
@@ -11043,8 +11263,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_ui_freshstamp_stamp_glyphs",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "stamp_glyphs"
     },
     {
@@ -11054,8 +11274,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_product_ui_freshstamp_freshstamp",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "freshstamp()"
     },
     {
@@ -11241,8 +11461,8 @@
       "source_location": "L477",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_pages_profile_profilepage_addresscard",
-      "community": 73,
-      "community_name": "category/api.ts",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "addresscard()"
     },
     {
@@ -11406,8 +11626,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_auth_staffrole",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 27,
+      "community_name": "cn.ts",
       "norm_label": "staffrole"
     },
     {
@@ -11560,8 +11780,8 @@
       "source_location": "L173",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_auth_useadminauth",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "useadminauth()"
     },
     {
@@ -11637,8 +11857,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "crud.ts"
     },
     {
@@ -11648,8 +11868,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_querykey",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "querykey"
     },
     {
@@ -11659,8 +11879,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_mutationkeys",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "mutationkeys"
     },
     {
@@ -11670,8 +11890,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_collectionmutationsconfig",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "collectionmutationsconfig"
     },
     {
@@ -11681,8 +11901,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_field_code_ru",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "field_code_ru"
     },
     {
@@ -11692,8 +11912,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_listkeys",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "listkeys()"
     },
     {
@@ -11703,8 +11923,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_invalidate",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "invalidate()"
     },
     {
@@ -11714,8 +11934,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_syncdetail",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "syncdetail()"
     },
     {
@@ -11725,8 +11945,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_pberrormessage",
-      "community": 81,
-      "community_name": "pbErrorMessage",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "pberrormessage()"
     },
     {
@@ -11736,8 +11956,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_wraperror",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 47,
+      "community_name": "order/model.ts",
       "norm_label": "wraperror()"
     },
     {
@@ -11747,8 +11967,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_crud_collectionmutations",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 74,
+      "community_name": "App.tsx",
       "norm_label": "collectionmutations()"
     },
     {
@@ -11791,8 +12011,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_files_toformdata",
-      "community": 87,
-      "community_name": "@radix-ui/react-popover",
+      "community": 53,
+      "community_name": "sonner",
       "norm_label": "toformdata()"
     },
     {
@@ -11802,8 +12022,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_files_touploadformdata",
-      "community": 87,
-      "community_name": "@radix-ui/react-popover",
+      "community": 53,
+      "community_name": "sonner",
       "norm_label": "touploadformdata()"
     },
     {
@@ -11912,8 +12132,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_pb_pb",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "pb"
     },
     {
@@ -11923,8 +12143,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_query_client",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "query-client.ts"
     },
     {
@@ -11934,8 +12154,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_query_client_queryclient",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "queryclient"
     },
     {
@@ -11945,8 +12165,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_realtime",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "realtime.ts"
     },
     {
@@ -11956,8 +12176,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_realtime_querykey",
-      "community": 6,
-      "community_name": "Meal Add-ons UI",
+      "community": 49,
+      "community_name": "HomePage.tsx",
       "norm_label": "querykey"
     },
     {
@@ -11967,8 +12187,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_api_realtime_usecollectionrealtime",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "usecollectionrealtime()"
     },
     {
@@ -11978,8 +12198,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_icons",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "icons.ts"
     },
     {
@@ -11989,8 +12209,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_icons_category_icons",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "category_icons"
     },
     {
@@ -12000,8 +12220,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_icons_categoryiconpath",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "categoryiconpath"
     },
     {
@@ -12011,8 +12231,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_site",
-      "community": 77,
-      "community_name": "NutritionHint.tsx",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "site.ts"
     },
     {
@@ -12033,8 +12253,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_site_order_rules",
-      "community": 77,
-      "community_name": "NutritionHint.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "order_rules"
     },
     {
@@ -12044,8 +12264,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_site_badge_label",
-      "community": 77,
-      "community_name": "NutritionHint.tsx",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "badge_label"
     },
     {
@@ -12055,8 +12275,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_config_site_resolvebadgelabel",
-      "community": 77,
-      "community_name": "NutritionHint.tsx",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "resolvebadgelabel()"
     },
     {
@@ -12165,8 +12385,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_background_location",
-      "community": 27,
-      "community_name": "cn.ts",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "background-location.ts"
     },
     {
@@ -12176,8 +12396,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_background_location_backgroundlocationstate",
-      "community": 27,
-      "community_name": "cn.ts",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "backgroundlocationstate"
     },
     {
@@ -12286,8 +12506,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_crop_image",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "crop-image.ts"
     },
     {
@@ -12297,8 +12517,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_crop_image_croparea",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "croparea"
     },
     {
@@ -12308,8 +12528,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_crop_image_loadimage",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "loadimage()"
     },
     {
@@ -12319,8 +12539,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_crop_image_canvastoblob",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "canvastoblob()"
     },
     {
@@ -12330,8 +12550,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_crop_image_cropimagetofile",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "cropimagetofile()"
     },
     {
@@ -12341,8 +12561,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_crop_image_readimagesize",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "readimagesize()"
     },
     {
@@ -12352,8 +12572,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format",
-      "community": 58,
-      "community_name": "AdminPage.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "lib/format.ts"
     },
     {
@@ -12363,8 +12583,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format_formatprice",
-      "community": 58,
-      "community_name": "AdminPage.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "formatprice()"
     },
     {
@@ -12374,8 +12594,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format_formatscore10",
-      "community": 58,
-      "community_name": "AdminPage.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "formatscore10()"
     },
     {
@@ -12385,8 +12605,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format_formatscore5",
-      "community": 58,
-      "community_name": "AdminPage.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "formatscore5()"
     },
     {
@@ -12396,8 +12616,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format_trimzero",
-      "community": 58,
-      "community_name": "AdminPage.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "trimzero()"
     },
     {
@@ -12407,8 +12627,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format_pluralize",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 36,
+      "community_name": "order/model.ts",
       "norm_label": "pluralize()"
     },
     {
@@ -12418,8 +12638,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_format_formatdate",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "formatdate()"
     },
     {
@@ -12440,8 +12660,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_slug",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "slug.ts"
     },
     {
@@ -12451,8 +12671,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_slug_cyr_map",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "cyr_map"
     },
     {
@@ -12462,8 +12682,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_lib_slug_slugfromname",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "slugfromname()"
     },
     {
@@ -12473,8 +12693,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_badge",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "badge.tsx"
     },
     {
@@ -12484,8 +12704,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_badge_badgevariants",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "badgevariants"
     },
     {
@@ -12495,8 +12715,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_badge_badgeprops",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "badgeprops"
     },
     {
@@ -12506,8 +12726,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_badge_badge",
-      "community": 46,
-      "community_name": "CustomerDrawer.tsx",
+      "community": 32,
+      "community_name": "order/api.ts",
       "norm_label": "badge()"
     },
     {
@@ -12517,8 +12737,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_banner_image_field",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "banner-image-field.tsx"
     },
     {
@@ -12528,8 +12748,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_banner_image_field_allowed",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "allowed"
     },
     {
@@ -12539,8 +12759,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_banner_image_field_props",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "props"
     },
     {
@@ -12550,8 +12770,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_banner_image_field_formatmb",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "formatmb()"
     },
     {
@@ -12561,8 +12781,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_banner_image_field_bannerimagefield",
-      "community": 28,
-      "community_name": "StickyBar.tsx",
+      "community": 22,
+      "community_name": "ProductEditor.tsx",
       "norm_label": "bannerimagefield()"
     },
     {
@@ -12616,8 +12836,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_chip",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "chip.tsx"
     },
     {
@@ -12627,8 +12847,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_chip_chipprops",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "chipprops"
     },
     {
@@ -12638,8 +12858,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_chip_chip",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "chip()"
     },
     {
@@ -12649,8 +12869,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_chip_optioncardprops",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "optioncardprops"
     },
     {
@@ -12660,8 +12880,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_chip_optioncard",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "optioncard()"
     },
     {
@@ -12671,8 +12891,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_confirm_dialog",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "confirm-dialog.tsx"
     },
     {
@@ -12682,8 +12902,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_confirm_dialog_confirmoptions",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "confirmoptions"
     },
     {
@@ -12693,8 +12913,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_confirm_dialog_confirmdialogprops",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "confirmdialogprops"
     },
     {
@@ -12704,8 +12924,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_confirm_dialog_confirmdialog",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "confirmdialog()"
     },
     {
@@ -12715,8 +12935,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_confirm_dialog_useconfirm",
-      "community": 26,
-      "community_name": "category/api.ts",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "useconfirm()"
     },
     {
@@ -12880,8 +13100,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_modal",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "modal.tsx"
     },
     {
@@ -12891,8 +13111,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_modal_modalprops",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "modalprops"
     },
     {
@@ -12902,8 +13122,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_modal_modal",
-      "community": 31,
-      "community_name": "useCategories",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "modal()"
     },
     {
@@ -12979,8 +13199,8 @@
       "source_location": "L499",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_multi_image_field_multiimagediff",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 43,
+      "community_name": "pb.ts",
       "norm_label": "multiimagediff()"
     },
     {
@@ -13012,8 +13232,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_rating",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "rating.tsx"
     },
     {
@@ -13023,8 +13243,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_rating_scorecolor",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "scorecolor()"
     },
     {
@@ -13034,8 +13254,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_rating_scorevalue",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "scorevalue()"
     },
     {
@@ -13045,8 +13265,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_rating_stars",
-      "community": 64,
-      "community_name": "loginWithOAuth",
+      "community": 52,
+      "community_name": "@radix-ui/react-slot",
       "norm_label": "stars()"
     },
     {
@@ -13056,8 +13276,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_segmented",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "segmented.tsx"
     },
     {
@@ -13067,8 +13287,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_segmented_segmentedprops",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "segmentedprops"
     },
     {
@@ -13078,8 +13298,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_segmented_segmented",
-      "community": 40,
-      "community_name": "MobileHome.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "segmented()"
     },
     {
@@ -13144,8 +13364,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_sheet",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "sheet.tsx"
     },
     {
@@ -13155,8 +13375,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_sheet_sheetcontentprops",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "sheetcontentprops"
     },
     {
@@ -13166,8 +13386,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_sheet_sheetcontent",
-      "community": 22,
-      "community_name": "ProductEditor.tsx",
+      "community": 31,
+      "community_name": "useCategories",
       "norm_label": "sheetcontent()"
     },
     {
@@ -13177,8 +13397,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_stepper",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "stepper.tsx"
     },
     {
@@ -13188,8 +13408,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_stepper_stepperprops",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "stepperprops"
     },
     {
@@ -13199,8 +13419,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_stepper_sizes",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "sizes"
     },
     {
@@ -13210,8 +13430,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_stepper_stepper",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "stepper()"
     },
     {
@@ -13221,8 +13441,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_stepper_stepbtn",
-      "community": 49,
-      "community_name": "HomePage.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "stepbtn()"
     },
     {
@@ -13298,8 +13518,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_switch",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "switch.tsx"
     },
     {
@@ -13309,8 +13529,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_switch_switchprops",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "switchprops"
     },
     {
@@ -13320,8 +13540,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_switch_switch",
-      "community": 48,
-      "community_name": "@radix-ui/react-slot",
+      "community": 46,
+      "community_name": "CustomerDrawer.tsx",
       "norm_label": "switch()"
     },
     {
@@ -13331,8 +13551,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_tooltip",
-      "community": 27,
-      "community_name": "cn.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "tooltip.tsx"
     },
     {
@@ -13342,8 +13562,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_tooltip_tooltipcontent",
-      "community": 27,
-      "community_name": "cn.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "tooltipcontent()"
     },
     {
@@ -13353,8 +13573,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_shared_ui_tooltip_hintmark",
-      "community": 27,
-      "community_name": "cn.ts",
+      "community": 64,
+      "community_name": "loginWithOAuth",
       "norm_label": "hintmark()"
     },
     {
@@ -13397,8 +13617,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_catalog_categorytiles",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 92,
+      "community_name": "theme.tsx",
       "norm_label": "categorytiles.tsx"
     },
     {
@@ -13408,8 +13628,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_catalog_categorytiles_props",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 92,
+      "community_name": "theme.tsx",
       "norm_label": "props"
     },
     {
@@ -13419,8 +13639,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_catalog_categorytiles_categorytiles",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 92,
+      "community_name": "theme.tsx",
       "norm_label": "categorytiles()"
     },
     {
@@ -13529,8 +13749,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_header_stickybar_sticky_bar",
-      "community": 66,
-      "community_name": "react-router-dom",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "sticky_bar"
     },
     {
@@ -13551,8 +13771,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_header_stickybar_stickybar",
-      "community": 85,
-      "community_name": "MobileHeader.tsx",
+      "community": 92,
+      "community_name": "theme.tsx",
       "norm_label": "stickybar()"
     },
     {
@@ -13573,8 +13793,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_hero_herobanner_herobanner",
-      "community": 5,
-      "community_name": "Sushi Catalog UI",
+      "community": 45,
+      "community_name": "AdminSidebar.tsx",
       "norm_label": "herobanner()"
     },
     {
@@ -13595,8 +13815,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_addressbar",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "addressbar.tsx"
     },
     {
@@ -13606,8 +13826,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_addressbar_addressbar",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "addressbar()"
     },
     {
@@ -13617,8 +13837,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobileheader",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "mobileheader.tsx"
     },
     {
@@ -13628,8 +13848,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobileheader_props",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "props"
     },
     {
@@ -13639,8 +13859,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobileheader_mobileheader",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "mobileheader()"
     },
     {
@@ -13650,8 +13870,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobileheader_cartbadge",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "cartbadge()"
     },
     {
@@ -13661,8 +13881,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobiletabbar",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "mobiletabbar.tsx"
     },
     {
@@ -13672,8 +13892,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobiletabbar_mobiletab",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "mobiletab"
     },
     {
@@ -13683,8 +13903,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobiletabbar_tabs",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "tabs"
     },
     {
@@ -13694,8 +13914,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobiletabbar_props",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "props"
     },
     {
@@ -13705,8 +13925,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_mobile_mobiletabbar_mobiletabbar",
-      "community": 93,
-      "community_name": "MobileTabBar.tsx",
+      "community": 58,
+      "community_name": "AdminPage.tsx",
       "norm_label": "mobiletabbar()"
     },
     {
@@ -13716,8 +13936,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_promo_promobanner",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "promobanner.tsx"
     },
     {
@@ -13727,8 +13947,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_promo_promobanner_promobanner",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 20,
+      "community_name": "FloatingActions.tsx",
       "norm_label": "promobanner()"
     },
     {
@@ -13738,8 +13958,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_sidebar_sidebar",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 51,
+      "community_name": "ProductCard.tsx",
       "norm_label": "sidebar.tsx"
     },
     {
@@ -13749,8 +13969,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_sidebar_sidebar_sidebarprops",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 51,
+      "community_name": "ProductCard.tsx",
       "norm_label": "sidebarprops"
     },
     {
@@ -13760,8 +13980,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_sidebar_sidebar_sidebar",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 51,
+      "community_name": "ProductCard.tsx",
       "norm_label": "sidebar()"
     },
     {
@@ -13771,8 +13991,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_shashlik_web_src_widgets_sidebar_rail",
-      "community": 76,
-      "community_name": "AdminTopbar.tsx",
+      "community": 51,
+      "community_name": "ProductCard.tsx",
       "norm_label": "rail.ts"
     },
     {
@@ -14117,7 +14337,7 @@
       "label": "wait_for_pocketbase()",
       "file_type": "code",
       "source_file": "deploy.sh",
-      "source_location": "L15",
+      "source_location": "L33",
       "metadata": {
         "language": "bash",
         "kind": "bash_function"
@@ -18628,22 +18848,22 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/package.json",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_package_scripts",
-      "target": "apps_shashlik_web_package_scripts_dev",
+      "target": "apps_shashlik_web_package_scripts_copy_vk_sdk",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/package.json",
-      "source_location": "L8",
+      "source_location": "L7",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_package_scripts",
-      "target": "apps_shashlik_web_package_scripts_prebuild",
+      "target": "apps_shashlik_web_package_scripts_dev",
       "confidence_score": 1.0
     },
     {
@@ -19009,6 +19229,18 @@
       "source": "apps_shashlik_web_package_dependencies_pocketbase",
       "target": "pocketbase",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L205",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash_auth",
+      "target": "apps_shashlik_web_package_dependencies_pocketbase"
     },
     {
       "relation": "imports",
@@ -20470,7 +20702,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L548",
+      "source_location": "L551",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -20878,7 +21110,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L766",
+      "source_location": "L769",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -21132,6 +21364,17 @@
       "_origin": "ast",
       "source": "apps_shashlik_web_scripts_copy_vkid_sdk",
       "target": "apps_shashlik_web_scripts_copy_vkid_sdk_destdir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/copy-vkid-sdk.mjs",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_copy_vkid_sdk",
+      "target": "apps_shashlik_web_scripts_copy_vkid_sdk_needscopy",
       "confidence_score": 1.0
     },
     {
@@ -21415,6 +21658,240 @@
       "source": "apps_shashlik_web_scripts_gen_glass_noise_encodepng",
       "target": "apps_shashlik_web_scripts_gen_glass_noise_filterscanlines",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L203",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_auth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L136",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_buildcatalogmap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L184",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_builddefaultsizes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_buildsizes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L215",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_catalogbyflavor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_dir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_dryrun",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L112",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_flavor_aliases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_flavorkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L213",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_html",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L214",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_items",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L120",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_matchproduct",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_meat_variants",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_parsecatalog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L94",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_parseskuname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L217",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_pb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_reporoot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_taglines",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash_buildcatalogmap",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_parseskuname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L129",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash_matchproduct",
+      "target": "apps_shashlik_web_scripts_sync_products_from_cash_flavorkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "collection",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "apps/shashlik-web/scripts/sync-products-from-cash.mjs",
+      "source_location": "L176",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_shashlik_web_scripts_sync_products_from_cash_buildsizes",
+      "target": "apps_shashlik_web_src_entities_product_lib_minprice"
     },
     {
       "relation": "contains",
@@ -34745,7 +35222,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L976",
+      "source_location": "L979",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -36912,7 +37389,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L829",
+      "source_location": "L832",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -45841,7 +46318,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1051",
+      "source_location": "L1054",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor",
@@ -45874,7 +46351,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1057",
+      "source_location": "L1060",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor",
@@ -45907,7 +46384,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1084",
+      "source_location": "L1087",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor",
@@ -46387,7 +46864,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L343",
+      "source_location": "L346",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46411,7 +46888,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L670",
+      "source_location": "L673",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46424,7 +46901,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L768",
+      "source_location": "L771",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46436,7 +46913,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L387",
+      "source_location": "L390",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46448,7 +46925,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L891",
+      "source_location": "L894",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46460,7 +46937,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L416",
+      "source_location": "L419",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46484,7 +46961,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L284",
+      "source_location": "L287",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46496,7 +46973,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L829",
+      "source_location": "L832",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_producteditor",
@@ -46508,7 +46985,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx",
-      "source_location": "L1074",
+      "source_location": "L1077",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_shashlik_web_src_pages_admin_sections_producteditor_previewtoggle",
@@ -61199,7 +61676,7 @@
       "relation": "defines",
       "confidence": "EXTRACTED",
       "source_file": "deploy.sh",
-      "source_location": "L15",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "deploy",
@@ -61210,7 +61687,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "deploy.sh",
-      "source_location": "L53",
+      "source_location": "L95",
       "weight": 1.0,
       "context": "call",
       "_origin": "ast",
@@ -68161,5 +68638,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "905d1a18eaa4d38e23132477941feb3e6b586d19"
+  "built_at_commit": "cfd0d9d2b66d1a1cc09e1e9dbfdc4aed6b3b9e67"
 }

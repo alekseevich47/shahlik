@@ -19,48 +19,6 @@
 <td><b>Описание</b></td>
 </tr>
 				<tr align='left' valign='top'>
-				<td>Сервировка</td>
-				<td>Салатница</td>
-				<td>0</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Сервировка</td>
-				<td>Тарелка одноразовая</td>
-				<td>0</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Сервировка</td>
-				<td>Тарелка с крышкой</td>
-				<td>0</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
 				<td>Свинина</td>
 				<td>Арабская XL со свининой</td>
 				<td>420</td>
@@ -289,52 +247,10 @@
 				<td>Доставка</td>
 				<td>100</td>
 				<td>шт.</td>
-				<td></td>
+				<td>11111</td>
 				<td>Да</td>
 				<td></td>
 				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Мясо на выбор</td>
-				<td>Куриное феле бедра</td>
-				<td>240</td>
-				<td>шт.</td>
-				<td>11123</td>
-				<td>Да</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Мясо на выбор</td>
-				<td>Свиная мякоть</td>
-				<td>260</td>
-				<td>шт.</td>
-				<td>11122</td>
-				<td>Да</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Мясо на выбор</td>
-				<td>Свиная шея</td>
-				<td>350</td>
-				<td>шт.</td>
-				<td>11121</td>
-				<td>Да</td>
-				<td>Да</td>
-				<td></td>
 				<td></td>
 				<td></td>
 				<td></td>
@@ -565,148 +481,8 @@
 				<td></td>
 				</tr>
 				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Ананасы</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Капуста маринованая</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Корнишоны</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>25004</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Лук</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>25003</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Морковь по-корейски</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Огурцы</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>25002</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Пекинская капуста</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>25005</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Перец халопеньо</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>25006</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Сыр моцарелла</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Добавки</td>
-				<td>Томаты</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>25001</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Шашлык</td>
-				<td>Шашлык курица бедро</td>
+				<td>Шашлык в лаваше</td>
+				<td>Шашлык курица</td>
 				<td>340</td>
 				<td>шт.</td>
 				<td></td>
@@ -719,8 +495,8 @@
 				<td></td>
 				</tr>
 				<tr align='left' valign='top'>
-				<td>Шашлык</td>
-				<td>Шашлык мякоть свинины</td>
+				<td>Шашлык в лаваше</td>
+				<td>Шашлык свинина балык</td>
 				<td>360</td>
 				<td>шт.</td>
 				<td></td>
@@ -733,221 +509,11 @@
 				<td></td>
 				</tr>
 				<tr align='left' valign='top'>
-				<td>Шашлык</td>
-				<td>Шашлык шея</td>
+				<td>Шашлык в лаваше</td>
+				<td>Шашлык свинина шея</td>
 				<td>450</td>
 				<td>шт.</td>
 				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Аджика</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24006</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Арабский</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24002</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Барбекю</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24005</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Кавказский</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24003</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Сливочный</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24007</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Сырный</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24004</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Соусы</td>
-				<td>Шашлыковский</td>
-				<td>35</td>
-				<td>шт.</td>
-				<td>24001</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Сервировка</td>
-				<td>Лаваш 100г</td>
-				<td>50</td>
-				<td>шт.</td>
-				<td>26001</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Сервировка</td>
-				<td>Ланчбокс</td>
-				<td>0</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Сервировка</td>
-				<td>Тарелка в зале</td>
-				<td>0</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Горячие блюда</td>
-				<td>Плов по-Узбекски</td>
-				<td>320</td>
-				<td>шт.</td>
-				<td>41111</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Горячие блюда</td>
-				<td>Салат к плову (капуста)</td>
-				<td>0</td>
-				<td>шт.</td>
-				<td></td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Овощи</td>
-				<td>Капуста маринованная</td>
-				<td>80</td>
-				<td>шт.</td>
-				<td>31111</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Овощи</td>
-				<td>Морковь по-корейски</td>
-				<td>80</td>
-				<td>шт.</td>
-				<td>31112</td>
-				<td>Да</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				</tr>
-				<tr align='left' valign='top'>
-				<td>Овощи</td>
-				<td>Овощная тарелка</td>
-				<td>120</td>
-				<td>шт.</td>
-				<td>31113</td>
 				<td>Да</td>
 				<td></td>
 				<td></td>
@@ -1032,6 +598,34 @@
 				<td>450</td>
 				<td>шт.</td>
 				<td>21131</td>
+				<td>Да</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				</tr>
+				<tr align='left' valign='top'>
+				<td>Овощи</td>
+				<td>Овощная тарелка</td>
+				<td>120</td>
+				<td>шт.</td>
+				<td>31113</td>
+				<td>Да</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				</tr>
+				<tr align='left' valign='top'>
+				<td>Овощи</td>
+				<td>Салат коул-слоу</td>
+				<td>80</td>
+				<td>шт.</td>
+				<td>31111</td>
 				<td>Да</td>
 				<td></td>
 				<td></td>
