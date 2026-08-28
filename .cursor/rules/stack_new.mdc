@@ -281,7 +281,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, `onRecordAfterCreateSuccess("frontpad_jobs")`, роуты вебхука и диагностики, `cronAdd` |
 | `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
 | `pb_hooks/profile.pb.js` | `GET /api/profile/bonus`, `POST /api/profile/link` — бонусы/телефон для `app_users` |
-| `pb_hooks/vkid.pb.js` | `GET /api/auth/vk/start`, `GET /api/auth/vk/callback` — VK ID (PKCE + device_id) |
+| `pb_hooks/vkid.pb.js` | `POST /api/auth/vk/complete` (VK ID One Tap), `GET /api/auth/vk/start` / `callback` — legacy redirect (PKCE + device_id) |
 | `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `oauth` / `prices` / `vkid` — модули, автозагрузку не проходят (нет `.pb.js`) |
 
 Env процесса `pocketbase`:
@@ -379,16 +379,17 @@ Env процесса `pocketbase`:
 
 | Роут | Роль |
 |---|---|
-| `GET /api/auth/vk/start` | PKCE + sealed `state` → редирект на `id.vk.ru/authorize` |
-| `GET /api/auth/vk/callback` | `code` + `device_id` (+ `payload`) → обмен токена → `app_users` → редирект `/auth/callback?token=` |
+| `POST /api/auth/vk/complete` | **основной путь** — One Tap: `code` + `code_verifier` + `device_id` → обмен токена → `app_users` → `{ token }` |
+| `GET /api/auth/vk/start` | legacy: PKCE + sealed `state` → редирект на `id.vk.ru/authorize` |
+| `GET /api/auth/vk/callback` | legacy: `code` + `device_id` → обмен → редирект `/auth/callback?token=` |
 
-Файлы: `pb_hooks/vkid.pb.js`, `pb_hooks/lib/vkid.js`. Client id/secret читаются из OAuth2-провайдера `vk` в коллекции `app_users` (как в `/_/`). PKCE verifier в зашифрованном OAuth `state` (без cookie; ключ `FRONTPAD_HOOK_TOKEN` или `VK_OAUTH_COOKIE_KEY`). Публичный origin — `SITE_URL` (иначе `https://shashlik.loomixx.ru`).
+Файлы: `pb_hooks/vkid.pb.js`, `pb_hooks/lib/vkid.js`. Client id/secret читаются из OAuth2-провайдера `vk` в коллекции `app_users` (как в `/_/`). PKCE verifier в зашифрованном OAuth `state` (legacy) или с клиента (One Tap; singleton в `vk-one-tap-session.ts`). Публичный origin — `SITE_URL` (иначе `https://shashlik.loomixx.ru`).
 
 В кабинете VK ID в **Trusted redirect URI** должен быть ровно:
 `https://shashlik.loomixx.ru/api/auth/vk/callback`
 (не `/api/oauth2-redirect` — тот только для Яндекса / legacy PB).
 
-Клиент: кнопка «VK ID» → `loginWithVkId()` (full-page redirect); «Яндекс ID» → `authWithOAuth2({ provider: "yandex", scopes: login:email|avatar|info|default_phone })`.
+Клиент: **VK ID One Tap** — `VkOneTap.tsx` + `@vkid/sdk` **не в бандле**: `scripts/copy-vkid-sdk.mjs` (`prebuild`/`dev`) копирует UMD в `public/vk/vkid-sdk.js`, грузится через `vk-sdk-cdn.ts` (unpkg — только fallback). После деплоя проверить `GET /vk/vkid-sdk.js` → 200. «Яндекс ID» → `authWithOAuth2` + `withYandexPhoneScope()` в `urlCallback`.
 
 **Профиль OAuth** (`pb_hooks/lib/oauth.js`, `profile.pb.js` → `handleOAuthAuth`):
 
@@ -397,7 +398,7 @@ Env процесса `pocketbase`:
 | Телефон | Канонический ключ аккаунта: `+7XXXXXXXXXX`. Яндекс — `default_phone` / `phones[]` из `rawUser` (до и после `e.next()`). VK — scope `email phone`, поле `user.phone` из `user_info`. |
 | Слияние | Один номер → один `app_users`: при совпадении телефона старая запись **сливается в текущую** (токен входа сохраняется), переносятся `_externalAuths`, заказы, адреса, `customerId`. |
 | Почта | Основная — `email`; дополнительные с других входов — `extraEmails` (json-массив). Хук добавляет без дублей. |
-| Имена | Яндекс: `first_name`/`last_name`, иначе split `real_name`/`display_name` (PB `mappedFields.name→firstName` не используем как финал). VK — `first_name`/`last_name`. |
+| Имена | Яндекс: `yandexNamePair()` в `oauth.js` — если `first_name` уже «Имя Фамилия», `last_name` не дублируем; иначе split `real_name`/`display_name`. VK — `first_name`/`last_name`. Клиент дублирует sync имён из meta после входа (`api.ts`). |
 | Customers | `bindPhoneToUser` → `customers` + `backfillOrders` (гостевые заказы по телефону). |
 
 Телефон (как день рождения) после фиксации не меняется — `onRecordUpdateRequest` / `POST /api/profile/link`. Если OAuth не отдал номер — `PhoneOnboarding` на `/profile` (блокирует историю/бонусы/адреса до ввода).
@@ -506,12 +507,17 @@ Env процесса `pocketbase`:
 
 Несколько сайтов на одном белом IP — один вход 80/443, дальше по `server_name`. Блок шашлыка **не** `default_server`. Неизвестный Host и `loomixx.ru` — отдельные server (заглушка / другой root), иначе Nginx отдаст шашлык на все домены. С роутера 80/443 на несколько VM не дублировать.
 
-Обновление витрины:
+Деплой (витрина + `pb_hooks` + рестарт PB) — скрипт в корне репозитория `deploy.sh`:
 
 ```bash
-cd /var/www/shashlik && git pull
-cd apps/shashlik-web && pnpm install && pnpm build
+cd /var/www/shashlik
+chmod +x deploy.sh   # один раз
+./deploy.sh
 ```
+
+Скрипт: `git pull` → `pnpm install && pnpm build` в `apps/shashlik-web` → `rsync pb_hooks/` в `/opt/pocketbase/pb_hooks/` → `systemctl restart pocketbase` → проверка `systemctl is-active` + `GET http://127.0.0.1:8090/api/health` (до 30 с, иначе exit 1 и `systemctl status`). Nginx читает `dist` из репозитория — отдельный rsync статики не нужен.
+
+Ручной health-check: `curl -fsS http://127.0.0.1:8090/api/health`.
 
 Не слушать PB на `0.0.0.0`. Не класть `pb_data`, `.env`, секреты Frontpad в репозиторий. `pb_hooks` — мост к Frontpad, схема в `Tasks/TASK_DB.md`; заводится на стороне PocketBase, вне `apps/shashlik-web`.
 
@@ -534,7 +540,8 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не доверять суммам, `number` и артикулам из клиентского запроса на создание заказа.
 - Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
 - Не держать сессию клиента и сессию персонала в одном экземпляре `pb` и не смешивать их в коллекции `users`.
-- Не пытаться логинить VK ID через встроенный `authWithOAuth2({ provider: "vk" })` — только `pb_hooks` `/api/auth/vk/*`.
+- Не пытаться логинить VK ID через встроенный `authWithOAuth2({ provider: "vk" })` — только `pb_hooks` `/api/auth/vk/*` (One Tap → `POST /api/auth/vk/complete`).
+- Не импортировать `@vkid/sdk` в клиентский бандл — только self-hosted `/vk/vkid-sdk.js`.
 - Не доверять `userId` из клиентского запроса на создание заказа — его ставит хук из `e.auth`.
 - Не пытаться записать цену в справочник кассы и не показывать «состав из кассы»: ни того, ни другого API не отдаёт.
 - Не вешать `backdrop-filter` на полноэкранный оверлей модалки: размывать статичный фон через `filter` на витрине и гасить преломление `StickyBar` на это время.
