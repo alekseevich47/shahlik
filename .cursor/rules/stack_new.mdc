@@ -281,7 +281,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, `onRecordAfterCreateSuccess("frontpad_jobs")`, роуты вебхука и диагностики, `cronAdd` |
 | `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
 | `pb_hooks/profile.pb.js` | `GET /api/profile/bonus`, `POST /api/profile/link` — бонусы/телефон для `app_users` |
-| `pb_hooks/vkid.pb.js` | `POST /api/auth/vk/complete` (VK ID One Tap), `GET /api/auth/vk/start` / `callback` — legacy redirect (PKCE + device_id) |
+| `pb_hooks/vkid.pb.js` | `GET /api/auth/vk/session` (PKCE для One Tap), `POST /api/auth/vk/complete`, `GET /api/auth/vk/start` / `callback` — legacy redirect |
 | `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `oauth` / `prices` / `vkid` — модули, автозагрузку не проходят (нет `.pb.js`) |
 
 Env процесса `pocketbase`:
@@ -379,7 +379,8 @@ Env процесса `pocketbase`:
 
 | Роут | Роль |
 |---|---|
-| `POST /api/auth/vk/complete` | **основной путь** — One Tap: `code` + `code_verifier` + `device_id` → обмен токена → `app_users` → `{ token }` |
+| `GET /api/auth/vk/session` | **One Tap** — свежий `state` (sealed verifier) + `codeChallenge` перед каждым mount виджета |
+| `POST /api/auth/vk/complete` | One Tap: `code` + `device_id` + `state` → verifier из sealed state → `{ token }` |
 | `GET /api/auth/vk/start` | legacy: PKCE + sealed `state` → редирект на `id.vk.ru/authorize` |
 | `GET /api/auth/vk/callback` | legacy: `code` + `device_id` → обмен → редирект `/auth/callback?token=` |
 

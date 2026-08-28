@@ -32,7 +32,7 @@ export function VkOneTap({ disabled, onError }: VkOneTapProps) {
             onErrorRef.current(err instanceof Error ? err.message : "VK ID недоступен")
           }
         })
-    }, 0)
+    }, 50)
 
     return () => {
       active = false

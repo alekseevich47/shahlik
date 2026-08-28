@@ -291,22 +291,41 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
   return mapAppUser(auth.record)
 }
 
+/** PKCE/state для One Tap — verifier хранится в sealed state на сервере. */
+export async function createVkOneTapSession(): Promise<{ state: string; codeChallenge: string }> {
+  ensurePbBaseUrl(pbClient)
+  const data = await pbClient.send<{ state?: string; codeChallenge?: string }>("/api/auth/vk/session", {
+    method: "GET",
+  })
+  const state = data.state?.trim()
+  const codeChallenge = data.codeChallenge?.trim()
+  if (!state || !codeChallenge) {
+    throw new Error("Сервер не выдал PKCE для VK ID")
+  }
+  return { state, codeChallenge }
+}
+
 /** One Tap VK ID: обмен code на сессию PocketBase без редиректа в основной вкладке. */
 export async function completeVkOneTap(input: {
   code: string
   deviceId: string
-  codeVerifier: string
-  state?: string
+  state: string
+  codeVerifier?: string
 }): Promise<AppUser> {
   ensurePbBaseUrl(pbClient)
+  const body: Record<string, string> = {
+    code: input.code,
+    device_id: input.deviceId,
+    state: input.state,
+  }
+  const verifier = input.codeVerifier?.trim()
+  if (verifier) {
+    body.code_verifier = verifier
+  }
+
   const data = await pbClient.send<{ token?: string }>("/api/auth/vk/complete", {
     method: "POST",
-    body: {
-      code: input.code,
-      device_id: input.deviceId,
-      code_verifier: input.codeVerifier,
-      state: input.state || "",
-    },
+    body,
   })
   const token = data.token?.trim()
   if (!token) throw new Error("VK ID не вернул токен сессии")

@@ -316,6 +316,22 @@ function redirectError(e, message) {
   return e.redirect(302, url)
 }
 
+function handleSession(e) {
+  var verifier = $security.randomStringWithAlphabet(64, PKCE_ALPHABET)
+  var redirectUri = callbackUrl()
+  var challenge = pkceChallenge(verifier)
+  var state = sealState({
+    verifier: verifier,
+    redirectUri: redirectUri,
+    exp: Date.now() + STATE_TTL_MS,
+  })
+
+  return e.json(200, {
+    state: state,
+    codeChallenge: challenge,
+  })
+}
+
 function handleStart(e) {
   try {
     var creds = getVkCredentials()
@@ -474,8 +490,16 @@ function handleComplete(e) {
     var codeVerifier = String(body.code_verifier || body.codeVerifier || "").trim()
     var stateParam = String(body.state || "").trim()
 
-    if (!code || !deviceId || !codeVerifier) {
-      throw new BadRequestError("Неполные данные VK ID (code/device_id/code_verifier)")
+    if (!code || !deviceId) {
+      throw new BadRequestError("Неполные данные VK ID (code/device_id)")
+    }
+
+    if (!codeVerifier && stateParam) {
+      var stored = unsealState(stateParam)
+      codeVerifier = String(stored.verifier || "").trim()
+    }
+    if (!codeVerifier) {
+      throw new BadRequestError("Неполные данные VK ID (code_verifier/state)")
     }
 
     var vkUser = exchangeAuthCode(code, deviceId, codeVerifier, stateParam)
@@ -492,4 +516,5 @@ module.exports = {
   handleStart: handleStart,
   handleCallback: handleCallback,
   handleComplete: handleComplete,
+  handleSession: handleSession,
 }
