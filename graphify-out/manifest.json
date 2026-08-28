@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/package.json": {
-    "mtime": 1787890008.578251,
-    "ast_hash": "69898cabba8f4581f59af5feb1c6dc04",
+    "mtime": 1787890727.200819,
+    "ast_hash": "f431d85e0d9026065a47685a12cb0dd0",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/App.tsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/HomePage.tsx": {
-    "mtime": 1787563165.4290419,
-    "ast_hash": "dadf4fc4616c3aa2cecf056fe8b5b2a1",
+    "mtime": 1787890885.3606694,
+    "ast_hash": "60a4b40aa8cde03daa4726e4809c7f7f",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/DesktopHome.tsx": {
@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/MobileHome.tsx": {
-    "mtime": 1787493305.117886,
-    "ast_hash": "9e3156bc1bd295ae9f6946cabbecaf13",
+    "mtime": 1787890898.3116314,
+    "ast_hash": "975471f8753cad26427a16f8c1fc3b1f",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ProductPage.tsx": {
@@ -420,13 +420,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/catalog/CategoryTiles.tsx": {
-    "mtime": 1787198545.5076451,
-    "ast_hash": "a1e610c476da0443e16b92b05d48edf1",
+    "mtime": 1787890894.2809174,
+    "ast_hash": "1ca5152f4420f9ddf89e8f158fe48642",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/catalog/TagFilters.tsx": {
-    "mtime": 1787201174.0298831,
-    "ast_hash": "c8c9460e051407a71d5200fc8b26e020",
+    "mtime": 1787890897.2461286,
+    "ast_hash": "81cf129d18ffe4b6ed272427b7ed7e5e",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/header/FloatingActions.tsx": {
@@ -670,8 +670,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/header/StickyBar.tsx": {
-    "mtime": 1787201190.2334495,
-    "ast_hash": "da4d35dea3a093f9395f84343508901d",
+    "mtime": 1787890898.4030643,
+    "ast_hash": "75bebfcd283f2354ad52e99ad3e9856b",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/sidebar/rail.ts": {
@@ -1065,8 +1065,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/lib/useCatalogScrollSpy.ts": {
-    "mtime": 1787493304.7754636,
-    "ast_hash": "be87de0c27a14a11e5eba515bfdceec6",
+    "mtime": 1787890856.2002654,
+    "ast_hash": "1ec92354070fd88556df211079d2d19b",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/CatalogCategorySection.tsx": {
@@ -1295,8 +1295,18 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/profile/ui/VkOneTap.tsx": {
-    "mtime": 1787890194.1387868,
-    "ast_hash": "d1feea65e4857fd438bebeebcaba9f45",
+    "mtime": 1787890596.8868167,
+    "ast_hash": "8075ef40d4fc65a39f49dae1dabec484",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/entities/account/vk-one-tap-session.ts": {
+    "mtime": 1787890631.5562623,
+    "ast_hash": "f6487fb93e17afcfb05f4c5a889842c5",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/home/lib/VitrineScroll.tsx": {
+    "mtime": 1787890851.076228,
+    "ast_hash": "78afdd653f572402b8781ae58198d5a3",
     "semantic_hash": ""
   }
 }

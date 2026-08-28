@@ -30,6 +30,7 @@ alwaysApply: false
 | UI | Примитивы в стиле shadcn: CVA + `cn()` + Radix (`dialog`, `popover`, `tooltip`, `slot`, …). Иконки — `lucide-react` |
 | Роутер | `react-router-dom` v7. Home/Product — eager (анимация карточки), Admin — lazy. `BrowserRouter` |
 | Анимации маршрутов | `motion` v13 через `LazyMotion` + `m` из `motion/react-m`. Движок фич — асинхронный чанк (`app/motion-features.ts`). Режим `strict`: компонент `motion.*` использовать **нельзя**, только `m.*` |
+| Скролл витрины | `lenis` — только на `/` (`VitrineScrollProvider`). Wheel: lerp + инерция; touch — нативный. `prefers-reduced-motion` и Sheet/диалог — `stop()` |
 | Состояние | Zustand + persist **только корзина** (`shashlik:cart:v2`). Тема — React context + `localStorage` (`shashlik:theme`) |
 | Данные | PocketBase JS SDK (`shared/api/pb.ts`) + `@tanstack/react-query` (`shared/api/query-client.ts`). Прод — same-origin (`/api/` через Nginx), dev — `VITE_PB_URL` |
 | Тосты | `sonner` |
@@ -198,7 +199,7 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 ## Витрина (home)
 
-Состояние экрана в `HomePage`: `category` (дефолт **`shawarma`**) + `tag` (дефолт `ALL_TAG`). Каталог — **все активные товары** секциями по категориям (`groupProductsByCategory`); фильтр тега режет выдачу глобально. **Scroll-spy** (`useCatalogScrollSpy`, `IntersectionObserver`): при скролле активная категория синхронизируется с секцией под sticky-плашкой (сайдбар + `StickyBar`); клик по категории — `scrollIntoView` к `#catalog-<id>` + сброс тега. Якорный отступ секций — `CATALOG_SCROLL_MARGIN` (`catalogSection.ts`, ≈ высота раскрытой плашки).
+Состояние экрана в `HomePage`: `category` (дефолт **`shawarma`**) + `tag` (дефолт `ALL_TAG`). Каталог — **все активные товары** секциями по категориям (`groupProductsByCategory`); фильтр тега режет выдачу глобально. **Scroll-spy** (`useCatalogScrollSpy`, `IntersectionObserver`): при скролле активная категория синхронизируется с секцией под sticky-плашкой (сайдбар + `StickyBar`); клик по категории — `VitrineScroll` → `#catalog-<id>` + сброс тега. Якорный отступ секций — `CATALOG_SCROLL_MARGIN` (`catalogSection.ts`, ≈ высота раскрытой плашки). Плавный скролл с инерцией — `VitrineScrollProvider` (`pages/home/lib/VitrineScroll.tsx`, Lenis, `lerp: 0.088`); только витрина, не PDP/админка. Горизонтальные ленты — `data-lenis-prevent`.
 
 Desktop (`DesktopHome`, ≥1024):
 
@@ -328,6 +329,7 @@ Env процесса `pocketbase`:
 | TagFilters | `widgets/catalog/TagFilters.tsx` — «Все» + теги категории из PB |
 | groupByCategory | `pages/home/lib/groupByCategory.ts` — секции каталога по категориям |
 | useCatalogScrollSpy | `pages/home/lib/useCatalogScrollSpy.ts` — активная категория по скроллу |
+| VitrineScroll | `pages/home/lib/VitrineScroll.tsx` — Lenis на `/`, `scrollTo` / `scrollToTop`, pause при Sheet |
 | CatalogCategorySection | `pages/home/ui/CatalogCategorySection.tsx` — якорь секции каталога |
 | ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи только вариантов, общий рейтинг без критериев, цена «от min». «Добавить» по hover (`.product-card-add`). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | product/format | `entities/product/format.ts` — `PRODUCT_WIDTH` / `PRODUCT_HEIGHT` (1536×1024, 3∶2) |
@@ -447,8 +449,8 @@ Env процесса `pocketbase`:
 
 ### Скролл
 
-- `scroll-behavior: smooth` на `html` **снят**. Якорей и `scrollIntoView` в витрине нет, а плавный скролл растягивал каждый переход на десятки кадров с перерисовкой стекла. Возвращать — только вместе с реальной анкорной навигацией, и тогда мерить.
-- Наблюдение за скроллом — `IntersectionObserver` (`shared/hooks/useInView.ts`). Обработчик `scroll` не заводить: он даёт работу на каждом кадре и провоцирует принудительные reflow.
+- Плавный скролл с инерцией — **только витрина** (`VitrineScrollProvider` + Lenis на `/`). `scroll-behavior: smooth` на `html` **не** использовать: глобальный CSS-smooth ломал fps стекла. Lenis: `lerp: 0.088`, `syncTouch: false` (тач — нативная инерция), `respectReducedMotion: true`. При Sheet/диалоге — `lenis.stop()`. Горизонтальные ленты (теги, категории, карусели) — `data-lenis-prevent`.
+- Наблюдение за скроллом — `IntersectionObserver` (`shared/hooks/useInView.ts`, `useCatalogScrollSpy`). Обработчик `scroll` не заводить: он даёт работу на каждом кадре и провоцирует принудительные reflow.
 
 ### Бандл
 
@@ -520,6 +522,7 @@ cd apps/shashlik-web && pnpm install && pnpm build
 - Не подключать Google Fonts, не менять Nunito без запроса.
 - Не поднимать второй dev-сервер на 8443 из этого пакета.
 - Не возвращать `feTurbulence` / `feGaussianBlur` в фильтр стекла и не расширять область фильтра «на всякий случай».
+- Не вешать `scroll-behavior: smooth` на `html` и не подключать Lenis глобально (PDP/админка) — только `VitrineScrollProvider` на `/`.
 - Не вешать `will-change` постоянно и не анимировать `width` / `height` / `gap` вне `data-animating`.
 - Не считать dev-сборку доказательством: прод-CSS проходит через Lightning CSS и отличается.
 - Не звать Frontpad с клиента и не хранить его секрет в `src/*` — только `pb_hooks` (см. `Tasks/TASK_DB.md`).

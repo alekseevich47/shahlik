@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef } from "react"
 
-import { CATALOG_SCROLL_SPY_MARGIN, catalogSectionId } from "./catalogSection"
+import { CATALOG_SCROLL_MARGIN, CATALOG_SCROLL_SPY_MARGIN, catalogSectionId } from "./catalogSection"
+import { useVitrineScroll } from "./VitrineScroll"
 
-const SCROLL_LOCK_MS = 900
+const SCROLL_LOCK_FALLBACK_MS = 1200
 
 type Options = {
   sectionIds: string[]
@@ -14,7 +15,7 @@ type Options = {
 /**
  * Подсветка категории по скроллу секций каталога.
  * scrollToCategory временно блокирует spy — иначе промежуточные секции
- * перебивают выбор при программном scrollIntoView.
+ * перебивают выбор при программном скролле Lenis.
  */
 export function useCatalogScrollSpy({
   sectionIds,
@@ -22,6 +23,7 @@ export function useCatalogScrollSpy({
   onCategoryChange,
   enabled = true,
 }: Options) {
+  const vitrineScroll = useVitrineScroll()
   const activeRef = useRef(activeCategory)
   const lockRef = useRef(false)
   const lockTimerRef = useRef<number | undefined>(undefined)
@@ -30,15 +32,38 @@ export function useCatalogScrollSpy({
     activeRef.current = activeCategory
   }, [activeCategory])
 
-  const scrollToCategory = useCallback((id: string) => {
-    lockRef.current = true
-    window.clearTimeout(lockTimerRef.current)
-    lockTimerRef.current = window.setTimeout(() => {
-      lockRef.current = false
-    }, SCROLL_LOCK_MS)
+  const scrollToCategory = useCallback(
+    (id: string) => {
+      const node = document.getElementById(catalogSectionId(id))
+      if (!node) return
 
-    document.getElementById(catalogSectionId(id))?.scrollIntoView({ behavior: "smooth", block: "start" })
-  }, [])
+      lockRef.current = true
+      window.clearTimeout(lockTimerRef.current)
+
+      const unlock = () => {
+        lockRef.current = false
+      }
+
+      lockTimerRef.current = window.setTimeout(unlock, SCROLL_LOCK_FALLBACK_MS)
+
+      const finish = () => {
+        window.clearTimeout(lockTimerRef.current)
+        unlock()
+      }
+
+      if (vitrineScroll) {
+        vitrineScroll.scrollTo(node, {
+          offset: -CATALOG_SCROLL_MARGIN,
+          duration: 1,
+          onComplete: finish,
+        })
+        return
+      }
+
+      node.scrollIntoView({ behavior: "smooth", block: "start" })
+    },
+    [vitrineScroll],
+  )
 
   useEffect(() => {
     if (!enabled || sectionIds.length === 0) return

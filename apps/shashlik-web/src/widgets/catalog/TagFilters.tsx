@@ -51,12 +51,12 @@ export function TagFilters({
   })
 
   if (!animated) {
-    return <div className={cn("scrollbar-none flex gap-2 overflow-x-auto", className)}>{chips}</div>
+    return <div className={cn("scrollbar-none flex gap-2 overflow-x-auto", className)} data-lenis-prevent>{chips}</div>
   }
 
   return (
     <LayoutGroup id={layoutGroup}>
-      <div className={cn("scrollbar-none flex gap-2 overflow-x-auto", className)}>
+      <div className={cn("scrollbar-none flex gap-2 overflow-x-auto", className)} data-lenis-prevent>
         <AnimatePresence mode="popLayout" initial={false}>
           {items.map((item) => {
             const active = item.slug === value

@@ -13,8 +13,32 @@ import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
 import { MobileHeader } from "@/widgets/mobile/MobileHeader"
 import { MobileTabBar, type MobileTab } from "@/widgets/mobile/MobileTabBar"
 
+import { VitrineScrollProvider, useVitrineScroll } from "./lib/VitrineScroll"
 import { DesktopHome } from "./ui/DesktopHome"
 import { MobileHome } from "./ui/MobileHome"
+
+function HomeMobileTabBar({
+  value,
+  onTab,
+  onOpenCart,
+  onOpenMenu,
+}: {
+  value: MobileTab
+  onTab: (tab: MobileTab) => void
+  onOpenCart: () => void
+  onOpenMenu: () => void
+}) {
+  const vitrineScroll = useVitrineScroll()
+
+  const handleTab = (next: MobileTab) => {
+    onTab(next)
+    if (next === "cart") onOpenCart()
+    if (next === "menu") onOpenMenu()
+    if (next === "home") vitrineScroll?.scrollToTop()
+  }
+
+  return <MobileTabBar value={value} onChange={handleTab} />
+}
 
 export default function HomePage() {
   useFrontpadStockRealtime()
@@ -47,12 +71,7 @@ export default function HomePage() {
     setMenuOpen(false)
   }, [])
 
-  const handleTab = (next: MobileTab) => {
-    setTab(next)
-    if (next === "cart") setCartOpen(true)
-    if (next === "menu") setMenuOpen(true)
-    if (next === "home") window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+  const scrollPaused = cartOpen || menuOpen || checkoutOpen
 
   return (
     <div className="min-h-dvh bg-canvas">
@@ -60,27 +79,36 @@ export default function HomePage() {
         <MobileHeader onOpenMenu={() => setMenuOpen(true)} onOpenCart={() => setCartOpen(true)} />
       ) : null}
 
-      {isDesktop ? (
-        <DesktopHome
-          category={category}
-          onCategoryChange={selectCategory}
-          tag={tag}
-          onTagChange={setTag}
-          items={items}
-          onOpenSearch={() => setSearchOpen(true)}
-          onOpenCart={() => setCartOpen(true)}
-        />
-      ) : (
-        <MobileHome
-          category={category}
-          onCategoryChange={selectCategory}
-          tag={tag}
-          onTagChange={setTag}
-          items={items}
-        />
-      )}
+      <VitrineScrollProvider paused={scrollPaused}>
+        {isDesktop ? (
+          <DesktopHome
+            category={category}
+            onCategoryChange={selectCategory}
+            tag={tag}
+            onTagChange={setTag}
+            items={items}
+            onOpenSearch={() => setSearchOpen(true)}
+            onOpenCart={() => setCartOpen(true)}
+          />
+        ) : (
+          <MobileHome
+            category={category}
+            onCategoryChange={selectCategory}
+            tag={tag}
+            onTagChange={setTag}
+            items={items}
+          />
+        )}
 
-      {!isDesktop ? <MobileTabBar value={tab} onChange={handleTab} /> : null}
+        {!isDesktop ? (
+          <HomeMobileTabBar
+            value={tab}
+            onTab={setTab}
+            onOpenCart={() => setCartOpen(true)}
+            onOpenMenu={() => setMenuOpen(true)}
+          />
+        ) : null}
+      </VitrineScrollProvider>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />

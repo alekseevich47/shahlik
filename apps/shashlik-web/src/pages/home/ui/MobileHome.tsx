@@ -120,7 +120,7 @@ function ScrollSection({
           <ChevronRight size={14} strokeWidth={2.6} />
         </button>
       </div>
-      <div className="scrollbar-none -mx-4 flex gap-3 overflow-x-auto px-4">
+      <div className="scrollbar-none -mx-4 flex gap-3 overflow-x-auto px-4" data-lenis-prevent>
         {items.map((product) => (
           <ProductCardCompact
             key={product.id}

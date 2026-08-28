@@ -14,7 +14,7 @@ export function CategoryTiles({ value, onChange, className }: Props) {
   const { data: categories = [] } = useCategories()
 
   return (
-    <div className={cn("scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4", className)}>
+    <div className={cn("scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4", className)} data-lenis-prevent>
       {categories.map((category) => {
         const active = category.id === value
         return (

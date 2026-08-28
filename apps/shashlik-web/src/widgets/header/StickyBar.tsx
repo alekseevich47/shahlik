@@ -66,6 +66,7 @@ export function StickyBar({
               <nav
                 aria-label="Категории меню"
                 className="sticky-bar-fade scrollbar-none flex gap-1.5 overflow-x-auto"
+                data-lenis-prevent
               >
                 {categories.map((item) => {
                   const active = item.id === category
