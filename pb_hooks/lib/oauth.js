@@ -66,6 +66,25 @@ function splitFullName(full) {
   }
 }
 
+/** Яндекс часто отдаёт first_name = «Имя Фамилия» при отдельном last_name. */
+function yandexNamePair(firstRaw, lastRaw) {
+  var first = String(firstRaw || "").trim()
+  var last = String(lastRaw || "").trim()
+
+  if (first && last) {
+    var parts = first.split(/\s+/).filter(function (p) {
+      return p.length > 0
+    })
+    if (parts.length > 1) {
+      first = parts[0]
+    }
+    return { firstName: first.slice(0, 50), lastName: last.slice(0, 50) }
+  }
+  if (first) return splitFullName(first)
+  if (last) return { firstName: "", lastName: last.slice(0, 50) }
+  return { firstName: "", lastName: "" }
+}
+
 function readExtraEmails(record) {
   var raw = record.get("extraEmails")
   if (!Array.isArray(raw)) return []
@@ -127,6 +146,14 @@ function applyNames(record, names, onlyEmpty) {
   if (!first && !last) return
 
   if (onlyEmpty) {
+    var curFirst = record.getString("firstName").trim()
+    var curLast = record.getString("lastName").trim()
+    if (curFirst && curLast) {
+      var fixed = yandexNamePair(curFirst, curLast)
+      if (fixed.firstName && fixed.firstName !== curFirst) {
+        record.set("firstName", fixed.firstName)
+      }
+    }
     if (first && !record.getString("firstName")) record.set("firstName", first)
     if (last && !record.getString("lastName")) record.set("lastName", last)
     return
@@ -384,7 +411,7 @@ function namesFromYandexData(raw, oauth2User) {
     var first = String(raw.first_name || raw.firstName || "").trim()
     var last = String(raw.last_name || raw.lastName || "").trim()
     if (first || last) {
-      return { firstName: first.slice(0, 50), lastName: last.slice(0, 50) }
+      return yandexNamePair(first, last)
     }
     var fullApi = String(raw.real_name || raw.display_name || raw.name || "").trim()
     if (fullApi) return splitFullName(fullApi)
@@ -402,10 +429,7 @@ function namesFromYandexOAuth(oauth2User) {
   var last = String(raw.last_name || raw.lastName || "").trim()
 
   if (first || last) {
-    return {
-      firstName: first.slice(0, 50),
-      lastName: last.slice(0, 50),
-    }
+    return yandexNamePair(first, last)
   }
 
   var full = String(raw.real_name || raw.display_name || raw.name || "").trim()
