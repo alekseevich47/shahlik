@@ -362,6 +362,11 @@ function handleOAuthAuth(e) {
 
   if (e.record) {
     oauth.applyOAuthProfileBeforeSave(e.record, payload)
+    if (payload.phone && !oauth.normalizePhone(e.record.getString("phone"))) {
+      e.record.set("phone", payload.phone)
+    }
+  } else {
+    oauth.ensureCreateDataProfile(e, payload)
   }
 
   e.next()

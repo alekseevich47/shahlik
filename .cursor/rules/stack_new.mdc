@@ -399,7 +399,7 @@ Env процесса `pocketbase`:
 
 Телефон (как день рождения) после фиксации не меняется — `onRecordUpdateRequest` / `POST /api/profile/link`. Если OAuth не отдал номер — `PhoneOnboarding` на `/profile` (блокирует историю/бонусы/адреса до ввода).
 
-В кабинете **Яндекса** — `login:default_phone`; в **VK ID** — доступ `phone` (нужен подтверждённый бизнес-профиль) + scope `email phone`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап Яндекса. «Выйти» чистит `shashlik:client:auth`.
+В кабинете **Яндекса** — `login:default_phone`; в **VK ID** — доступ `phone` (нужен подтверждённый бизнес-профиль) + scope `email phone`. Клиент **перезаписывает `scope` в authURL** Яндекса (`urlCallback` в `loginWithOAuth`) — встроенный URL PB не включает `login:default_phone`. `/auth/callback` принимает `?token=` (`acceptAuthToken`) или завершает попап Яндекса. «Выйти» чистит `shashlik:client:auth`.
 
 `useAccount()` / `getAccount()` кэширует снапшот: `useSyncExternalStore` не терпит новый объект на каждый вызов (React #185, белый экран после логина).
 

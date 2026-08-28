@@ -140,6 +140,25 @@ const YANDEX_SCOPES = [
   "login:default_phone",
 ] as const
 
+const YANDEX_OAUTH_POPUP = "width=520,height=680,resizable=yes,scrollbars=yes"
+
+/**
+ * PocketBase в authURL Яндекса подставляет только login:email|avatar|info.
+ * SDK не перезаписывает scope, если в URL нет плейсхолдера {scope}.
+ */
+function withYandexPhoneScope(authUrl: string): string {
+  const url = new URL(authUrl.includes("://") ? authUrl : `https://oauth.yandex.ru${authUrl}`)
+  url.searchParams.set("scope", YANDEX_SCOPES.join(" "))
+  return url.toString()
+}
+
+function openYandexOAuthPopup(authUrl: string): void {
+  const popup = window.open(withYandexPhoneScope(authUrl), "pb_oauth2", YANDEX_OAUTH_POPUP)
+  if (!popup) {
+    throw new Error("Не удалось открыть окно входа. Разрешите всплывающие окна.")
+  }
+}
+
 export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> {
   if (provider === "vk") {
     loginWithVkId()
@@ -150,6 +169,7 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
   const auth = await pbClient.collection(COLLECTION).authWithOAuth2({
     provider,
     scopes: [...YANDEX_SCOPES],
+    urlCallback: (url) => openYandexOAuthPopup(url),
   })
   if (!isAppUserRecord(auth.record)) {
     pbClient.authStore.clear()

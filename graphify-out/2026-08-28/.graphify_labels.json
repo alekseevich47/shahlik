@@ -89,5 +89,8 @@
   "87": "@radix-ui/react-popover",
   "88": "@radix-ui/react-tooltip",
   "89": "zustand",
-  "90": "vkid.pb.js"
+  "90": "vkid.pb.js",
+  "91": "theme.tsx",
+  "92": "addons.ts",
+  "93": "react"
 }

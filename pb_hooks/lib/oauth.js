@@ -281,15 +281,8 @@ function emailsFromYandexOAuth(oauth2User) {
   return out
 }
 
-function phoneFromYandexOAuth(oauth2User) {
-  if (!oauth2User) return ""
-
-  var direct = normalizePhone(oauth2User.phone || oauth2User.Phone)
-  if (direct) return direct
-
-  var raw = asObject(oauth2User.rawUser || oauth2User.RawUser)
-  if (!raw) return ""
-
+function phoneFromYandexData(raw) {
+  if (!raw || typeof raw !== "object") return ""
   var dp = raw.default_phone
   if (dp) {
     if (typeof dp === "string" || typeof dp === "number") {
@@ -301,7 +294,6 @@ function phoneFromYandexOAuth(oauth2User) {
       if (fromObj) return fromObj
     }
   }
-
   if (Array.isArray(raw.phones)) {
     for (var i = 0; i < raw.phones.length; i++) {
       var row = raw.phones[i]
@@ -317,8 +309,73 @@ function phoneFromYandexOAuth(oauth2User) {
       }
     }
   }
-
   return ""
+}
+
+function fetchYandexUserInfo(accessToken) {
+  var token = String(accessToken || "").trim()
+  if (!token) return null
+  var response = $http.send({
+    url: "https://login.yandex.ru/info?format=json",
+    method: "GET",
+    headers: {
+      Authorization: "OAuth " + token,
+    },
+    timeout: 15000,
+  })
+  if (!response || response.statusCode < 200 || response.statusCode >= 300) {
+    return null
+  }
+  try {
+    return JSON.parse(response.raw)
+  } catch (err) {
+    return null
+  }
+}
+
+function oauthAccessToken(oauth2User) {
+  if (!oauth2User) return ""
+  return String(oauth2User.accessToken || oauth2User.AccessToken || "")
+}
+
+function phoneFromYandexOAuth(oauth2User) {
+  if (!oauth2User) return ""
+  var profile = extractYandexProfile(oauth2User)
+  return profile.phone || ""
+}
+
+function extractYandexProfile(oauth2User) {
+  if (!oauth2User) {
+    return { phone: "", names: { firstName: "", lastName: "" }, emails: [] }
+  }
+
+  var token = oauthAccessToken(oauth2User)
+  var apiRaw = token ? fetchYandexUserInfo(token) : null
+  var raw = apiRaw || asObject(oauth2User.rawUser || oauth2User.RawUser)
+
+  var phone = phoneFromYandexData(raw)
+  if (!phone) {
+    phone = normalizePhone(oauth2User.phone || oauth2User.Phone)
+  }
+
+  return {
+    phone: phone,
+    names: namesFromYandexData(raw, oauth2User),
+    emails: emailsFromYandexOAuth(oauth2User),
+  }
+}
+
+function namesFromYandexData(raw, oauth2User) {
+  if (raw && typeof raw === "object") {
+    var first = String(raw.first_name || raw.firstName || "").trim()
+    var last = String(raw.last_name || raw.lastName || "").trim()
+    if (first || last) {
+      return { firstName: first.slice(0, 50), lastName: last.slice(0, 50) }
+    }
+    var fullApi = String(raw.real_name || raw.display_name || raw.name || "").trim()
+    if (fullApi) return splitFullName(fullApi)
+  }
+  return namesFromYandexOAuth(oauth2User)
 }
 
 function namesFromYandexOAuth(oauth2User) {
@@ -357,14 +414,6 @@ function namesFromVkUser(vkUser) {
   }
 }
 
-function extractYandexProfile(oauth2User) {
-  return {
-    phone: phoneFromYandexOAuth(oauth2User),
-    names: namesFromYandexOAuth(oauth2User),
-    emails: emailsFromYandexOAuth(oauth2User),
-  }
-}
-
 function extractVkProfile(vkUser, accessEmail) {
   var emails = []
   var mail = normalizeEmail(accessEmail || vkUser.email)
@@ -383,6 +432,33 @@ function applyOAuthProfileBeforeSave(record, payload) {
   if (!record || !payload) return
   applyNames(record, payload.names, true)
   addEmailsToRecord(record, payload.emails || [])
+}
+
+function ensureCreateDataField(e, key, value) {
+  if (!e || value === undefined || value === null || value === "") return
+  var bag = e.createData
+  if (!bag || typeof bag !== "object") {
+    e.createData = {}
+    bag = e.createData
+  }
+  if (bag[key] === undefined || bag[key] === null || bag[key] === "") {
+    bag[key] = value
+  }
+}
+
+function ensureCreateDataPhone(e, phone) {
+  var normalized = normalizePhone(phone)
+  if (!normalized) return
+  ensureCreateDataField(e, "phone", normalized)
+}
+
+function ensureCreateDataProfile(e, payload) {
+  if (!payload) return
+  ensureCreateDataPhone(e, payload.phone)
+  if (payload.names) {
+    ensureCreateDataField(e, "firstName", payload.names.firstName)
+    ensureCreateDataField(e, "lastName", payload.names.lastName)
+  }
 }
 
 /**
@@ -429,5 +505,6 @@ module.exports = {
   extractYandexProfile: extractYandexProfile,
   extractVkProfile: extractVkProfile,
   applyOAuthProfileBeforeSave: applyOAuthProfileBeforeSave,
+  ensureCreateDataProfile: ensureCreateDataProfile,
   finalizeOAuthLogin: finalizeOAuthLogin,
 }
