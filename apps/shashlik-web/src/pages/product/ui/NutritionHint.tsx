@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type MouseEvent } from "react"
 
 import type { ProductNutrition } from "@/entities/product/model"
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery"
@@ -39,14 +39,21 @@ export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
     setOpen(true)
   }
 
+  const onTriggerClick = (e: MouseEvent<HTMLButtonElement>) => {
+    if (canHover) {
+      e.preventDefault()
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover modal={false} open={open} onOpenChange={(next) => !canHover && setOpen(next)}>
       <PopoverTrigger asChild>
         <button
           type="button"
           aria-label="Пищевая ценность на 100 г"
           aria-expanded={open}
-          className="nutrition-hint group/kcal relative ml-[0.16em] inline-flex shrink-0 cursor-pointer items-center justify-center"
+          className="nutrition-hint group/kcal relative z-20 ml-[0.16em] inline-flex shrink-0 cursor-pointer items-center justify-center"
+          onClick={onTriggerClick}
           onPointerEnter={onHoverEnter}
           onPointerLeave={scheduleLeave}
         >
@@ -62,11 +69,12 @@ export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
       <PopoverContent
         side="bottom"
         align="start"
-        className="max-w-none min-w-52 p-3"
+        className="z-[500] max-w-none min-w-52 p-3"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
         onPointerEnter={onHoverEnter}
         onPointerLeave={scheduleLeave}
+        onInteractOutside={() => setOpen(false)}
       >
         <p className="mb-2 text-[11px] font-extrabold tracking-[0.04em] text-fg">
           Пищевая ценность на 100 г

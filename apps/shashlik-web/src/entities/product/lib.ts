@@ -1,4 +1,19 @@
-import type { Product, ProductSize, ProductVariant } from "./model"
+import type { Product, ProductNutrition, ProductSize, ProductVariant } from "./model"
+
+export function nutritionOf(
+  size: ProductSize,
+  variant: ProductVariant | undefined,
+  fallback: ProductNutrition,
+): ProductNutrition {
+  if (variant) {
+    const byVariant = size.nutritionByVariant?.[variant.id]
+    if (byVariant) return byVariant
+  }
+  const first = size.nutritionByVariant
+    ? Object.values(size.nutritionByVariant)[0]
+    : undefined
+  return first ?? fallback
+}
 
 export function priceOf(size: ProductSize, variant?: ProductVariant): number {
   if (variant) {

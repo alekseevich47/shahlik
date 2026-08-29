@@ -1,0 +1,82 @@
+{
+  "barbekyu": {
+    "l": {
+      "chicken": { "kcal": 180, "protein": 6.7, "fat": 6.7, "carbs": 23.0 },
+      "pork": { "kcal": 188, "protein": 6.3, "fat": 7.7, "carbs": 23.0 }
+    },
+    "xl": {
+      "chicken": { "kcal": 182, "protein": 8.0, "fat": 6.8, "carbs": 21.0 },
+      "pork": { "kcal": 196, "protein": 7.8, "fat": 8.5, "carbs": 21.0 }
+    }
+  },
+  "arabskaya": {
+    "l": {
+      "chicken": { "kcal": 186, "protein": 6.7, "fat": 8.0, "carbs": 21.3 },
+      "pork": { "kcal": 194, "protein": 6.3, "fat": 9.0, "carbs": 21.3 }
+    },
+    "xl": {
+      "chicken": { "kcal": 190, "protein": 8.2, "fat": 8.5, "carbs": 19.0 },
+      "pork": { "kcal": 203, "protein": 7.8, "fat": 10.2, "carbs": 19.0 }
+    }
+  },
+  "gavayskaya": {
+    "l": {
+      "chicken": { "kcal": 214, "protein": 9.0, "fat": 10.0, "carbs": 21.3 },
+      "pork": { "kcal": 223, "protein": 8.7, "fat": 11.0, "carbs": 21.3 }
+    },
+    "xl": {
+      "chicken": { "kcal": 215, "protein": 10.2, "fat": 10.2, "carbs": 19.2 },
+      "pork": { "kcal": 228, "protein": 10.0, "fat": 12.0, "carbs": 19.2 }
+    }
+  },
+  "kavkazskaya": {
+    "l": {
+      "chicken": { "kcal": 180, "protein": 6.3, "fat": 7.3, "carbs": 21.3 },
+      "pork": { "kcal": 188, "protein": 6.3, "fat": 8.3, "carbs": 21.3 }
+    },
+    "xl": {
+      "chicken": { "kcal": 184, "protein": 8.0, "fat": 8.0, "carbs": 19.0 },
+      "pork": { "kcal": 198, "protein": 7.8, "fat": 9.8, "carbs": 19.0 }
+    }
+  },
+  "klassicheskaya": {
+    "l": {
+      "chicken": { "kcal": 183, "protein": 6.7, "fat": 8.0, "carbs": 20.7 },
+      "pork": { "kcal": 192, "protein": 6.3, "fat": 9.0, "carbs": 20.7 }
+    },
+    "xl": {
+      "chicken": { "kcal": 189, "protein": 8.2, "fat": 8.5, "carbs": 18.5 },
+      "pork": { "kcal": 202, "protein": 8.0, "fat": 10.2, "carbs": 18.5 }
+    }
+  },
+  "mariinskaya": {
+    "l": {
+      "chicken": { "kcal": 190, "protein": 7.0, "fat": 8.0, "carbs": 21.7 },
+      "pork": { "kcal": 199, "protein": 6.7, "fat": 9.0, "carbs": 21.7 }
+    },
+    "xl": {
+      "chicken": { "kcal": 193, "protein": 8.5, "fat": 8.5, "carbs": 19.2 },
+      "pork": { "kcal": 207, "protein": 8.2, "fat": 10.2, "carbs": 19.2 }
+    }
+  },
+  "pikantnaya": {
+    "l": {
+      "chicken": { "kcal": 166, "protein": 6.7, "fat": 5.3, "carbs": 22.3 },
+      "pork": { "kcal": 174, "protein": 6.7, "fat": 6.3, "carbs": 22.3 }
+    },
+    "xl": {
+      "chicken": { "kcal": 171, "protein": 8.2, "fat": 6.2, "carbs": 19.5 },
+      "pork": { "kcal": 185, "protein": 8.0, "fat": 8.0, "carbs": 19.5 }
+    }
+  },
+  "syrnaya": {
+    "l": {
+      "chicken": { "kcal": 232, "protein": 10.3, "fat": 11.7, "carbs": 20.7 },
+      "pork": { "kcal": 241, "protein": 10.0, "fat": 12.7, "carbs": 20.7 }
+    },
+    "xl": {
+      "chicken": { "kcal": 224, "protein": 11.0, "fat": 11.2, "carbs": 18.5 },
+      "pork": { "kcal": 238, "protein": 10.8, "fat": 13.0, "carbs": 18.5 }
+    }
+  }
+}

@@ -195,13 +195,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/lib.ts": {
-    "mtime": 1787895615.2567563,
-    "ast_hash": "d823d0d0b261176e80fb2a01bd46b830",
+    "mtime": 1787927488.0554185,
+    "ast_hash": "61a442a413e5c3f20719b421d455d6f4",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/model.ts": {
-    "mtime": 1787895594.9484499,
-    "ast_hash": "6d0f502ead13154b91c25753cd250fa1",
+    "mtime": 1787927392.920715,
+    "ast_hash": "18d5d6f2eb6888176737a209de9d42c9",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/ui/ProductCard.tsx": {
@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ProductPage.tsx": {
-    "mtime": 1787884410.975521,
-    "ast_hash": "ebcc37206cb88e07b3d2b9ad2636e822",
+    "mtime": 1787927395.9067035,
+    "ast_hash": "3c87936c59f74da9a5c3b05f125ad5b7",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/AddonRow.tsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/NutritionHint.tsx": {
-    "mtime": 1787679999.432315,
-    "ast_hash": "698c8e2e4d13dc58872befc95bc79f66",
+    "mtime": 1787927414.8182976,
+    "ast_hash": "3763aaef62b46d058d5b1422bb7df7a7",
     "semantic_hash": ""
   },
   "apps/shashlik-web/public/icons/kcal.png": {
@@ -1357,6 +1357,16 @@
   "apps/shashlik-web/scripts/sync-products-from-cash.mjs": {
     "mtime": 1787915820.571251,
     "ast_hash": "d5dfeb2df4068574db92b34be128d1aa",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/scripts/sync-nutrition-from-docx.mjs": {
+    "mtime": 1787927431.4864979,
+    "ast_hash": "ef3547eda6d0459acf0da759867cd18d",
+    "semantic_hash": ""
+  },
+  "temp/nutrition-shawarma.json": {
+    "mtime": 1787927429.8152692,
+    "ast_hash": "9a2b27828d36713211d3ff7209fc8544",
     "semantic_hash": ""
   }
 }

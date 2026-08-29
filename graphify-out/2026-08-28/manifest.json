@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/package.json": {
-    "mtime": 1787892719.9663305,
-    "ast_hash": "4a26ea16fad9e09802e78da272cbe274",
+    "mtime": 1787896494.835365,
+    "ast_hash": "f8c67fce402e7a3c4ea3725e5517c5e4",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/App.tsx": {
@@ -290,8 +290,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/ProductEditor.tsx": {
-    "mtime": 1787895755.405965,
-    "ast_hash": "6011b87813aa1e46a3c6a66835d4fddc",
+    "mtime": 1787895846.398528,
+    "ast_hash": "113898405a8c54af87a7114ec7748c78",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/ui/AdminCard.tsx": {
@@ -1320,8 +1320,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/scripts/copy-vkid-sdk.mjs": {
-    "mtime": 1787892715.9620056,
-    "ast_hash": "1c5f03605273280f84a9480fe8ae60e8",
+    "mtime": 1787896494.835365,
+    "ast_hash": "8ac9a0782eb1848e11abccc6638ded61",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/size-template/api.ts": {
@@ -1345,13 +1345,18 @@
     "semantic_hash": ""
   },
   "deploy.sh": {
-    "mtime": 1787893503.664537,
-    "ast_hash": "242b12cedee285bc09916f340190d59e",
+    "mtime": 1787896494.834384,
+    "ast_hash": "832215edb904c067d6c9bd37387a4998",
     "semantic_hash": ""
   },
   "temp/inspect-vk-sdk.mjs": {
     "mtime": 1787894061.5005817,
     "ast_hash": "881305e4ba88be8fa8e0ed67097471af",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/scripts/sync-products-from-cash.mjs": {
+    "mtime": 1787915820.571251,
+    "ast_hash": "d5dfeb2df4068574db92b34be128d1aa",
     "semantic_hash": ""
   }
 }

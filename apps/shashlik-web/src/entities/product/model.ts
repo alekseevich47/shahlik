@@ -25,6 +25,8 @@ export type ProductSize = {
   articleByVariant?: Record<string, string>
   /** Цена SKU по варианту мяса — каждая ячейка матрицы независима. */
   priceByVariant?: Record<string, number>
+  /** КБЖУ на 100 г по варианту мяса (из техкарт кассы). */
+  nutritionByVariant?: Record<string, ProductNutrition>
 }
 
 export type RatingCriterion = {
