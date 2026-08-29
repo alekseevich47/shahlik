@@ -15,6 +15,14 @@ export function nutritionOf(
   return first ?? fallback
 }
 
+/** Состав для выбранного варианта мяса (размер не влияет). */
+export function compositionOf(product: Product, variant?: ProductVariant): string {
+  if (variant?.id && product.compositionByVariant?.[variant.id]?.trim()) {
+    return product.compositionByVariant[variant.id].trim()
+  }
+  return product.composition
+}
+
 export function priceOf(size: ProductSize, variant?: ProductVariant): number {
   if (variant) {
     const byVariant = size.priceByVariant?.[variant.id]

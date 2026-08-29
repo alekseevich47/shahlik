@@ -27,6 +27,7 @@ type ProductRecord = {
   emoji?: string
   tagline: string
   composition: string
+  compositionByVariant?: Record<string, string>
   image: string | string[]
   badge?: ProductBadge
   nutrition: ProductNutrition
@@ -56,6 +57,15 @@ function mapRating(rating: ProductRating): ProductRating {
   }
 }
 
+function mapCompositionByVariant(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== "object") return undefined
+  const out: Record<string, string> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === "string" && value.trim()) out[key] = value.trim()
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
 function mapProduct(record: ProductRecord): Product {
   const images = imageUrls(record, "image")
   return {
@@ -66,6 +76,7 @@ function mapProduct(record: ProductRecord): Product {
     emoji: record.emoji || undefined,
     tagline: record.tagline,
     composition: record.composition,
+    compositionByVariant: mapCompositionByVariant(record.compositionByVariant),
     image: images[0] ?? imageUrl(record, "image"),
     images,
     imageFilenames: imageFilenames(record, "image"),
@@ -196,6 +207,7 @@ export type CreateProductInput = {
   categoryId: CategoryId
   tagline: string
   composition: string
+  compositionByVariant?: Record<string, string>
   emoji?: string
   badge?: ProductBadge | ""
   nutrition: ProductNutrition
@@ -214,6 +226,7 @@ export type UpdateProductInput = {
   categoryId?: CategoryId
   tagline?: string
   composition?: string
+  compositionByVariant?: Record<string, string>
   emoji?: string
   badge?: ProductBadge | ""
   nutrition?: ProductNutrition
@@ -269,6 +282,7 @@ async function createBody(input: CreateProductInput): Promise<Record<string, unk
       categoryId: input.categoryId,
       tagline: input.tagline,
       composition: input.composition,
+      compositionByVariant: input.compositionByVariant ?? null,
       emoji: input.emoji,
       badge: input.badge || null,
       nutrition: input.nutrition,
@@ -292,6 +306,7 @@ async function updateBody(input: UpdateProductInput): Promise<Record<string, unk
     categoryId: input.categoryId,
     tagline: input.tagline,
     composition: input.composition,
+    compositionByVariant: input.compositionByVariant ?? null,
     emoji: input.emoji,
     badge: input.badge === "" ? null : input.badge,
     nutrition: input.nutrition,
@@ -363,6 +378,7 @@ export async function duplicateProduct(id: string): Promise<Product> {
     categoryId: source.categoryId,
     tagline: source.tagline,
     composition: source.composition,
+    compositionByVariant: source.compositionByVariant,
     emoji: source.emoji,
     badge: source.badge,
     nutrition: source.nutrition,

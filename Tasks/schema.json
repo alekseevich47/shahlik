@@ -503,6 +503,16 @@
       },
       {
         "hidden": false,
+        "id": "json_prod_composition_by_variant",
+        "maxSize": 0,
+        "name": "compositionByVariant",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
         "id": "file_prod_image",
         "maxSelect": 5,
         "maxSize": 5242880,

@@ -79,6 +79,8 @@ export type Product = {
   /** Одна строка для страницы товара. */
   tagline: string
   composition: string
+  /** Состав по варианту мяса (размер не влияет). */
+  compositionByVariant?: Record<string, string>
   /** Главное фото (= `images[0]`). */
   image: string
   /** До 5 фото (PB multi-file `image`). */

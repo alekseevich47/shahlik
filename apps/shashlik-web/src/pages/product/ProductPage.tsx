@@ -8,7 +8,7 @@ import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
 import { useExtras, useSauces } from "@/entities/addon/api"
 import { criterionScore, criterionStars, type MeatIcon } from "@/entities/product/model"
-import { findSize, findVariant, nutritionOf, priceOf } from "@/entities/product/lib"
+import { findSize, findVariant, compositionOf, nutritionOf, priceOf } from "@/entities/product/lib"
 import {
   isAddonStopped,
   isSizeStopped,
@@ -82,6 +82,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   const size = findSize(product, resolvedSizeId)
   const variant = findVariant(product, resolvedVariantId)
   const nutrition = nutritionOf(size, variant, product.nutrition)
+  const composition = compositionOf(product, variant)
   const skuStopped = isSkuStopped(product, size.id, variant?.id, stopped)
   const visibleSauces = sauces.filter((addon) => !isAddonStopped(addon, stopped))
   const visibleExtras = extras.filter((addon) => !isAddonStopped(addon, stopped))
@@ -155,15 +156,13 @@ export function ProductView({ onClose, className }: ProductViewProps) {
                 votes={product.rating.votes}
                 criteria={product.rating.criteria}
               />
-              {product.composition ? (
+              {composition ? (
                 <div className="rounded-[var(--r-lg)] border border-line bg-surface/94 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md">
                   <div className="mb-1.5 flex items-center gap-1.5">
                     <span className="text-[14px] font-extrabold text-fg">Состав</span>
                     <Leaf size={14} className="text-success" strokeWidth={2.3} />
                   </div>
-                  <p className="text-[11.5px] leading-[1.55] text-fg-muted">
-                    {product.composition}
-                  </p>
+                  <p className="text-[11.5px] leading-[1.55] text-fg-muted">{composition}</p>
                 </div>
               ) : null}
             </div>

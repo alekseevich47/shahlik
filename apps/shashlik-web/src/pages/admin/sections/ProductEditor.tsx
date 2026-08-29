@@ -21,12 +21,12 @@ import { badgeLabel } from "@/entities/badge/model"
 import { useCategories } from "@/entities/category/api"
 import { ARTICLE_PATTERN, articleConflictMessage } from "@/entities/product/lib/articles"
 import { minPrice, skuMatrix } from "@/entities/product/lib"
+import { defaultNutritionFromSizes } from "@/entities/product/lib/nutrition-matrix"
 import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import type {
   MeatIcon,
   Product,
   ProductBadge,
-  ProductNutrition,
   ProductSize,
   ProductVariant,
   RatingCriterion,
@@ -43,6 +43,7 @@ import { useCategoryTags } from "@/entities/tag/api"
 import { useSizeTemplates } from "@/entities/size-template/api"
 import type { SizeTemplate } from "@/entities/size-template/model"
 import { ArticleMatrix } from "@/pages/admin/sections/products/ArticleMatrix"
+import { NutritionMatrix } from "@/pages/admin/sections/products/NutritionMatrix"
 import { BadgeManagerDialog } from "@/pages/admin/sections/products/BadgeManagerDialog"
 import { SizeTemplateManagerDialog } from "@/pages/admin/sections/products/SizeTemplateManagerDialog"
 import { slugFromName } from "@/shared/lib/slug"
@@ -131,10 +132,12 @@ export function ProductEditor({ product, onBack }: Props) {
   const [categoryId, setCategoryId] = useState<string>(product.categoryId)
   const [tagline, setTagline] = useState(product.tagline)
   const [composition, setComposition] = useState(product.composition)
+  const [compositionByVariant, setCompositionByVariant] = useState<Record<string, string>>(
+    () => product.compositionByVariant ?? {},
+  )
   const [badge, setBadge] = useState<"" | ProductBadge>(product.badge ?? "")
   const [badgeManagerOpen, setBadgeManagerOpen] = useState(false)
   const [sizeTemplateManagerOpen, setSizeTemplateManagerOpen] = useState(false)
-  const [nutrition, setNutrition] = useState<ProductNutrition>(product.nutrition)
   const [tags, setTags] = useState<string[]>(product.tags)
   const [variants, setVariants] = useState<ProductVariant[]>(product.variants)
   const [sizes, setSizes] = useState<ProductSize[]>(product.sizes)
@@ -155,8 +158,8 @@ export function ProductEditor({ product, onBack }: Props) {
     setCategoryId(product.categoryId)
     setTagline(product.tagline)
     setComposition(product.composition)
+    setCompositionByVariant(product.compositionByVariant ?? {})
     setBadge(product.badge ?? "")
-    setNutrition(product.nutrition)
     setTags(product.tags)
     setVariants(product.variants)
     setSizes(product.sizes)
@@ -180,8 +183,9 @@ export function ProductEditor({ product, onBack }: Props) {
     categoryId,
     tagline,
     composition,
+    compositionByVariant: Object.keys(compositionByVariant).length ? compositionByVariant : undefined,
     badge: badge || undefined,
-    nutrition,
+    nutrition: defaultNutritionFromSizes(sizes, variants),
     tags,
     variants,
     sizes,
@@ -233,7 +237,14 @@ export function ProductEditor({ product, onBack }: Props) {
       toast.error("Укажите описание")
       return
     }
-    if (!composition.trim()) {
+    if (variants.length) {
+      for (const variant of variants) {
+        if (!compositionByVariant[variant.id]?.trim()) {
+          toast.error(`Укажите состав: ${variant.label}`)
+          return
+        }
+      }
+    } else if (!composition.trim()) {
       toast.error("Укажите состав")
       return
     }
@@ -276,6 +287,17 @@ export function ProductEditor({ product, onBack }: Props) {
           const { priceByVariant: _p, ...rest } = next
           next = rest
         }
+        if (size.nutritionByVariant) {
+          const nutritionMap = Object.fromEntries(
+            Object.entries(size.nutritionByVariant).filter(
+              ([id]) => !variants.length || variantIds.has(id) || id === "base",
+            ),
+          )
+          next = {
+            ...next,
+            nutritionByVariant: Object.keys(nutritionMap).length ? nutritionMap : undefined,
+          }
+        }
         if (next.weight?.trim() === "") {
           const { weight: _w, ...rest } = next
           next = rest
@@ -283,6 +305,17 @@ export function ProductEditor({ product, onBack }: Props) {
         return next
       })
       const normalizedVariants = variants.map((v) => ({ ...v, priceDelta: 0 }))
+      const cleanedCompositionByVariant = Object.fromEntries(
+        variants
+          .map((v) => [v.id, compositionByVariant[v.id]?.trim() ?? ""] as const)
+          .filter(([, text]) => text.length > 0),
+      )
+      const legacyComposition = variants.length
+        ? (cleanedCompositionByVariant.chicken ??
+          cleanedCompositionByVariant[variants[0]?.id ?? ""] ??
+          "")
+        : composition.trim()
+      const fallbackNutrition = defaultNutritionFromSizes(cleanedSizes, normalizedVariants)
 
       const { files, remove } = multiImageDiff(initialFilenames, photoItems)
 
@@ -293,9 +326,10 @@ export function ProductEditor({ product, onBack }: Props) {
           slug: slug.trim(),
           categoryId,
           tagline: tagline.trim(),
-          composition: composition.trim(),
+          composition: legacyComposition,
+          compositionByVariant: variants.length ? cleanedCompositionByVariant : undefined,
           badge,
-          nutrition,
+          nutrition: fallbackNutrition,
           tags,
           variants: normalizedVariants,
           sizes: cleanedSizes,
@@ -517,43 +551,17 @@ export function ProductEditor({ product, onBack }: Props) {
                 />
               </Field>
 
-              <Field label="Состав" hint={`${composition.length}/1000`}>
-                <Textarea
-                  rows={3}
-                  maxLength={1000}
-                  value={composition}
-                  onChange={(e) => setComposition(e.target.value)}
-                  disabled={busy}
-                />
-              </Field>
-            </div>
-          </AdminCard>
-
-          <AdminCard title="Пищевая ценность (на 100 г)">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {(
-                [
-                  ["kcal", "Ккал"],
-                  ["protein", "Белки"],
-                  ["fat", "Жиры"],
-                  ["carbs", "Углеводы"],
-                ] as const
-              ).map(([key, label]) => (
-                <Field key={key} label={label}>
-                  <Input
-                    value={String(nutrition[key])}
-                    inputMode="decimal"
+              {!variants.length ? (
+                <Field label="Состав" hint={`${composition.length}/1000`}>
+                  <Textarea
+                    rows={3}
+                    maxLength={1000}
+                    value={composition}
+                    onChange={(e) => setComposition(e.target.value)}
                     disabled={busy}
-                    onChange={(e) => {
-                      const n = Number(e.target.value.replace(",", "."))
-                      setNutrition((prev) => ({
-                        ...prev,
-                        [key]: Number.isFinite(n) ? n : 0,
-                      }))
-                    }}
                   />
                 </Field>
-              ))}
+              ) : null}
             </div>
           </AdminCard>
 
@@ -760,6 +768,42 @@ export function ProductEditor({ product, onBack }: Props) {
               disabled={busy}
             />
           </AdminCard>
+
+          <AdminCard title="Пищевая ценность (на 100 г, вариант × размер)">
+            <NutritionMatrix
+              variants={variants}
+              sizes={sizes}
+              onSizesChange={setSizes}
+              disabled={busy}
+            />
+          </AdminCard>
+
+          {variants.length ? (
+            <AdminCard title="Состав по вариантам мяса">
+              <div className="flex flex-col gap-3">
+                {variants.map((variant) => (
+                  <Field
+                    key={variant.id}
+                    label={variant.label}
+                    hint={`${(compositionByVariant[variant.id] ?? "").length}/1000`}
+                  >
+                    <Textarea
+                      rows={3}
+                      maxLength={1000}
+                      value={compositionByVariant[variant.id] ?? ""}
+                      disabled={busy}
+                      onChange={(e) =>
+                        setCompositionByVariant((prev) => ({
+                          ...prev,
+                          [variant.id]: e.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                ))}
+              </div>
+            </AdminCard>
+          ) : null}
 
           <AdminCard title="Критерии оценки">
             <ul className="flex flex-col gap-2">
