@@ -28,7 +28,8 @@ export function Modal({ open, onOpenChange, children, className }: ModalProps) {
         />
         <DialogPrimitive.Content
           className={cn(
-            "fixed top-1/2 left-1/2 z-301 w-[min(960px,calc(100vw-2rem))] max-h-[92vh] -translate-x-1/2 -translate-y-1/2",
+            "fixed top-1/2 left-1/2 z-301 max-h-[92vh] -translate-x-1/2 -translate-y-1/2",
+            "w-[min(960px,calc(100vw-2rem))]",
             "overflow-hidden rounded-[var(--r-2xl)] border border-line bg-surface shadow-[var(--shadow-panel)] outline-none",
             "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",

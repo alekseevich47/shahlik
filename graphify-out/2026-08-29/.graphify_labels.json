@@ -101,8 +101,6 @@
   "99": "banner-image-field.tsx",
   "100": "inspect-vk-sdk.mjs",
   "101": "deploy.sh",
-  "102": "OrderDetails.tsx",
-  "103": "mapFrontpadSettings",
   "104": "settings/model.ts",
   "105": "theme.tsx",
   "106": "zustand"

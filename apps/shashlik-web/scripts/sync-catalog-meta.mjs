@@ -39,11 +39,28 @@ function applyNutritionToSizes(sizes, slugData) {
   })
 }
 
+function formatComposition(text) {
+  if (!text?.trim()) return text
+  const items = text.split(",").map((s) => s.trim()).filter(Boolean)
+  const cleaned = items.map((item) =>
+    item
+      .replace(/\s+\d+\s*г\.?/gi, "")
+      .replace(/\s+\d+\s*шт\.?/gi, "")
+      .replace(/\.\s*$/, "")
+      .trim(),
+  )
+  const meatIdx = cleaned.findIndex((item) => /шашлык/i.test(item))
+  if (meatIdx <= 0) return cleaned.join(", ")
+  const meat = cleaned[meatIdx]
+  const rest = cleaned.filter((_, i) => i !== meatIdx)
+  return [meat, ...rest].join(", ")
+}
+
 function buildCompositionByVariant(variants, slugData) {
   const out = {}
   for (const variant of variants) {
     const text = slugData[variant.id]
-    if (text) out[variant.id] = text
+    if (text) out[variant.id] = formatComposition(text)
   }
   return Object.keys(out).length ? out : null
 }

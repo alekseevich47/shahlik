@@ -1,5 +1,22 @@
 import type { Product, ProductNutrition, ProductSize, ProductVariant } from "./model"
 
+/** Граммы из строки веса размера («300 г», «400г»). */
+export function parseWeightGrams(weight?: string): number | null {
+  if (!weight?.trim()) return null
+  const match = weight.trim().match(/(\d+(?:[.,]\d+)?)\s*г/i)
+  if (!match) return null
+  return Number(match[1].replace(",", "."))
+}
+
+export function scaleNutrition(nutrition: ProductNutrition, factor: number): ProductNutrition {
+  return {
+    kcal: nutrition.kcal * factor,
+    fat: nutrition.fat * factor,
+    protein: nutrition.protein * factor,
+    carbs: nutrition.carbs * factor,
+  }
+}
+
 export function nutritionOf(
   size: ProductSize,
   variant: ProductVariant | undefined,
@@ -13,6 +30,23 @@ export function nutritionOf(
     ? Object.values(size.nutritionByVariant)[0]
     : undefined
   return first ?? fallback
+}
+
+/** КБЖУ на порцию: per-100 г из матрицы × граммовка размера. */
+export function nutritionForPortion(
+  size: ProductSize,
+  variant: ProductVariant | undefined,
+  fallback: ProductNutrition,
+): { nutrition: ProductNutrition; portionLabel: string } {
+  const per100 = nutritionOf(size, variant, fallback)
+  const grams = parseWeightGrams(size.weight)
+  if (!grams) {
+    return { nutrition: per100, portionLabel: "100 г" }
+  }
+  return {
+    nutrition: scaleNutrition(per100, grams / 100),
+    portionLabel: size.weight!.trim(),
+  }
 }
 
 /** Состав для выбранного варианта мяса (размер не влияет). */

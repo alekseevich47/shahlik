@@ -15,6 +15,8 @@ import { formatPrice } from "@/shared/lib/format"
 
 export const NEW_ADDRESS = "new"
 
+export type PaymentMethod = "cash" | "online"
+
 export function formatAddressLine(parts: OrderAddressParts): string {
   const chunks = [parts.street?.trim(), parts.home?.trim()].filter(Boolean)
   const extra = [
@@ -50,7 +52,6 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     packFee,
     deliveryFee,
     discount,
-    total,
     minOrder,
     acceptingOrders,
     stopMessage,
@@ -76,18 +77,27 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
 
   const [addressId, setAddressId] = useState(NEW_ADDRESS)
   const [saveAddress, setSaveAddress] = useState(false)
-  /** UI шага 7; в payload кассы score/card не шлём (TASK_order FAQ). */
   const [spendBonus, setSpendBonus] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash")
 
   const empty = lines.length === 0
   const belowMinOrder = minOrder > 0 && goods < minOrder
   const blocked = empty || !acceptingOrders || belowMinOrder
   const bonus = bonusQuery.data
   const canSpendBonus = Boolean(user && bonus && bonus.score > 0)
+  const bonusDiscount =
+    spendBonus && bonus && bonus.score > 0
+      ? Math.min(bonus.score, Math.max(goods - discount, 0))
+      : 0
+  const totalDiscount = discount + bonusDiscount
+  const checkoutTotal = Math.max(goods + packFee + deliveryFee - totalDiscount, 0)
+  const isNewAddress =
+    addressId === NEW_ADDRESS || !user?.addresses.length
 
   useEffect(() => {
     if (!open) {
       setSpendBonus(false)
+      setPaymentMethod("cash")
       return
     }
     const account = getAccount()
@@ -143,8 +153,8 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
       goods,
       packFee,
       deliveryFee,
-      discount,
-      total,
+      discount: totalDiscount,
+      total: checkoutTotal,
       couponCode: appliedCoupon?.code ?? null,
       lines: lines.map((line) => ({
         productId: line.product.id,
@@ -183,7 +193,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
   }
 
   async function persistNewAddress() {
-    if (!user || !saveAddress || mode !== "delivery") return
+    if (!user || !saveAddress || mode !== "delivery" || !isNewAddress) return
     const street = addressParts.street?.trim() ?? ""
     const home = addressParts.home?.trim() ?? ""
     if (!street || !home) return
@@ -233,17 +243,22 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     setCustomer,
     phone,
     setPhone,
-    total,
+    total: checkoutTotal,
+    bonusDiscount,
+    totalDiscount,
     blocked,
     pending: createOrder.isPending,
     addressId,
     selectSavedAddress,
     saveAddress,
     setSaveAddress,
+    isNewAddress,
     spendBonus,
     setSpendBonus,
     canSpendBonus,
     bonusScore: bonus?.score ?? 0,
+    paymentMethod,
+    setPaymentMethod,
     submit,
   }
 }

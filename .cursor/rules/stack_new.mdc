@@ -80,7 +80,7 @@ apps/shashlik-web/
     pages/product/           # PDP (выбор варианта/размера/соусов/добавок)
     pages/admin/             # админка: sections/<раздел>/ + ui/ (каркас, таблицы), роуты /admin/*
     widgets/sidebar|hero|catalog|header|mobile|promo  # header: FloatingActions + StickyBar
-    features/cart|search|theme-toggle  # cart: store + panel (колонка ≥1280) + CartToggle
+    features/cart|search|theme-toggle|checkout  # cart: store + panel; checkout: CheckoutDialog + useCheckout
     entities/product|category|addon|banner|order|tag|badge  # category/ui: CategoryIcon; tag: фильтры витрины; badge: метки карточек
     shared/ui|lib|config|hooks
     mocks/products|categories|addons|banners|orders|tags
@@ -116,7 +116,7 @@ apps/shashlik-web/
 | `--surface-2` | `#fffbf8` | админ-панели, тёплая подложка |
 | `--surface-3` | `#f8f4ef` | неактивные чипы, inset |
 | `--fg` | `#17120e` | основной текст |
-| `--fg-muted` | `#948e86` | вторичный / состав |
+| `--fg-muted` | `#948e86` | вторичный / описание на карточке |
 | `--line` | `#f0eae2` | бордеры |
 | `--brand` | `#ef7f1a` | CTA, активные табы, бейджи |
 | `--brand-soft` | `#fdf3e9` | «Добавить» на карточке, активный nav |
@@ -166,8 +166,9 @@ apps/shashlik-web/
 - `tags`: slug[] из `product_tags` своей категории (не глобальный enum)
 - `badge`: slug из `product_badges` (текст, не select). Справочник CRUD в модалке редактора товара; дефолты hit / new / spicy
 - `images[]` (до 5) — PB multi-file `image`; `image` = первое для карточек/PDP. **Канон растра — 1536×1024 (3∶2)**, константы в `entities/product/format.ts`; витрина и PDP — `aspect-ratio` из формата, загрузка в админке — обрезка в `MultiImageField` (как баннеры)
-- `nutrition`: `{ kcal, fat, protein, carbs }` на 100 г — fallback на карточке; **матрица** `sizes[].nutritionByVariant[variantId]` (вариант × размер), на PDP — `nutritionOf()`. Дефолт по категории в `mocks/products.ts` (`NUTRITION_BY_CATEGORY`)
-- `composition` — строка для витрины/fallback; **`compositionByVariant[variantId]`** — состав по мясу (размер не влияет), на PDP — `compositionOf()`
+- `nutrition`: `{ kcal, fat, protein, carbs }` на 100 г — fallback; **матрица** `sizes[].nutritionByVariant[variantId]` (вариант × размер), в PB и админке — **на 100 г**. На PDP показывается **на порцию**: `nutritionForPortion()` = per-100 г × `parseWeightGrams(size.weight)`; подпись popover — граммовка размера («300 г»). Без `weight` — fallback «100 г»
+- `tagline` — **описание** для витрины и PDP (поле PB `tagline`, в админке — «Описание»)
+- `composition` — строка fallback; **`compositionByVariant[variantId]`** — состав по мясу (размер не влияет), только на **PDP** — `compositionOf()`. На карточке витрины (`ProductCard`) — **tagline**, не composition
 - `rating.overall` 0–10, `criteria[].value` 0–10 шаг 1 (в админке целые). На PDP — 5 звёзд с половинками (`criterionStars` = value/2). Legacy 0–5 в PB нормализуется при чтении (`criterionScore`). Дефолт критериев: Вкусно? / Состав / Сервис (`DEFAULT_CRITERIA`)
 
 Не парсить мясо/размер из `name`. Не делать `groupId` + массив SKU как в старом `App.tsx`.
@@ -196,7 +197,23 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 | Режим по умолчанию | `pickup` («Заберу сам») |
 | Заголовок панели | «Мой заказ» |
 
-Оформление заказа — `createOrder` в коллекцию `orders`; статус — `subscribeOrderStatus` (PB realtime), без поллинга. Карта адреса — тост-заглушка.
+Оформление заказа — модалка `CheckoutDialog` (`features/checkout/ui/CheckoutDialog.tsx`), открывается из `CartPanel`. Payload — `createOrder` в коллекцию `orders`; статус — `subscribeOrderStatus` (PB realtime), без поллинга.
+
+### Оформление заказа (checkout)
+
+Модалка `CheckoutDialog` — две колонки + футер доверия (`CheckoutTrustBadges`):
+
+| Колонка | Содержимое |
+|---------|------------|
+| Слева | «Ваш заказ» (read-only `CheckoutLineRow`, без stepper), ссылка «Изменить» → закрывает модалку, корзина сохраняется. `CheckoutPromoField` (плавающая подпись «Промокод» + кнопка-стрелка). «Мои бонусы» + чекбокс списания (только после входа). `Select` способа оплаты: «При получении» / «Онлайн-оплата». `CartTotals` с анимированной строкой «Скидка» (промо + бонусы). `SafePaymentBanner` — только при «Онлайн-оплата». |
+| Справа | `CheckoutModeToggle` (иконки Car/Bike). Адрес: `AddressSection` — `Select` сохранённых адресов (Popover, скруглённый список); при выборе сохранённого — одна строка адреса под селектом, чекбокс «Сохранить» **нет**; «Новый адрес» — поля улица + сетка дом/подъезд/этаж/квартира, чекбокс «Сохранить новый адрес». Контакты — `IconInput` (User, Phone). Комментарий — `IconTextarea`, лимит 200. CTA «Оформить заказ · сумма». |
+| Футер | 4 плашки: доставка, горячее, качество, **«Сделаем с душой»** (Heart, «Спасибо Вам за заказ!») вместо «Поддержка 24/7». |
+
+Строка корзины (витрина и checkout): `CartLineTitle` — **название** + **размер** (мельче, серый) на одной строке; **вариант мяса** — строкой ниже (серый), только если вариантов > 1.
+
+Логика — `useCheckout.ts`: `PaymentMethod` (`cash` | `online`) — UI-only; скидка бонусами считается на клиенте (`min(score, goods − promo)`), суммы в payload справочные — сервер пересчитывает в хуке. Промокод — `POST /api/promo/check`, не публичное чтение `coupons`.
+
+Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — только `CheckoutPromoField`.
 
 ## Витрина (home)
 
@@ -207,7 +224,7 @@ Desktop (`DesktopHome`, ≥1024):
 1. **Sidebar** — категории + промо `BOSS10` + ссылка «Войти» → `/admin`
 2. **HeroBanner** — карусель баннеров из PB (только `image`), стрелки-хитзоны, dots. Контейнер с `aspect-ratio` из `entities/banner/format.ts` (**1680×460**). Загрузка — обрезка до канона (`BannerImageField`). Опциональная плашка `note` в углу.
 3. **TagFilters** — «Все» + теги активной категории из `product_tags` (spring / `popLayout` при смене категории). На стекле плашки — без layout-анимации.
-4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — название `20px` (без `min-h`), бейджи **только вариантов**, на витрине только общий рейтинг (критерии — на PDP), цена `от {minPrice}` `22px`; плотные gaps название↔бейджи и состав↔оценка
+4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — название `20px` (без `min-h`), бейджи **только вариантов**, под названием — **описание** (`tagline`, `line-clamp-3`), общий рейтинг (критерии — на PDP), цена `от {minPrice}` `22px`; плотные gaps название↔бейджи и описание↔оценка
 5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг (без критериев) и «Добавить» в dark — `text-fg`. «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Название/состав без фикс. высоты (`min-h`/`h` в lh) — иначе пустой зазор при коротком тексте.
 
 Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
@@ -222,7 +239,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 - Открытие/закрытие — `motion` + `AnimatePresence` в `app/router.tsx` (Home/Product грузятся сразу, не lazy). `viewTransition` у RR здесь не работает: нужен data-router, а стоит `BrowserRouter`. Уход маршрута — `position: absolute; inset: 0; overflow: hidden`, без scale (иначе рывок). Скроллбар: `scrollbar-gutter: stable` на `html`, чтобы исчезающая полоса Home не дёргала PDP вправо
 - Сердце избранного — **без рамки**, правый верхний угол фото; лайк заполняет только иконку
 - Крестик закрытия — правый верхний угол панели, рамка как у бывшего сердца, `text-fg-faint` → hover `text-red`
-- Справа от названия — иконка `/icons/kcal.png` (`NutritionHint` / Popover): размер `0.92lh` заголовка, mask + `bg-fg-muted` → open/hover `bg-brand`. ПК: hover open / leave close; мобилки: click toggle; тач/клик/свайп вне окна — close
+- Справа от названия — иконка `/icons/kcal.png` (`NutritionHint` / Popover): размер `0.92lh` заголовка, mask + `bg-fg-muted` → open/hover `bg-brand`. ПК: hover open / leave close; мобилки: click toggle; тач/клик/свайп вне окна — close. **КБЖУ на порцию** (граммовка выбранного размера), пересчитывается при смене размера/варианта
 - Штамп `FreshStamp`: абсолют правый верх панели, `opacity-30`, `z` под текстом. Глифы равномерно по окружности (поворот каждого символа, не `textPath`). Текст «СДЕЛАНО С ЛЮБОВЬ • 100% СВЕЖИЕ ПРОДУКТЫ •». Колпак — `chef-hat-spin`
 - Вариант/размер — `OptionCard` тумблеры **без обводки**, компактные (`min-h-10`); active — `product-accent-soft`
 - Соусы | Добавки — `AddonRow` без рамки, одна строка: thumb → имя/вес → серая `+цена` → кнопка цены / `Stepper tone="solid"`
@@ -332,9 +349,23 @@ Env процесса `pocketbase`:
 | useCatalogScrollSpy | `pages/home/lib/useCatalogScrollSpy.ts` — активная категория по скроллу |
 | VitrineScroll | `pages/home/lib/VitrineScroll.tsx` — Lenis на `/`, `scrollTo` / `scrollToTop`, pause при Sheet |
 | CatalogCategorySection | `pages/home/ui/CatalogCategorySection.tsx` — якорь секции каталога |
-| ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи только вариантов, общий рейтинг без критериев, цена «от min». «Добавить» по hover (`.product-card-add`). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
+| ProductCard | `entities/product/ui/ProductCard.tsx` — фото `product/format`, бейджи только вариантов, **описание (`tagline`)**, общий рейтинг без критериев, цена «от min». «Добавить» по hover (`.product-card-add`). Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | product/format | `entities/product/format.ts` — `PRODUCT_WIDTH` / `PRODUCT_HEIGHT` (1536×1024, 3∶2) |
-| CartPanel | `features/cart/ui/CartPanel.tsx` |
+| CartPanel | `features/cart/ui/CartPanel.tsx` — витрина: строки, `CartPromo`, суммы, кнопка → checkout |
+| CartLineRow | `features/cart/ui/CartLineRow.tsx` — stepper + удаление; заголовок через `CartLineTitle` |
+| CartLineTitle | `features/cart/ui/CartLineTitle.tsx` — название + размер + вариант мяса |
+| CartPromo | `features/cart/ui/CartPromo.tsx` — промокод в панели корзины (раскрывающийся) |
+| CartTotals | `features/cart/ui/CartTotals.tsx` — строка «Скидка» с анимацией; prop `bonusDiscount` для checkout |
+| CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |
+| CheckoutLineRow | `features/checkout/ui/CheckoutLineRow.tsx` — строка заказа read-only |
+| CheckoutPromoField | `features/checkout/ui/CheckoutPromoField.tsx` — `FloatingField` «Промокод» |
+| CheckoutModeToggle | `features/checkout/ui/CheckoutModeToggle.tsx` — переключатель с иконками |
+| AddressSection | `features/checkout/ui/AddressSection.tsx` — выбор/ввод адреса |
+| CheckoutTrustBadges | `features/checkout/ui/CheckoutTrustBadges.tsx` — футер модалки |
+| SafePaymentBanner | `features/checkout/ui/SafePaymentBanner.tsx` — блок «Безопасная оплата» |
+| useCheckout | `features/checkout/model/useCheckout.ts` — валидация, submit, бонусы, оплата |
+| FloatingField | `shared/ui/floating-field.tsx` — input с плавающей подписью |
+| IconInput | `shared/ui/icon-input.tsx` — input/textarea с иконкой слева |
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |
 | FloatingActions | `widgets/header/FloatingActions.tsx` — `tone="glass"` на плашке; `showAccount` — `User` → `/admin` |
 | StickyBar | `widgets/header/StickyBar.tsx` — стекло, категории + теги по скроллу |
@@ -345,14 +376,14 @@ Env процесса `pocketbase`:
 | MobileTabBar | `widgets/mobile/MobileTabBar.tsx` |
 | ProductPage / PDP | `pages/product/ProductPage.tsx` |
 | FreshStamp | `pages/product/ui/FreshStamp.tsx` — absolute top-right PDP, opacity 30%, под текстом |
-| NutritionHint | `pages/product/ui/NutritionHint.tsx` — Popover: hover (ПК) + click (тач), outside close |
+| NutritionHint | `pages/product/ui/NutritionHint.tsx` — Popover: hover (ПК) + click (тач), outside close; **на порцию** (`portionLabel` = граммовка размера) |
 | popover | `shared/ui/popover.tsx` — Radix Popover |
 | ProductEditor | `pages/admin/sections/ProductEditor.tsx` — карусель фото, «Описание»←tagline, состав по вариантам, бейджи CRUD, критерии DnD; варианты∥размеры в 2 кол.; матрицы артикулов и КБЖУ |
 | ProductCreateForm | `pages/admin/sections/products/ProductCreateForm.tsx` — черновик: без slug/размера/цены/active; `sizes: []` |
 | ArticleMatrix | `pages/admin/sections/products/ArticleMatrix.tsx` — артикул + цена SKU; `priceByVariant` / `size.price`; шапка «артикул»/«цена»; scroll при >3 размеров |
 | NutritionMatrix | `pages/admin/sections/products/NutritionMatrix.tsx` — КБЖУ на 100 г, вариант × размер → `size.nutritionByVariant` |
 | nutrition-matrix | `entities/product/lib/nutrition-matrix.ts` — `cellNutrition`, `setCellNutrition`, `defaultNutritionFromSizes` |
-| compositionOf / nutritionOf | `entities/product/lib.ts` — PDP по выбранному варианту/размеру |
+| compositionOf / nutritionOf / nutritionForPortion | `entities/product/lib.ts` — PDP: состав по варианту; КБЖУ per-100 г из матрицы; **на порцию** — `nutritionForPortion()` + `parseWeightGrams()` |
 | SizeTemplateManagerDialog | `pages/admin/sections/products/SizeTemplateManagerDialog.tsx` — CRUD `size_templates` (название + вес) |
 | size_templates | `entities/size-template` + `mocks/size-templates.ts` — шаблоны размеров для редактора товара |
 | Select | `shared/ui/select.tsx` — кастомный Popover-listbox, анимация open/close; опционально `formatOption` (иконка + текст в вариантах мяса) |
@@ -452,9 +483,9 @@ Env процесса `pocketbase`:
 
 - `contain` изолирует раскладку: смена ширины колонки не тянет пересчёт всех карточек сразу.
 - `content-visibility: auto` снимает раскладку с карточек за пределами вьюпорта. Ключевое слово `auto` в `contain-intrinsic-size` обязательно — браузер запоминает реальную высоту, иначе скроллбар дёргается при скролле.
-- Число ориентира — карточка без критериев и без фикс. высоты названия/состава; если высота заметно съедет — поправить, иначе первый проход скролла прыгает.
+- Число ориентира — карточка без критериев и без фикс. высоты названия/описания; если высота заметно съедет — поправить, иначе первый проход скролла прыгает.
 - Внутри карточки не заводить `position: sticky` и не рассчитывать на то, что её содержимое видно скриптам всегда: под `content-visibility` оно может быть не отрисовано.
-- На витрине только общий рейтинг; критерии — на PDP. Фикс. `min-h-[2lh]` / `h-[3lh]` у названия/состава **не** использовать (давали пустой зазор при коротком тексте).
+- На витрине только общий рейтинг; критерии — на PDP. Фикс. `min-h-[2lh]` / `h-[3lh]` у названия/описания **не** использовать (давали пустой зазор при коротком тексте).
 
 ### Скролл
 

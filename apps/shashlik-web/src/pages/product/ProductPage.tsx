@@ -8,7 +8,7 @@ import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
 import { useExtras, useSauces } from "@/entities/addon/api"
 import { criterionScore, criterionStars, type MeatIcon } from "@/entities/product/model"
-import { findSize, findVariant, compositionOf, nutritionOf, priceOf } from "@/entities/product/lib"
+import { findSize, findVariant, compositionOf, nutritionForPortion, priceOf } from "@/entities/product/lib"
 import {
   isAddonStopped,
   isSizeStopped,
@@ -81,7 +81,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
 
   const size = findSize(product, resolvedSizeId)
   const variant = findVariant(product, resolvedVariantId)
-  const nutrition = nutritionOf(size, variant, product.nutrition)
+  const { nutrition, portionLabel } = nutritionForPortion(size, variant, product.nutrition)
   const composition = compositionOf(product, variant)
   const skuStopped = isSkuStopped(product, size.id, variant?.id, stopped)
   const visibleSauces = sauces.filter((addon) => !isAddonStopped(addon, stopped))
@@ -178,7 +178,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="overflow-visible text-[30px] leading-none font-extrabold tracking-[-0.02em] text-fg sm:text-[36px]">
                   {product.name}
-                  <NutritionHint nutrition={nutrition} />
+                  <NutritionHint nutrition={nutrition} portionLabel={portionLabel} />
                 </h1>
                 {product.badge ? (
                   <Badge variant="soft" size="lg">

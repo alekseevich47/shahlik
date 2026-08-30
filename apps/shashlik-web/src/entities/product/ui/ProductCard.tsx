@@ -78,9 +78,9 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
           ) : null}
         </div>
 
-        {product.composition ? (
+        {product.tagline ? (
           <p className="line-clamp-3 text-[11.5px] leading-[1.5] text-fg-muted">
-            {product.composition}
+            {product.tagline}
           </p>
         ) : null}
 

@@ -8,8 +8,14 @@ function formatGrams(value: number): string {
   return Number.isInteger(value) ? `${value}` : value.toFixed(1).replace(".", ",")
 }
 
-/** Иконка kcal: hover (ПК) и click/тач (мобилки) → пищевая ценность на 100 г. */
-export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
+/** Иконка kcal: hover (ПК) и click/тач (мобилки) → пищевая ценность на порцию. */
+export function NutritionHint({
+  nutrition,
+  portionLabel = "100 г",
+}: {
+  nutrition: ProductNutrition
+  portionLabel?: string
+}) {
   const [open, setOpen] = useState(false)
   const canHover = useMediaQuery("(hover: hover) and (pointer: fine)")
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -50,7 +56,7 @@ export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="Пищевая ценность на 100 г"
+          aria-label={`Пищевая ценность на ${portionLabel}`}
           aria-expanded={open}
           className="nutrition-hint group/kcal relative z-20 ml-[0.16em] inline-flex shrink-0 cursor-pointer items-center justify-center"
           onClick={onTriggerClick}
@@ -77,7 +83,7 @@ export function NutritionHint({ nutrition }: { nutrition: ProductNutrition }) {
         onInteractOutside={() => setOpen(false)}
       >
         <p className="mb-2 text-[11px] font-extrabold tracking-[0.04em] text-fg">
-          Пищевая ценность на 100 г
+          Пищевая ценность на {portionLabel}
         </p>
         <ul className="flex flex-col gap-1">
           <NutRow label="Энерг. ценность" value={`${Math.round(nutrition.kcal)} ккал`} />
