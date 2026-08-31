@@ -138,7 +138,7 @@ apps/shashlik-web/
 
 Тема: класс `.dark` / `.light` на `<html>`. Anti-FOUC скрипт в `index.html`. Переключатель — `features/theme-toggle`. Не хардкодить `#fff` / `#000` в компонентах.
 
-Стекло плашки (`StickyBar`): `--glass-tint`, `--glass-shine`, `--glass-shadow`, `--glass-btn`, `--glass-btn-border`, `--glass-fg` (в `.dark` — `#ffffff`). Устройство слоёв и бюджет производительности — раздел «Производительность». Light: `--glass-btn` = `rgba(23,18,14,0.14)` — темнее тона стекла, иначе кнопки сливаются. Кнопки и выбранные чипы — `--glass-btn`, не `brand-soft`. PNG категорий на плашке: `.category-icon-glass` = `brightness(0)` (чёрные), в dark + `invert(1)` (белые). Компактная плашка (лупа/тема/корзина) — `width: max-content`, padding `6px 10px`, скругление `--r-md` как у лупы (раскрытая — `--r-2xl`); скрытые nav и теги `width: 0` (иначе строка тегов раздувает ширину слева). Раскрытая — `showAccount`: иконка `User` → `/admin` слева от лупы, тот же размер/тон.
+Стекло плашки (`StickyBar`): `--glass-tint`, `--glass-shine`, `--glass-shadow`, `--glass-btn`, `--glass-btn-border`, `--glass-fg` (в `.dark` — `#ffffff`). Устройство слоёв и бюджет производительности — раздел «Производительность». Light: `--glass-btn` = `rgba(23,18,14,0.28)` — заметно темнее тона стекла. Dark: `--glass-btn` = `rgba(0,0,0,0.36)`. Кнопки и выбранные чипы — `--glass-btn`, не `brand-soft`. **Кнопки действий** на плашке (`FloatingActions` с `tone="glass"`): лупа / тема / профиль — белые иконки (`text-white`); корзина — тот же тёмный фон, сумма белая, иконка `ShoppingCart` остаётся `text-brand`. PNG категорий на плашке: `.category-icon-glass` = `brightness(0)` (чёрные), в dark + `invert(1)` (белые). Компактная плашка (лупа/тема/корзина) — `width: max-content`, padding `6px 10px`, скругление `--r-md` как у лупы (раскрытая — `--r-2xl`); скрытые nav и теги `width: 0` (иначе строка тегов раздувает ширину слева). Раскрытая — `showAccount`: иконка `User` → `/profile` слева от лупы, тот же размер/тон.
 
 Утилита `.bg-pattern` (тайл `/pattern/back.png`, 512×341) **есть**, но витрина сейчас на сплошном `bg-canvas` — не включать паттерн без запроса (ломает совпадение с макетом).
 
@@ -367,10 +367,11 @@ Env процесса `pocketbase`:
 | FloatingField | `shared/ui/floating-field.tsx` — input с плавающей подписью |
 | IconInput | `shared/ui/icon-input.tsx` — input/textarea с иконкой слева |
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |
-| FloatingActions | `widgets/header/FloatingActions.tsx` — `tone="glass"` на плашке; `showAccount` — `User` → `/admin` |
+| FloatingActions | `widgets/header/FloatingActions.tsx` — `tone="glass"` на плашке: белые иконки лупы/темы/профиля; `tone="solid"` на баннере |
+| ThemeToggle | `features/theme-toggle/ThemeToggle.tsx` — `tone="glass"` → белая иконка на стекле |
 | StickyBar | `widgets/header/StickyBar.tsx` — стекло, категории + теги по скроллу |
 | Glass | `shared/ui/glass.tsx` — `Glass` + `GlassDefs` (фильтр преломления: `feImage` + `feTile` + `feDisplacementMap`) |
-| CartToggle | `features/cart/ui/CartToggle.tsx` — сумма заказа + «р.» слева от иконки, если `total > 0` |
+| CartToggle | `features/cart/ui/CartToggle.tsx` — сумма заказа + «р.» слева от иконки, если `total > 0`; `tone="glass"` — белая сумма, иконка brand |
 | CartDock | `features/cart/ui/CartDock.tsx` — sticky + translate-выезд |
 | Cart panel store | `features/cart/model/panel.ts` |
 | MobileTabBar | `widgets/mobile/MobileTabBar.tsx` |

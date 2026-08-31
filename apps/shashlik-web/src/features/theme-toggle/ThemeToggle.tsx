@@ -3,7 +3,14 @@ import { Moon, Sun } from "lucide-react"
 import { useTheme } from "@/app/providers/theme"
 import { cn } from "@/shared/lib/cn"
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  tone = "solid",
+}: {
+  className?: string
+  /** `glass` — кнопка на стеклянной плашке: белая иконка. */
+  tone?: "solid" | "glass"
+}) {
   const { theme, toggle } = useTheme()
   const isDark = theme === "dark"
 
@@ -13,8 +20,10 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={toggle}
       aria-label={isDark ? "Включить светлую тему" : "Включить тёмную тему"}
       className={cn(
-        "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border border-line bg-surface",
-        "text-fg-muted transition-colors hover:border-brand-border hover:text-brand",
+        "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border transition-colors",
+        tone === "glass"
+          ? "text-white hover:border-[var(--glass-btn-border)] hover:text-white"
+          : "border-line bg-surface text-fg-muted hover:border-brand-border hover:text-brand",
         className,
       )}
     >

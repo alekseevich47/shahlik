@@ -9,6 +9,8 @@ type Props = {
   total: number
   /** Задан — кнопка как ThemeToggle (pressed = колонка открыта). Иначе Sheet. */
   pressed?: boolean
+  /** `glass` — на стеклянной плашке: тёмный фон, белая сумма, иконка остаётся brand. */
+  tone?: "solid" | "glass"
   className?: string
 }
 
@@ -17,7 +19,7 @@ function formatOrderSum(value: number): { amount: string; label: string } {
   return { amount, label: `${amount}\u00a0р.` }
 }
 
-export function CartToggle({ onClick, count, total, pressed, className }: Props) {
+export function CartToggle({ onClick, count, total, pressed, tone = "solid", className }: Props) {
   const isToggle = pressed !== undefined
   const open = pressed === true
   const showSum = total > 0
@@ -37,18 +39,32 @@ export function CartToggle({ onClick, count, total, pressed, className }: Props)
       aria-pressed={isToggle ? open : undefined}
       aria-label={aria}
       className={cn(
-        "relative inline-flex h-11 cursor-pointer items-center rounded-[var(--r-md)] border border-line bg-surface shadow-[var(--shadow-card)]",
-        "text-brand transition-colors hover:border-brand-border",
+        "relative inline-flex h-11 cursor-pointer items-center rounded-[var(--r-md)] border transition-colors",
+        tone === "glass"
+          ? "text-brand shadow-none hover:border-[var(--glass-btn-border)]"
+          : "border-line bg-surface text-brand shadow-[var(--shadow-card)] hover:border-brand-border",
         className,
       )}
     >
       <span className="cart-toggle-sum" data-open={showSum ? "1" : "0"} aria-hidden={!showSum}>
         <span className="min-w-0 overflow-hidden">
           <span className="flex h-11 items-center gap-0.5 pr-0.5 pl-3 whitespace-nowrap">
-            <span className="text-[13px] leading-none font-extrabold tracking-tight text-fg tabular-nums">
+            <span
+              className={cn(
+                "text-[13px] leading-none font-extrabold tracking-tight tabular-nums",
+                tone === "glass" ? "text-white" : "text-fg",
+              )}
+            >
               {sum.amount}
             </span>
-            <span className="text-[11px] leading-none font-bold text-fg-muted">р.</span>
+            <span
+              className={cn(
+                "text-[11px] leading-none font-bold",
+                tone === "glass" ? "text-white/75" : "text-fg-muted",
+              )}
+            >
+              р.
+            </span>
           </span>
         </span>
       </span>

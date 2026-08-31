@@ -23,8 +23,11 @@ const TONE = {
   glass: "border-[var(--glass-btn-border)] bg-[var(--glass-btn)] shadow-none",
 } as const
 
-const ICON_BTN =
+const ICON_BTN_SOLID =
   "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border text-fg transition-colors hover:border-brand-border hover:text-brand"
+
+const ICON_BTN_GLASS =
+  "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border text-white transition-colors hover:border-[var(--glass-btn-border)] hover:text-white"
 
 /** Действия витрины: поиск, тема, корзина. Позиционирует вызывающий. */
 export function FloatingActions({
@@ -37,11 +40,12 @@ export function FloatingActions({
 }: Props) {
   const { count, total } = useCartTotals()
   const skin = TONE[tone]
+  const iconBtn = tone === "glass" ? ICON_BTN_GLASS : ICON_BTN_SOLID
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
       {showAccount ? (
-        <NavLink to="/profile" aria-label="Профиль" className={cn(ICON_BTN, skin)}>
+        <NavLink to="/profile" aria-label="Профиль" className={cn(iconBtn, skin)}>
           <User size={18} strokeWidth={2.4} />
         </NavLink>
       ) : null}
@@ -50,14 +54,15 @@ export function FloatingActions({
         type="button"
         onClick={onSearch}
         aria-label="Поиск по меню"
-        className={cn(ICON_BTN, skin)}
+        className={cn(iconBtn, skin)}
       >
         <Search size={18} strokeWidth={2.4} />
       </button>
 
-      <ThemeToggle className={skin} />
+      <ThemeToggle tone={tone} className={skin} />
 
       <CartToggle
+        tone={tone}
         onClick={onCart}
         count={count}
         total={total}
