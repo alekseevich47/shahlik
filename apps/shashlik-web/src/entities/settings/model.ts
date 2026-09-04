@@ -22,6 +22,10 @@ export type Settings = {
   promoTitle: string
   promoSubtitle: string
   promoCode: string
+  /** Второй промо-блок (бонус за регистрацию). */
+  promo2Title: string
+  promo2Subtitle: string
+  promo2Code: string
   acceptingOrders: boolean
   stopMessage: string
 }
@@ -95,6 +99,9 @@ export function settingsFallback(): Settings {
     promoTitle: ORDER_RULES.promo.title,
     promoSubtitle: ORDER_RULES.promo.subtitle,
     promoCode: ORDER_RULES.promo.code,
+    promo2Title: "Бонус за регистрацию",
+    promo2Subtitle: "Подарок на счёт и бонусы с каждого заказа",
+    promo2Code: "",
     acceptingOrders: true,
     stopMessage: "Сейчас заказы не принимаем",
   }

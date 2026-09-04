@@ -1,18 +1,27 @@
 import { ChevronRight, Gift } from "lucide-react"
 
-import { useSettings } from "@/entities/settings/api"
-import { settingsFallback } from "@/entities/settings/model"
 import { cn } from "@/shared/lib/cn"
 
+export type PromoBannerData = {
+  title: string
+  subtitle: string
+  code: string
+}
+
 export function PromoBanner({
+  title,
+  subtitle,
+  code,
   className,
   onClick,
-}: {
+}: PromoBannerData & {
   className?: string
   onClick?: () => void
 }) {
-  const { data: settings = settingsFallback() } = useSettings()
-  const subtitle = settings.promoSubtitle.replace(/^на /, "на ")
+  if (!title.trim()) return null
+
+  const sub = subtitle.replace(/^на /, "на ")
+  const codeTrim = code.trim()
 
   return (
     <button
@@ -26,14 +35,20 @@ export function PromoBanner({
       <Gift size={20} className="shrink-0 text-brand" strokeWidth={2.2} />
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-extrabold text-fg">
-          {settings.promoTitle} {subtitle}
+          {title} {sub}
         </span>
-        <span className="block text-[12px] text-fg-muted">
-          промокод{" "}
-          <span className="font-extrabold tracking-[0.05em] text-brand">
-            {settings.promoCode}
+        {codeTrim ? (
+          <span className="block text-[12px] text-fg-muted">
+            {/^[A-Z0-9_-]+$/i.test(codeTrim) ? (
+              <>
+                промокод{" "}
+                <span className="font-extrabold tracking-[0.05em] text-brand">{codeTrim}</span>
+              </>
+            ) : (
+              <span className="font-extrabold text-brand">{codeTrim}</span>
+            )}
           </span>
-        </span>
+        ) : null}
       </span>
       <ChevronRight size={17} className="shrink-0 text-brand" strokeWidth={2.4} />
     </button>

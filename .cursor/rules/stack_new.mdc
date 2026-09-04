@@ -196,8 +196,8 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 | Промо | код `BOSS10` → −10% от стоимости товаров |
 | Режим по умолчанию | `pickup` («Заберу сам») |
 | Заголовок панели | «Мой заказ» |
-| Бонусы в строке | справа от цены: авторизованный `(+N` + `/icons/coin.svg`)`; гость — `можно получить N` + монета. Формула: `line.total × (bonusPercent \| defaultEarnPercent)`, публичные настройки — `GET /api/bonus/public` |
-| Начислено бонусов | в `CartTotals` под «Стоимость товаров»; при списании в checkout = 0 |
+| Бонусы в строке | справа от цены: авторизованный `(+N` + монета`); гость — `можно получить N` + монета ×2. Формула: `line.total × (bonusPercent \| defaultEarnPercent)`, публичные настройки — `GET /api/bonus/public` |
+| Начислено бонусов | в `CartTotals` под «Стоимость товаров»; гость — подпись «можно получить», монета справа от числа; при списании в checkout = 0 |
 
 Оформление заказа — модалка `CheckoutDialog` (`features/checkout/ui/CheckoutDialog.tsx`), открывается из `CartPanel`. Payload — `createOrder` в коллекцию `orders`; статус — `subscribeOrderStatus` (PB realtime), без поллинга.
 
@@ -217,7 +217,9 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — только `CheckoutPromoField`.
 
-Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость через ~45 с — регистрация и подарок `registrationAmount`; авторизованный — установка приложения (`pwaInstallAmount`), «Больше не показывать» → `localStorage`. Manifest — `/manifest.webmanifest`.
+Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость — после первого добавления в корзину (VK One Tap + Яндекс), подарок `registrationAmount`; авторизованный через ~45 с — установка приложения (`pwaInstallAmount`), «Больше не показывать» → `localStorage`. Manifest — `/manifest.webmanifest`.
+
+Промо на витрине — два блока из `settings`: `promo*` (купон) и `promo2*` (регистрация). Desktop — обе карточки в `Sidebar`; mobile — два `PromoBanner` подряд. Админка «Заведение» редактирует оба.
 
 ## Витрина (home)
 
@@ -388,7 +390,7 @@ Env процесса `pocketbase`:
 | CartLineRow | `features/cart/ui/CartLineRow.tsx` — stepper + удаление; заголовок через `CartLineTitle` |
 | CartLineTitle | `features/cart/ui/CartLineTitle.tsx` — название + размер + вариант мяса |
 | CartPromo | `features/cart/ui/CartPromo.tsx` — промокод в панели корзины (раскрывающийся) |
-| CartTotals | `features/cart/ui/CartTotals.tsx` — «Начислено бонусов» + монета; «Скидка» с анимацией; prop `bonusDiscount` / `bonusEarned` |
+| CartTotals | `features/cart/ui/CartTotals.tsx` — «Начислено бонусов» / гость «можно получить»; «Скидка»; prop `bonusDiscount` / `bonusEarned` |
 | BonusEarnHint | `features/cart/ui/BonusEarnHint.tsx` — подпись (+N) / «можно получить» у строки |
 | EngagementHost | `features/engagement` — модалки регистрации и установки приложения |
 | CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |

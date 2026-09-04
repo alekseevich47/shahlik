@@ -2419,6 +2419,48 @@
         "type": "text"
       },
       {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_set_promo2_title",
+        "max": 200,
+        "min": 0,
+        "name": "promo2Title",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_set_promo2_subtitle",
+        "max": 300,
+        "min": 0,
+        "name": "promo2Subtitle",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text_set_promo2_code",
+        "max": 32,
+        "min": 0,
+        "name": "promo2Code",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
         "hidden": false,
         "id": "bool_set_accepting",
         "name": "acceptingOrders",

@@ -66,6 +66,9 @@ export function SettingsSection() {
         promoTitle: draft.promoTitle.trim(),
         promoSubtitle: draft.promoSubtitle.trim(),
         promoCode: draft.promoCode.trim().toUpperCase(),
+        promo2Title: draft.promo2Title.trim(),
+        promo2Subtitle: draft.promo2Subtitle.trim(),
+        promo2Code: draft.promo2Code.trim(),
         acceptingOrders: draft.acceptingOrders,
         stopMessage: draft.stopMessage.trim(),
       })
@@ -157,32 +160,65 @@ export function SettingsSection() {
             </Field>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Промо: заголовок">
-              <Input
-                value={draft.promoTitle}
-                onChange={(e) => patch("promoTitle", e.target.value)}
-                maxLength={200}
-                disabled={busy}
-              />
-            </Field>
-            <Field label="Промо: код (баннер)">
-              <Input
-                value={draft.promoCode}
-                onChange={(e) => patch("promoCode", e.target.value.toUpperCase())}
-                maxLength={32}
-                disabled={busy}
-                className="tracking-[0.06em]"
-              />
-            </Field>
-            <Field label="Промо: подзаголовок" className="sm:col-span-2">
-              <Input
-                value={draft.promoSubtitle}
-                onChange={(e) => patch("promoSubtitle", e.target.value)}
-                maxLength={300}
-                disabled={busy}
-              />
-            </Field>
+          <div className="flex flex-col gap-3 rounded-[var(--r-md)] border border-line bg-surface-2 p-3">
+            <p className="text-[13px] font-extrabold text-fg">Промо 1 (купон)</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Заголовок">
+                <Input
+                  value={draft.promoTitle}
+                  onChange={(e) => patch("promoTitle", e.target.value)}
+                  maxLength={200}
+                  disabled={busy}
+                />
+              </Field>
+              <Field label="Код (баннер)">
+                <Input
+                  value={draft.promoCode}
+                  onChange={(e) => patch("promoCode", e.target.value.toUpperCase())}
+                  maxLength={32}
+                  disabled={busy}
+                  className="tracking-[0.06em]"
+                />
+              </Field>
+              <Field label="Подзаголовок" className="sm:col-span-2">
+                <Input
+                  value={draft.promoSubtitle}
+                  onChange={(e) => patch("promoSubtitle", e.target.value)}
+                  maxLength={300}
+                  disabled={busy}
+                />
+              </Field>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-[var(--r-md)] border border-line bg-surface-2 p-3">
+            <p className="text-[13px] font-extrabold text-fg">Промо 2 (регистрация)</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Заголовок">
+                <Input
+                  value={draft.promo2Title}
+                  onChange={(e) => patch("promo2Title", e.target.value)}
+                  maxLength={200}
+                  disabled={busy}
+                />
+              </Field>
+              <Field label="Код / бейдж" hint="Пусто — бейдж скрыт">
+                <Input
+                  value={draft.promo2Code}
+                  onChange={(e) => patch("promo2Code", e.target.value)}
+                  maxLength={32}
+                  disabled={busy}
+                />
+              </Field>
+              <Field label="Подзаголовок" className="sm:col-span-2">
+                <Input
+                  value={draft.promo2Subtitle}
+                  onChange={(e) => patch("promo2Subtitle", e.target.value)}
+                  maxLength={300}
+                  disabled={busy}
+                />
+              </Field>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 rounded-[var(--r-md)] border border-line bg-surface-2 px-4 py-3">

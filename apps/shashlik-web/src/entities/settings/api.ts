@@ -36,6 +36,9 @@ type SettingsRecord = {
   promoTitle?: string
   promoSubtitle?: string
   promoCode?: string
+  promo2Title?: string
+  promo2Subtitle?: string
+  promo2Code?: string
   acceptingOrders?: boolean
   stopMessage?: string
 }
@@ -165,6 +168,9 @@ function mapSettings(record: SettingsRecord): Settings {
     promoTitle: record.promoTitle || fallback.promoTitle,
     promoSubtitle: record.promoSubtitle || fallback.promoSubtitle,
     promoCode: record.promoCode || fallback.promoCode,
+    promo2Title: record.promo2Title || fallback.promo2Title,
+    promo2Subtitle: record.promo2Subtitle || fallback.promo2Subtitle,
+    promo2Code: record.promo2Code ?? fallback.promo2Code,
     acceptingOrders: record.acceptingOrders ?? fallback.acceptingOrders,
     stopMessage: record.stopMessage || fallback.stopMessage,
   }

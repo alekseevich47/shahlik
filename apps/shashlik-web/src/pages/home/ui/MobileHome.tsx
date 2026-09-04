@@ -1,11 +1,15 @@
 import { ChevronRight } from "lucide-react"
 import { useCallback, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 
-import type { Product } from "@/entities/product/model"
-import type { TagFilterId } from "@/entities/tag/model"
-import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
+import { useAccount } from "@/entities/account/api"
 import { useCategories } from "@/entities/category/api"
 import { useProducts } from "@/entities/product/api"
+import type { Product } from "@/entities/product/model"
+import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
+import { useSettings } from "@/entities/settings/api"
+import { settingsFallback } from "@/entities/settings/model"
+import type { TagFilterId } from "@/entities/tag/model"
 import { useAddProduct } from "@/features/cart/lib/useAddProduct"
 import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
 import { TagFilters } from "@/widgets/catalog/TagFilters"
@@ -33,6 +37,9 @@ export function MobileHome({
   items,
 }: Props) {
   const addProduct = useAddProduct()
+  const navigate = useNavigate()
+  const account = useAccount()
+  const { data: settings = settingsFallback() } = useSettings()
   const { data: categories = [] } = useCategories()
   const { data: products = [] } = useProducts()
   const catalog = products.filter((p) => p.active)
@@ -64,7 +71,17 @@ export function MobileHome({
 
       <ScrollSection title="Популярное" items={popular} onAdd={addProduct} />
 
-      <PromoBanner />
+      <PromoBanner
+        title={settings.promoTitle}
+        subtitle={settings.promoSubtitle}
+        code={settings.promoCode}
+      />
+      <PromoBanner
+        title={settings.promo2Title}
+        subtitle={settings.promo2Subtitle}
+        code={settings.promo2Code}
+        onClick={account ? undefined : () => navigate("/profile")}
+      />
 
       {combo.length ? (
         <ScrollSection title="Комбо" items={combo} onAdd={addProduct} />

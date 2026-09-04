@@ -18,6 +18,52 @@ type SidebarProps = {
   className?: string
 }
 
+function SidebarPromoCard({
+  title,
+  subtitle,
+  code,
+  onClick,
+}: {
+  title: string
+  subtitle: string
+  code: string
+  onClick?: () => void
+}) {
+  if (!title.trim()) return null
+  const codeTrim = code.trim()
+
+  const body = (
+    <>
+      <div className="mb-1 flex items-center gap-1.5">
+        <Gift size={14} className="text-brand" strokeWidth={2.6} />
+        <span className="text-[12px] leading-none font-extrabold text-brand">{title}</span>
+      </div>
+      {subtitle.trim() ? (
+        <p className="text-[10.5px] leading-[1.45] text-fg-muted">{subtitle}</p>
+      ) : null}
+      {codeTrim ? (
+        <div className="mt-2 grid h-7 place-items-center rounded-[var(--r-xs)] bg-surface text-[11px] font-extrabold tracking-[0.06em] text-brand">
+          {codeTrim}
+        </div>
+      ) : null}
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full cursor-pointer rounded-[var(--r-lg)] bg-brand-soft p-3 text-left transition-opacity hover:opacity-90"
+      >
+        {body}
+      </button>
+    )
+  }
+
+  return <div className="rounded-[var(--r-lg)] bg-brand-soft p-3">{body}</div>
+}
+
 /**
  * Левая навигационная колонка витрины. Сам `aside` остаётся sticky, съезд —
  * на внутреннем `.nav-dock`: transform на sticky-боксе срывает прилипание.
@@ -78,20 +124,17 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
         </nav>
 
         <div className="mt-auto flex flex-col gap-2.5">
-          <div className="rounded-[var(--r-lg)] bg-brand-soft p-3">
-            <div className="mb-1 flex items-center gap-1.5">
-              <Gift size={14} className="text-brand" strokeWidth={2.6} />
-              <span className="text-[12px] leading-none font-extrabold text-brand">
-                {settings.promoTitle}
-              </span>
-            </div>
-            <p className="text-[10.5px] leading-[1.45] text-fg-muted">
-              {settings.promoSubtitle}
-            </p>
-            <div className="mt-2 grid h-7 place-items-center rounded-[var(--r-xs)] bg-surface text-[11px] font-extrabold tracking-[0.06em] text-brand">
-              {settings.promoCode}
-            </div>
-          </div>
+          <SidebarPromoCard
+            title={settings.promoTitle}
+            subtitle={settings.promoSubtitle}
+            code={settings.promoCode}
+          />
+          <SidebarPromoCard
+            title={settings.promo2Title}
+            subtitle={settings.promo2Subtitle}
+            code={settings.promo2Code}
+            onClick={account ? undefined : () => navigate("/profile")}
+          />
 
           <NavLink
             to="/profile"

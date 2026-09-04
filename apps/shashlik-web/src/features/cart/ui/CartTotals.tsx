@@ -1,8 +1,9 @@
-import { useCartTotals } from "@/features/cart/model/selectors"
-import { useCartStore } from "@/features/cart/model/store"
+import { useAccount } from "@/entities/account/api"
 import { usePublicBonusSettings } from "@/entities/bonus/api"
 import { calcCartEarn } from "@/entities/bonus/lib/earn"
 import { publicBonusSettingsFallback } from "@/entities/bonus/model"
+import { useCartTotals } from "@/features/cart/model/selectors"
+import { useCartStore } from "@/features/cart/model/store"
 import { formatPrice } from "@/shared/lib/format"
 import { cn } from "@/shared/lib/cn"
 import { CoinIcon } from "@/shared/ui/coin-icon"
@@ -14,7 +15,7 @@ type CartTotalsProps = {
   bonusDiscount?: number
   /** Превью начисления; при списании — 0. */
   bonusEarned?: number
-  /** Показать строку «Начислено бонусов». */
+  /** Показать строку бонусов. */
   showBonusEarn?: boolean
   className?: string
 }
@@ -28,11 +29,13 @@ export function CartTotals({
   const { lines, goods, deliveryFee, discount, freeDeliveryLeft, minOrder, acceptingOrders, stopMessage } =
     useCartTotals()
   const mode = useCartStore((s) => s.mode)
+  const user = useAccount()
   const { data: bonusSettings = publicBonusSettingsFallback() } = usePublicBonusSettings()
   const empty = lines.length === 0
   const belowMinOrder = minOrder > 0 && goods < minOrder
   const totalDiscount = discount + bonusDiscount
   const showDiscount = totalDiscount > 0
+  const isGuest = !user
 
   const earnedPreview =
     bonusEarned !== undefined
@@ -52,11 +55,17 @@ export function CartTotals({
       <SumRow label="Стоимость товаров" value={formatPrice(goods)} />
       {showBonusEarn && bonusSettings.enabled && earnedPreview > 0 ? (
         <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1 text-[12px] text-fg-muted">
-            Начислено бонусов
-            <CoinIcon className="size-3.5 opacity-80" />
+          <span className="text-[12px] text-fg-muted">
+            {isGuest ? "можно получить" : "Начислено бонусов"}
           </span>
-          <span className="text-[12px] font-bold text-fg tabular-nums">+{earnedPreview}</span>
+          {isGuest ? (
+            <span className="inline-flex items-center gap-1 text-[12px] font-bold text-fg tabular-nums">
+              {earnedPreview}
+              <CoinIcon className="size-3.5 opacity-80" />
+            </span>
+          ) : (
+            <span className="text-[12px] font-bold text-fg tabular-nums">+{earnedPreview}</span>
+          )}
         </div>
       ) : null}
       <div
