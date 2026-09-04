@@ -320,8 +320,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/DesktopHome.tsx": {
-    "mtime": 1787493304.966722,
-    "ast_hash": "4ef46387412b09e9675466a1d3ddf937",
+    "mtime": 1788155235.9029949,
+    "ast_hash": "f9dbe46773b6e17bc4b468ff168fda3c",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/MobileHome.tsx": {

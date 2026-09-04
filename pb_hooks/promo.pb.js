@@ -13,6 +13,15 @@ routerAdd("POST", "/api/promo/check", function (e) {
     // ignore
   }
 
-  var result = order.checkPromo(body.code, body.goods)
+  var userId = ""
+  try {
+    if (e.auth && e.auth.collection().name === "app_users") {
+      userId = e.auth.id
+    }
+  } catch (err) {
+    userId = ""
+  }
+
+  var result = order.checkPromo(body.code, body.goods, userId)
   return e.json(200, result)
 })

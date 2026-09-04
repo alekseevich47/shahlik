@@ -89,8 +89,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     spendBonus && bonus && bonus.score > 0
       ? Math.min(bonus.score, Math.max(goods - discount, 0))
       : 0
-  const totalDiscount = discount + bonusDiscount
-  const checkoutTotal = Math.max(goods + packFee + deliveryFee - totalDiscount, 0)
+  const checkoutTotal = Math.max(goods + packFee + deliveryFee - discount - bonusDiscount, 0)
   const isNewAddress =
     addressId === NEW_ADDRESS || !user?.addresses.length
 
@@ -153,9 +152,10 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
       goods,
       packFee,
       deliveryFee,
-      discount: totalDiscount,
+      discount,
       total: checkoutTotal,
       couponCode: appliedCoupon?.code ?? null,
+      spendBonus,
       lines: lines.map((line) => ({
         productId: line.product.id,
         variantId: line.line.variantId,
@@ -245,7 +245,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     setPhone,
     total: checkoutTotal,
     bonusDiscount,
-    totalDiscount,
+    totalDiscount: discount + bonusDiscount,
     blocked,
     pending: createOrder.isPending,
     addressId,

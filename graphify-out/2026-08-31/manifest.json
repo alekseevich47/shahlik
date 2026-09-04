@@ -245,8 +245,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/theme-toggle/ThemeToggle.tsx": {
-    "mtime": 1786987893.191987,
-    "ast_hash": "a40b97fdc70690e7e0de774e37989f37",
+    "mtime": 1788152464.5608423,
+    "ast_hash": "df4e00a156d3c36acaace533750098e2",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/main.tsx": {
@@ -430,8 +430,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/header/FloatingActions.tsx": {
-    "mtime": 1787572357.603217,
-    "ast_hash": "8523ec96e9c614844df33315de72fcf1",
+    "mtime": 1788152460.7718375,
+    "ast_hash": "fef2c88a6edbde233586ad60557f4c6c",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/hero/HeroBanner.tsx": {
@@ -635,8 +635,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/cart/ui/CartToggle.tsx": {
-    "mtime": 1787068405.8621163,
-    "ast_hash": "8ad518816b8abe9fce079cc94c2bf5b7",
+    "mtime": 1788152473.5434322,
+    "ast_hash": "3392051e9f74aea8389d24f231ec0741",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/NutritionHint.tsx": {

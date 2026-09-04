@@ -37,6 +37,7 @@ type ProductRecord = {
   rating: ProductRating
   order: number
   active: boolean
+  bonusPercent?: number | null
   stats: Product["stats"]
   created: string
   updated: string
@@ -88,6 +89,10 @@ function mapProduct(record: ProductRecord): Product {
     rating: mapRating(record.rating),
     order: record.order,
     active: record.active,
+    bonusPercent:
+      record.bonusPercent === undefined || record.bonusPercent === null
+        ? null
+        : Number(record.bonusPercent),
     createdAt: record.created,
     updatedAt: record.updated,
     stats: record.stats ?? { views: 0, addedToCart: 0, orders: 0, revenue: 0 },
@@ -236,6 +241,7 @@ export type UpdateProductInput = {
   rating?: ProductRating
   order?: number
   active?: boolean
+  bonusPercent?: number | null
   /** Новые файлы — дозапись через `image+` (PB ≥0.23; голый `image` затирает). */
   image?: File | File[] | null
   /** Имена файлов PB для удаления (`image-`). */
@@ -316,6 +322,9 @@ async function updateBody(input: UpdateProductInput): Promise<Record<string, unk
     rating: input.rating,
     order: input.order,
     active: input.active,
+  }
+  if (input.bonusPercent !== undefined) {
+    payload.bonusPercent = input.bonusPercent
   }
   // PB ≥0.23: ключ `image` заменяет multi-file; `image+` дозаписывает.
   if (input.image !== undefined && input.image !== null) {

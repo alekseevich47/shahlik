@@ -1,3 +1,5 @@
+import { LazyMotion } from "motion/react"
+import * as m from "motion/react-m"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import type { Product } from "@/entities/product/model"
@@ -19,6 +21,11 @@ import { TagFilters } from "@/widgets/catalog/TagFilters"
 import { groupProductsByCategory } from "../lib/groupByCategory"
 import { useCatalogScrollSpy } from "../lib/useCatalogScrollSpy"
 import { CatalogCategorySection } from "./CatalogCategorySection"
+
+const loadDomMax = () => import("@/app/motion-features-max").then((mod) => mod.default)
+
+/** Синхрон с `--ease-out-soft` и треком корзины 0.55s. */
+const GRID_LAYOUT_TRANSITION = { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }
 
 /** Маяк действий пропал под верхом плашки → плашка выезжает. */
 const ACTIONS_MARGIN = `-${STICKY_BAR.top}px 0px 0px 0px`
@@ -136,18 +143,11 @@ export function DesktopHome({
             {items.length === 0 ? (
               <EmptyCategory />
             ) : (
-              <div className="flex flex-col gap-8">
-                {sections.map(({ category: section, items: sectionItems }) => (
-                  <CatalogCategorySection
-                    key={section.id}
-                    categoryId={section.id}
-                    title={section.name}
-                    headingClassName="mb-3 text-[18px] font-extrabold text-fg"
-                  >
-                    <ProductGrid items={sectionItems} onAdd={addProduct} />
-                  </CatalogCategorySection>
-                ))}
-              </div>
+              <CatalogSections
+                sections={sections}
+                onAdd={addProduct}
+                layout={wide}
+              />
             )}
           </section>
         </main>
@@ -158,12 +158,66 @@ export function DesktopHome({
   )
 }
 
-function ProductGrid({ items, onAdd }: { items: Product[]; onAdd: (product: Product) => void }) {
-  return (
-    <div className="grid grid-cols-2 xl:grid-cols-3" style={{ gap: "var(--catalog-gap)" }}>
-      {items.map((product) => (
-        <ProductCard key={product.id} product={product} onAdd={onAdd} />
+type CatalogSection = ReturnType<typeof groupProductsByCategory>[number]
+
+function CatalogSections({
+  sections,
+  onAdd,
+  layout,
+}: {
+  sections: CatalogSection[]
+  onAdd: (product: Product) => void
+  layout: boolean
+}) {
+  const content = (
+    <div className="flex flex-col gap-8">
+      {sections.map(({ category: section, items: sectionItems }) => (
+        <CatalogCategorySection
+          key={section.id}
+          categoryId={section.id}
+          title={section.name}
+          headingClassName="mb-3 text-[18px] font-extrabold text-fg"
+        >
+          <ProductGrid items={sectionItems} onAdd={onAdd} layout={layout} />
+        </CatalogCategorySection>
       ))}
+    </div>
+  )
+
+  if (!layout) return content
+
+  return (
+    <LazyMotion features={loadDomMax} strict>
+      {content}
+    </LazyMotion>
+  )
+}
+
+function ProductGrid({
+  items,
+  onAdd,
+  layout,
+}: {
+  items: Product[]
+  onAdd: (product: Product) => void
+  layout: boolean
+}) {
+  return (
+    <div className="product-grid">
+      {items.map((product) =>
+        layout ? (
+          <m.div
+            key={product.id}
+            layout="position"
+            layoutScroll
+            transition={GRID_LAYOUT_TRANSITION}
+          >
+            <ProductCard product={product} onAdd={onAdd} />
+          </m.div>
+        ) : (
+          <ProductCard key={product.id} product={product} onAdd={onAdd} />
+        ),
+      )}
     </div>
   )
 }

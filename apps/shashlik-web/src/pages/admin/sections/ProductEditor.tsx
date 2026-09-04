@@ -142,6 +142,9 @@ export function ProductEditor({ product, onBack }: Props) {
   const [variants, setVariants] = useState<ProductVariant[]>(product.variants)
   const [sizes, setSizes] = useState<ProductSize[]>(product.sizes)
   const [active, setActive] = useState(product.active)
+  const [bonusPercent, setBonusPercent] = useState(
+    product.bonusPercent == null ? "" : String(product.bonusPercent),
+  )
   const [photoItems, setPhotoItems] = useState<MultiImageItem[]>(() => imagesFromProduct(product))
   const [initialFilenames, setInitialFilenames] = useState(product.imageFilenames)
   const [criteria, setCriteria] = useState(product.rating.criteria)
@@ -164,6 +167,7 @@ export function ProductEditor({ product, onBack }: Props) {
     setVariants(product.variants)
     setSizes(product.sizes)
     setActive(product.active)
+    setBonusPercent(product.bonusPercent == null ? "" : String(product.bonusPercent))
     setPhotoItems(imagesFromProduct(product))
     setInitialFilenames(product.imageFilenames)
     setCriteria(product.rating.criteria)
@@ -334,6 +338,9 @@ export function ProductEditor({ product, onBack }: Props) {
           variants: normalizedVariants,
           sizes: cleanedSizes,
           active,
+          bonusPercent: bonusPercent.trim()
+            ? Number(bonusPercent.replace(",", "."))
+            : null,
           rating: { ...product.rating, criteria },
           ...(files.length ? { image: files.length === 1 ? files[0] : files } : {}),
           ...(remove.length ? { imageRemove: remove } : {}),
@@ -548,6 +555,17 @@ export function ProductEditor({ product, onBack }: Props) {
                   value={tagline}
                   onChange={(e) => setTagline(e.target.value)}
                   disabled={busy}
+                />
+              </Field>
+
+              <Field label="Бонус, %" hint="пусто = из настроек бонусов">
+                <Input
+                  value={bonusPercent}
+                  onChange={(e) => setBonusPercent(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="по умолчанию"
+                  disabled={busy}
+                  className="tabular-nums"
                 />
               </Field>
 

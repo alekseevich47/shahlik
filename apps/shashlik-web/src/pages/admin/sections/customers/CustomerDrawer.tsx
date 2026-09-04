@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { useCustomer, useUpdateCustomer } from "@/entities/customer/api"
+import { useAdjustBonus, useCustomerLedger } from "@/entities/bonus/api"
+import { BONUS_REASON_LABEL } from "@/entities/bonus/model"
 import {
   CUSTOMER_FIELD_LIMITS,
   type Customer,
@@ -33,7 +35,6 @@ type FormState = {
   apart: string
   card: string
   sale: string
-  score: string
   comment: string
   blocked: boolean
 }
@@ -48,7 +49,6 @@ function toForm(c: Customer): FormState {
     apart: c.apart,
     card: c.card,
     sale: String(c.sale || 0),
-    score: String(c.score || 0),
     comment: c.comment,
     blocked: c.blocked,
   }
@@ -68,6 +68,7 @@ export function CustomerDrawer({ customer: seed, open, onOpenChange }: Props) {
   const { data: live } = useCustomer(seed?.id ?? "")
   const customer = live ?? seed
   const update = useUpdateCustomer()
+  const adjustBonus = useAdjustBonus()
   const { data: ordersPage, isPending: ordersPending } = useOrdersPage(
     {
       page: 1,
@@ -76,15 +77,25 @@ export function CustomerDrawer({ customer: seed, open, onOpenChange }: Props) {
     },
     open && Boolean(customer?.id),
   )
+  const { data: ledger = [], isPending: ledgerPending } = useCustomerLedger(
+    customer?.id ?? "",
+    open && Boolean(customer?.id),
+  )
 
   const [form, setForm] = useState<FormState | null>(null)
+  const [bonusDelta, setBonusDelta] = useState("")
+  const [bonusComment, setBonusComment] = useState("")
 
   useEffect(() => {
     if (customer && open) setForm(toForm(customer))
-    if (!open) setForm(null)
+    if (!open) {
+      setForm(null)
+      setBonusDelta("")
+      setBonusComment("")
+    }
   }, [customer, open])
 
-  const busy = update.isPending
+  const busy = update.isPending || adjustBonus.isPending
   const orders = ordersPage?.items ?? []
 
   const set =
@@ -105,13 +116,8 @@ export function CustomerDrawer({ customer: seed, open, onOpenChange }: Props) {
     }
 
     const sale = parseNonNeg(form.sale)
-    const score = parseNonNeg(form.score)
     if (sale == null || sale > 100) {
       toast.error("Скидка — число 0–100")
-      return
-    }
-    if (score == null) {
-      toast.error("Баллы — неотрицательное число")
       return
     }
 
@@ -127,7 +133,6 @@ export function CustomerDrawer({ customer: seed, open, onOpenChange }: Props) {
           apart: form.apart.trim().slice(0, CUSTOMER_FIELD_LIMITS.apart),
           card: form.card.trim(),
           sale,
-          score,
           comment: form.comment.trim().slice(0, CUSTOMER_FIELD_LIMITS.comment),
           blocked: form.blocked,
         },
@@ -135,6 +140,27 @@ export function CustomerDrawer({ customer: seed, open, onOpenChange }: Props) {
       toast.success("Сохранено")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Не удалось сохранить")
+    }
+  }
+
+  const handleBonusAdjust = async () => {
+    if (!customer) return
+    const delta = Number(bonusDelta.replace(",", "."))
+    if (!Number.isFinite(delta) || delta === 0) {
+      toast.error("Укажите дельту ≠ 0")
+      return
+    }
+    try {
+      const result = await adjustBonus.mutateAsync({
+        customerId: customer.id,
+        delta: Math.round(delta),
+        comment: bonusComment.trim() || undefined,
+      })
+      toast.success(`Баланс: ${result.score}`)
+      setBonusDelta("")
+      setBonusComment("")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось изменить бонусы")
     }
   }
 
@@ -258,15 +284,73 @@ export function CustomerDrawer({ customer: seed, open, onOpenChange }: Props) {
                       onChange={(e) => set("sale")(e.target.value)}
                     />
                   </Field>
-                  <Field label="Баллы">
+                  <Field label="Баллы (ledger)">
                     <Input
-                      value={form.score}
+                      value={String(customer.score || 0)}
+                      disabled
+                      className="tabular-nums"
+                      readOnly
+                    />
+                  </Field>
+                </div>
+
+                <div className="rounded-[var(--r-sm)] border border-line bg-surface-2 p-3">
+                  <p className="text-[12px] font-bold text-fg">Начислить / списать</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                    <Input
+                      value={bonusDelta}
+                      onChange={(e) => setBonusDelta(e.target.value)}
+                      placeholder="+100 / -50"
                       inputMode="decimal"
                       disabled={busy}
                       className="tabular-nums"
-                      onChange={(e) => set("score")(e.target.value)}
                     />
-                  </Field>
+                    <Input
+                      value={bonusComment}
+                      onChange={(e) => setBonusComment(e.target.value)}
+                      placeholder="Комментарий"
+                      disabled={busy}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => void handleBonusAdjust()}
+                    >
+                      OK
+                    </Button>
+                  </div>
+                  <div className="mt-3 max-h-40 overflow-y-auto">
+                    {ledgerPending ? (
+                      <p className="text-[12px] text-fg-muted">История…</p>
+                    ) : !ledger.length ? (
+                      <p className="text-[12px] text-fg-muted">Проводок нет</p>
+                    ) : (
+                      <ul className="flex flex-col gap-1">
+                        {ledger.map((row) => (
+                          <li
+                            key={row.id}
+                            className="flex items-center justify-between gap-2 text-[11.5px]"
+                          >
+                            <span className="text-fg-muted">
+                              {BONUS_REASON_LABEL[row.reason] ?? row.reason} ·{" "}
+                              {formatDateTime(row.created)}
+                            </span>
+                            <span
+                              className={
+                                row.delta >= 0
+                                  ? "tabular-nums font-bold text-success"
+                                  : "tabular-nums font-bold text-fg"
+                              }
+                            >
+                              {row.delta >= 0 ? "+" : ""}
+                              {row.delta}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 <Field label="Комментарий">
                   <Textarea

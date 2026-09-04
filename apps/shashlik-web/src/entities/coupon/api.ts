@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { collectionMutations, pbErrorMessage } from "@/shared/api/crud"
 import { pb } from "@/shared/api/pb"
+import { pbClient } from "@/shared/api/pb-client"
 
 import type { Coupon, CouponKind } from "./model"
 
@@ -18,6 +19,7 @@ type CouponRecord = {
   perCustomer?: number
   uses?: number
   active?: boolean
+  targetUserId?: string | null
   created: string
 }
 
@@ -32,6 +34,7 @@ export type CreateCouponInput = {
   usesLimit?: number
   perCustomer?: number
   active?: boolean
+  targetUserId?: string | null
 }
 
 export type UpdateCouponInput = Partial<CreateCouponInput>
@@ -41,6 +44,7 @@ export type PromoCheckOk = {
   kind: CouponKind
   value: number
   discount: number
+  bonusValue?: number
   message?: string
 }
 
@@ -65,6 +69,7 @@ function mapCoupon(record: CouponRecord): Coupon {
     perCustomer: record.perCustomer ?? 0,
     uses: record.uses ?? 0,
     active: Boolean(record.active),
+    targetUserId: record.targetUserId ?? null,
     createdAt: record.created,
   }
 }
@@ -114,10 +119,10 @@ export function useDeleteCoupon() {
   return couponMutations.useRemove()
 }
 
-/** Публичная проверка кода — без выдачи списка купонов. */
+/** Публичная проверка кода — без выдачи списка купонов. Auth клиента — для персональных кодов. */
 export async function checkPromo(code: string, goods: number): Promise<PromoCheckResult> {
   try {
-    const result = await pb.send<PromoCheckResult>("/api/promo/check", {
+    const result = await pbClient.send<PromoCheckResult>("/api/promo/check", {
       method: "POST",
       body: { code: code.trim().toUpperCase(), goods },
     })

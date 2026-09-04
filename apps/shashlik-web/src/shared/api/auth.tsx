@@ -18,6 +18,8 @@ export type StaffSection =
   | "customers"
   | "staff"
   | "coupons"
+  | "bonuses"
+  | "logs"
   | "settings"
 
 export type AdminAuth = {

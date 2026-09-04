@@ -59,6 +59,8 @@ export type Order = {
   packFee?: number
   deliveryFee?: number
   discount?: number
+  bonusSpent?: number
+  bonusEarned?: number
   total: number
   couponCode?: string
   comment?: string

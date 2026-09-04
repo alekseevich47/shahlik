@@ -78,6 +78,8 @@ export function mapAppUser(record: RecordModel): AppUser {
     addresses: mapAddresses(record.addresses),
     customerId: asId(record.customerId),
     blocked: Boolean(record.blocked),
+    referralCode: asString(record.referralCode) || undefined,
+    referredBy: asId(record.referredBy),
   }
 }
 
@@ -410,6 +412,15 @@ type BonusResponse = {
   score?: number
   sale?: number
   card?: string
+  referralCode?: string
+  referredBy?: string
+  history?: Array<{
+    id?: string
+    delta?: number
+    balanceAfter?: number
+    reason?: string
+    created?: string
+  }>
 }
 
 export async function fetchBonus(): Promise<ProfileBonus> {
@@ -418,18 +429,42 @@ export async function fetchBonus(): Promise<ProfileBonus> {
     score: Number(data.score) || 0,
     sale: Number(data.sale) || 0,
     card: String(data.card ?? ""),
+    referralCode: data.referralCode ? String(data.referralCode) : undefined,
+    referredBy: data.referredBy ? String(data.referredBy) : undefined,
+    history: Array.isArray(data.history)
+      ? data.history.map((row) => ({
+          id: String(row.id ?? ""),
+          delta: Number(row.delta) || 0,
+          balanceAfter: Number(row.balanceAfter) || 0,
+          reason: String(row.reason ?? ""),
+          created: String(row.created ?? ""),
+        }))
+      : [],
   }
 }
 
-/** Баллы из кассы; кэш 60 с совпадает с серверным, чтобы не дёргать get_client. */
+/** Свой баланс (ledger); без запроса в кассу. */
 export function useProfileBonus(enabled: boolean) {
   return useQuery({
     queryKey: accountKeys.bonus,
     queryFn: fetchBonus,
     enabled,
-    staleTime: 60_000,
+    staleTime: 15_000,
     retry: false,
   })
+}
+
+export async function submitReferral(code: string): Promise<void> {
+  await pbClient.send("/api/profile/referral", {
+    method: "POST",
+    body: { code },
+  })
+  void queryClient.invalidateQueries({ queryKey: accountKeys.bonus })
+}
+
+/** Заглушка под PWA: идемпотентное событие начисления. */
+export async function claimPwaInstallBonus(): Promise<{ ok: boolean; reason?: string }> {
+  return pbClient.send("/api/bonus/events/pwa-install", { method: "POST" })
 }
 
 /** Привязка телефона к customers + userId у прошлых заказов. */

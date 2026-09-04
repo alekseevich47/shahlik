@@ -1,15 +1,17 @@
 import {
-  Contact,
+  Gift,
   Image,
   LayoutDashboard,
   ListOrdered,
   MessageSquare,
   Package,
   PlusSquare,
+  ScrollText,
   Settings,
   Star,
   TicketPercent,
   Users,
+  Contact,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -24,6 +26,8 @@ export type AdminSectionId =
   | "customers"
   | "staff"
   | "coupons"
+  | "bonuses"
+  | "logs"
   | "settings"
 
 export type AdminRole = "admin" | "manager"
@@ -48,6 +52,8 @@ export const ADMIN_NAV: ReadonlyArray<AdminNavItem> = [
   { id: "reviews", path: "reviews", label: "Отзывы", icon: MessageSquare, role: "manager" },
   { id: "customers", path: "customers", label: "Клиенты", icon: Contact, role: "manager" },
   { id: "coupons", path: "coupons", label: "Купоны", icon: TicketPercent, role: "admin" },
+  { id: "bonuses", path: "bonuses", label: "Бонусы", icon: Gift, role: "admin" },
+  { id: "logs", path: "logs", label: "Журнал", icon: ScrollText, role: "admin" },
   { id: "staff", path: "staff", label: "Сотрудники", icon: Users, role: "admin" },
   { id: "settings", path: "settings", label: "Настройки", icon: Settings, role: "admin" },
 ]

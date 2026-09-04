@@ -10,6 +10,7 @@ import {
   setDefaultAddress,
   updateAccount,
   useProfileBonus,
+  submitReferral,
 } from "@/entities/account/api"
 import type { AppUser, NewSavedAddress, SavedAddress } from "@/entities/account/model"
 import { useMyOrders } from "@/entities/order/api"
@@ -514,6 +515,8 @@ function AddressCard({
 
 function BonusTab() {
   const { data, isLoading, isError, error, refetch, isFetching } = useProfileBonus(true)
+  const [referralInput, setReferralInput] = useState("")
+  const [referralBusy, setReferralBusy] = useState(false)
 
   if (isLoading) return <LoadingBlock />
   if (isError) {
@@ -534,19 +537,89 @@ function BonusTab() {
     )
   }
 
+  async function applyReferral() {
+    const code = referralInput.trim().toUpperCase()
+    if (code.length < 6) {
+      toast.error("Введите код")
+      return
+    }
+    setReferralBusy(true)
+    try {
+      await submitReferral(code)
+      toast.success("Реферальный код принят")
+      setReferralInput("")
+      void refetch()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось применить код")
+    } finally {
+      setReferralBusy(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--r-xl)] border border-line bg-surface p-5">
-      <p className="text-[12px] font-semibold text-fg-muted">Баллы на карте</p>
-      <p className="mt-1 text-[36px] leading-none font-extrabold tabular-nums text-fg">
-        {data?.score ?? 0}
-      </p>
-      {(data?.sale ?? 0) > 0 ? (
-        <p className="mt-3 text-[13px] font-semibold text-brand">Скидка {data?.sale}%</p>
+    <div className="flex flex-col gap-4">
+      <div className="rounded-[var(--r-xl)] border border-line bg-surface p-5">
+        <p className="text-[12px] font-semibold text-fg-muted">Мои бонусы</p>
+        <p className="mt-1 text-[36px] leading-none font-extrabold tabular-nums text-fg">
+          {data?.score ?? 0}
+        </p>
+        {data?.referralCode ? (
+          <p className="mt-4 text-[13px] text-fg-muted">
+            Ваш код:{" "}
+            <span className="font-extrabold tracking-wide text-fg">{data.referralCode}</span>
+          </p>
+        ) : null}
+      </div>
+
+      {!data?.referredBy ? (
+        <div className="rounded-[var(--r-xl)] border border-line bg-surface p-5">
+          <p className="text-[13px] font-bold text-fg">Реферальный код друга</p>
+          <div className="mt-3 flex gap-2">
+            <Input
+              value={referralInput}
+              onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+              placeholder="ABCDEFGH"
+              maxLength={12}
+              disabled={referralBusy}
+            />
+            <Button
+              type="button"
+              variant="soft"
+              disabled={referralBusy}
+              onClick={() => void applyReferral()}
+            >
+              Применить
+            </Button>
+          </div>
+        </div>
       ) : null}
-      {data?.card ? (
-        <p className="mt-2 text-[12px] text-fg-muted">Карта {data.card}</p>
-      ) : null}
-      <p className="mt-4 text-[11px] text-fg-faint">Данные из кассы, обновляются не чаще раза в минуту</p>
+
+      <div className="rounded-[var(--r-xl)] border border-line bg-surface p-5">
+        <p className="text-[12px] font-bold tracking-wide text-fg-faint uppercase">История</p>
+        {!data?.history?.length ? (
+          <p className="mt-3 text-[13px] text-fg-muted">Пока пусто</p>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-2">
+            {data.history.map((row) => (
+              <li key={row.id} className="flex items-center justify-between gap-2 text-[13px]">
+                <span className="text-fg-muted">
+                  {row.reason} · {formatDateTime(row.created)}
+                </span>
+                <span
+                  className={
+                    row.delta >= 0
+                      ? "tabular-nums font-bold text-success"
+                      : "tabular-nums font-bold text-fg"
+                  }
+                >
+                  {row.delta >= 0 ? "+" : ""}
+                  {row.delta}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

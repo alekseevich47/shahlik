@@ -224,7 +224,7 @@ Desktop (`DesktopHome`, ≥1024):
 1. **Sidebar** — категории + промо `BOSS10` + ссылка «Войти» → `/admin`
 2. **HeroBanner** — карусель баннеров из PB (только `image`), стрелки-хитзоны, dots. Контейнер с `aspect-ratio` из `entities/banner/format.ts` (**1680×460**). Загрузка — обрезка до канона (`BannerImageField`). Опциональная плашка `note` в углу.
 3. **TagFilters** — «Все» + теги активной категории из `product_tags` (spring / `popLayout` при смене категории). На стекле плашки — без layout-анимации.
-4. **Сетка** — 2 колонки, с `xl` (1280) — 3. Карточка: `ProductCard` — название `20px` (без `min-h`), бейджи **только вариантов**, под названием — **описание** (`tagline`, `line-clamp-3`), общий рейтинг (критерии — на PDP), цена `от {minPrice}` `22px`; плотные gaps название↔бейджи и описание↔оценка
+4. **Сетка** — 2 колонки; с `xl` (1280) при sticky-корзине: **3** при открытой, **4** при закрытой (вместо растягивания трёх). Ширина колонок — CSS-переход `grid-template-columns` синхронно с `--cart-track`; перестановка карточек — nested `LazyMotion` + `domMax`, `layout="position"` + `layoutScroll` на обёртке (`DesktopHome`). Карточка: `ProductCard` — название `20px` (без `min-h`), бейджи **только вариантов**, под названием — **описание** (`tagline`, `line-clamp-3`), общий рейтинг (критерии — на PDP), цена `от {minPrice}` `22px`; плотные gaps название↔бейджи и описание↔оценка
 5. **CartDock** (`CartPanel` внутри) sticky справа при `useIsWide` (≥1280), `self-start` + `top-5` + `h-[calc(100dvh-40px)]`. **Sidebar** — sticky на весь скролл; после ухода баннера/тегов колонка съезжает влево (`--nav-track` 184→0, `translate` на `.nav-dock`, тот же `0.55s`). **StickyBar** (`widgets/header/StickyBar.tsx`) — стеклянная плашка (`shared/ui/glass.tsx`, преломление SVG `#glass-refraction` по готовому тайлу шума + `backdrop-filter`, тон `--glass-tint`; на кадрах анимации преломление гасится через `data-animating`, см. «Производительность»). Появляется, когда `FloatingActions` над баннером уходят из вида (`useInView`). Пока видны теги «Классика»/«Острая» — на плашке только лупа/тема/корзина (`width: max-content`; скрытые `.sticky-bar-nav` и `.sticky-bar-tags` с `width: 0`, иначе теги держат ширину слева); после скролла тегов сайдбар уезжает, на плашке две строки: категории (шаурма…) и теги, слева от лупы — `User` → `/admin`. Плашка `position: sticky; top: 20px; height: 0` — не занимает поток, едет со скроллом. Лупа/тема/корзина на плашке — `margin-left: auto` (`.sticky-bar-actions`): при закрытой корзине у правого края, при открытии едут влево вместе с `--cart-track` (`0.55s var(--ease-out-soft)`). Выбранный чип на стекле — тот же фон/бордер, что у кнопок (`--glass-btn` / `--glass-btn-border`), текст и PNG-иконки `--glass-fg` / invert (в dark — `#fff`). Кнопка корзины в `FloatingActions` всегда видна, как ThemeToggle: иконка `ShoppingCart` ↔ `PanelRightClose`. Если в заказе есть сумма — слева от иконки (внутри кнопки) `N р.` (`useCartTotals().total`, `tabular-nums`, выезд `grid-template-columns` 0fr→1fr). Пустая корзина — квадрат 44×44. Треки: `--nav-track` (184/0), `--cart-track` (360/0), `--catalog-gap` (16 → 28). Все едут `0.55s var(--ease-out-soft)` на `.home-desktop`. Выезд панели — `translate` 100%→0 на `.cart-dock`. Клип — `overflow-x: clip` на `.home-desktop` (не `hidden`: ломает sticky). Роут — `overflow-x-clip`. Стор: `useCartPanelStore` (`features/cart/model/panel.ts`), без persist, дефолт `open`. Ниже 1280 кнопка открывает Sheet. Карточка: общий рейтинг (без критериев) и «Добавить» в dark — `text-fg`. «Добавить» скрыта, на hover/focus-within схлапывается `0fr→1fr` + fade **без** translate; на `(hover: none)` всегда видна. Название/состав без фикс. высоты (`min-h`/`h` в lh) — иначе пустой зазор при коротком тексте.
 
 Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `CategoryTiles` + горизонтальные «Популярное»/`Комбо` (`ProductCardCompact`) + `PromoBanner` + сетка 2 колонки + `MobileTabBar` (Главная / Меню / Корзина / Избранное / Профиль).
@@ -252,7 +252,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 CRUD через PocketBase (`pb.collection(...).create/update/delete`), доступ — PB auth (`users`, поле `role`: `admin` | `manager`), гейт на `/admin/*` в `router.tsx`. Сессия — один `AdminAuthProvider` (`shared/api/auth.tsx`): общий `authRefresh` с `requestKey`, отмена запроса **не** чистит `authStore` (иначе логин ↔ админка мерцают).
 
-Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет. **Desktop (≥1024):** сайдбар `220px`, sticky слева. **Mobile (<1024):** сайдбар скрыт; бургер в `AdminTopbar` открывает `Sheet side="left"` (`280px` / `88vw`) с `backdrop-blur-md` на оверлее; выезд `slide-in-from-left`, `ease-out-soft`, 300 ms; закрытие по пункту меню, оверлею или Escape.
+Навигация — только левое меню (`AdminSidebar` + `ADMIN_NAV` в `pages/admin/model.ts`), каждый пункт = свой URL `/admin/<section>`. Порядок: Главная → Товары → Добавки → Категории → Баннеры → Заказы → Отзывы → Клиенты → Купоны → Бонусы → Журнал → Сотрудники → Настройки. Счётчики берутся из `totalItems` (`shared/api/counts.ts`), не из `getFullList`. Активный пункт — `layoutId` pill; горизонтальной полоски вкладок и промо-блока в сайдбаре нет. **Desktop (≥1024):** сайдбар `220px`, sticky слева. **Mobile (<1024):** сайдбар скрыт; бургер в `AdminTopbar` открывает `Sheet side="left"` (`280px` / `88vw`) с `backdrop-blur-md` на оверлее; выезд `slide-in-from-left`, `ease-out-soft`, 300 ms; закрытие по пункту меню, оверлею или Escape.
 
 Разделы живут в `pages/admin/sections/<раздел>/`, общий каркас и таблицы — `pages/admin/ui/*`. Товар редактируется по `/admin/products/:id` (`ProductEditor`: форма + превью + матрица артикулов/цен вариант × размер + статистика). Эмодзи в форме нет (поле legacy в PB). Категория — рядом с бейджем. Поле PB `tagline` в UI — **«Описание»** (создание и редактирование). До 5 фото: `MultiImageField` — **карусель в одном окне** (стрелки / точки / swipe), не ряд превью. При редактировании новые файлы **дозаписываются** через PB-модификатор `image+` (не затирают существующие); удаления — `image-`. Список «Товары» — `SortableList` с **drag&drop** (и стрелками) для `order` на витрине; DnD выключен при поиске/фильтре статуса. После «Сохранить» — возврат к списку товаров. Критерии оценки: редактируемые label/hint/value + drag-reorder. Бейджи — справочник `product_badges` + модалка: поле slug в UI **нет**, slug = `slugFromName(label)` (`shared/lib/slug.ts`) при создании; при переименовании slug не трогаем.
 
@@ -280,6 +280,31 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 
 Экономика заказа, контакты и промо-текст — коллекция `settings` (`entities/settings/api.ts`); `ORDER_RULES` / `SITE` в `shared/config/site.ts` остаются fallback-константами. `settings` и `frontpad_settings` — **синглтоны с id `main`** и `createRule: null`: из клиента запись не создать, а `fetchSettings` при её отсутствии молча отдаёт `settingsFallback()`. Поэтому форма выглядит живой, а «Сохранить» отвечает **404** — PB так же отвечает и когда не проходит `updateRule` (`role = "admin"`, менеджер получит 404, а не 403). Обе записи заводит `onBootstrap` в `pb_hooks`; наличие проверять в `/_/`. Купоны — коллекция `coupons`, наружу не читается: проверка кода через хук-роут `POST /api/promo/check`.
 
+## Бонусы (своя программа, не Frontpad)
+
+Баланс **только наш**. Frontpad `get_client` / `score` / `sale` лояльности **не используем**. Касса в `new_order` не получает `score`.
+
+| Что | Где |
+|---|---|
+| Ledger | коллекция `bonus_ledger` (append-only), денормализованный баланс — `customers.score` |
+| Writer | `pb_hooks/lib/bonus.js` → `applyLedgerDelta` / `applyLedgerDeltaTx`; прямая правка `score` из UI/API запрещена (хук + админка шлёт `/api/bonus/adjust`) |
+| Настройки | singleton `bonus_settings` id=`main`: default %, ДР, реферал, PWA amount, maxSpend %, `enabled` |
+| % на товар | `products.bonusPercent` (пусто → default); bulk — `POST /api/bonus/bulk-percent` |
+| Списание | checkout `spendBonus` → сервер клипует в `orders.bonusSpent`; debit ledger после create (`order_spend:<id>`) |
+| Начисление | при `status → done` (+ webhook): earn по строкам + promo kind=`bonus`; `order_earn:<id>` |
+| Промо-бонусы | `coupons.kind = bonus`, опц. `targetUserId`; скидка 0, баллы начисляются с earn |
+| Реферал | `app_users.referralCode` / `referredBy`; `POST /api/profile/referral` |
+| ДР | cron `bonus-birthday` 05:15 UTC; `birthday:<year>:<userId>` |
+| PWA stub | `POST /api/bonus/events/pwa-install` (идемпотентно), UI нет |
+| Профиль | `GET /api/profile/bonus` — score + history + referralCode |
+| Админка | `/admin/bonuses`, ручное ± в `CustomerDrawer`, журнал `/admin/logs` |
+
+Идемпотентность событий — уникальный `dedupeKey` в ledger.
+
+## Журнал действий (audit)
+
+Коллекция `activity_logs` (list/view только `admin`): `actorType` admin|manager|user|guest, `action`, `entity`, `entityId`, `meta`, `ip`, `userAgent`. Пишет `pb_hooks/lib/audit.js` (CRUD ключевых коллекций, login staff, create order, bonus-роуты). Клиент: `entities/activity-log`, раздел `/admin/logs`.
+
 Ссылка «На сайт» / логотип → `/`.
 
 ## Касса (Frontpad)
@@ -290,7 +315,7 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 
 - **Получить заказ по id нельзя.** Наружу Frontpad отдаёт только вебхук `change_status`, поэтому правка состава/сумм в кассе до сайта не доезжает. `orders.lines` — снапшот, зафиксированный сервером при создании; пользователю показываем его + живой статус.
 - **Записать цену в справочник кассы нельзя.** `product_price[]` в `new_order` действует только внутри одного заказа и только если в кассе разрешено изменение цены (тумблер `sendPrices`). Синхронизация цен возможна лишь односторонняя: касса → сайт, через `get_products` → `frontpad_stock.price`.
-- **Начислением бонусов через API не управлять.** Заказ, принятый `new_order`, для кассы уже существует, бонус начисляется по её настройке. Отложить начисление можно только тем, что мы позже отправляем заказ (`sendMode`), либо настройкой начисления в самой кассе.
+- **Начислением бонусов через API кассы не управлять.** Своя программа — `bonus_ledger` / `bonus_settings` (см. раздел «Бонусы»). Frontpad `score` не читаем и не передаём в `new_order`.
 
 Мост к кассе — только `pb_hooks` (каталог `pb_hooks/` в корне репозитория, деплой в `/opt/pocketbase/pb_hooks`). Ни витрина, ни админка Frontpad не зовут и секрета не видят.
 
@@ -298,9 +323,11 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 |---|---|
 | `pb_hooks/frontpad.pb.js` | только регистрации: `onRecordCreateRequest("orders")`, `onRecordAfterCreateSuccess("orders")`, `onRecordAfterCreateSuccess("frontpad_jobs")`, роуты вебхука и диагностики, `cronAdd` |
 | `pb_hooks/promo.pb.js` | `POST /api/promo/check` — проверка купона без публичного чтения `coupons` |
-| `pb_hooks/profile.pb.js` | `GET /api/profile/bonus`, `POST /api/profile/link` — бонусы/телефон для `app_users` |
+| `pb_hooks/bonus.pb.js` | профиль бонусов, adjust, referral, pwa-install, bulk %, birthday cron, earn on done |
+| `pb_hooks/audit.pb.js` | журнал `activity_logs` |
+| `pb_hooks/profile.pb.js` | `POST /api/profile/link` — телефон для `app_users` |
 | `pb_hooks/vkid.pb.js` | `GET /api/auth/vk/session` (PKCE для One Tap), `POST /api/auth/vk/complete`, `GET /api/auth/vk/start` / `callback` — legacy redirect |
-| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `oauth` / `prices` / `vkid` — модули, автозагрузку не проходят (нет `.pb.js`) |
+| `pb_hooks/lib/*.js` | `config` / `http` / `order` / `send` / `sync` / `jobs` / `webhook` / `profile` / `oauth` / `prices` / `vkid` / `bonus` / `audit` — модули, автозагрузку не проходят (нет `.pb.js`) |
 
 Env процесса `pocketbase`:
 
@@ -358,6 +385,10 @@ Env процесса `pocketbase`:
 | CartTotals | `features/cart/ui/CartTotals.tsx` — строка «Скидка» с анимацией; prop `bonusDiscount` для checkout |
 | CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |
 | CheckoutLineRow | `features/checkout/ui/CheckoutLineRow.tsx` — строка заказа read-only |
+| BonusesSection | `pages/admin/sections/bonuses/BonusesSection.tsx` — настройки программы + bulk % |
+| LogsSection | `pages/admin/sections/logs/LogsSection.tsx` — `activity_logs` |
+| bonus ledger | `entities/bonus` + `pb_hooks/lib/bonus.js` |
+| activity-log | `entities/activity-log` |
 | CheckoutPromoField | `features/checkout/ui/CheckoutPromoField.tsx` — `FloatingField` «Промокод» |
 | CheckoutModeToggle | `features/checkout/ui/CheckoutModeToggle.tsx` — переключатель с иконками |
 | AddressSection | `features/checkout/ui/AddressSection.tsx` — выбор/ввод адреса |
@@ -477,6 +508,7 @@ Env процесса `pocketbase`:
 - Выезд панелей — `translate` на внутреннем слое (`.cart-dock`, `.nav-dock`), не `left` / `margin` / `width`. Sticky-бокс снаружи, transform внутри: transform на самом sticky-элементе срывает прилипание.
 - Клип — `overflow-x: clip`, не `hidden`: у `hidden` появляется scrollport и sticky умирает.
 - Новую анимацию собирать на `opacity` / `translate` / `scale`. `width`, `height`, `top`, `margin`, `padding`, `gap`, `grid-template-*` в переходах — только когда без них правда никак, и тогда обязательно под `data-animating`.
+- Сетка каталога (`.product-grid`): `grid-template-columns` 3↔4 синхронно с `--cart-track`; перестановка карточек — `layout="position"` + `layoutScroll` (nested `domMax` в `DesktopHome`). Масштаб карточек не анимируем — только позицию; ширину колонок тянет CSS grid.
 
 ### Карточки витрины
 
@@ -498,6 +530,7 @@ Env процесса `pocketbase`:
 `vite.config.ts` делит вендоров на чанки `react` / `motion` / `router`: они меняются редко, поэтому деплой правок витрины не сбрасывает их из кэша браузера.
 
 - `motion` подключён через `LazyMotion` в режиме `strict`. Использовать `m.*` из `motion/react-m`; `motion.*` в `strict` падает в рантайме и тянет движок в основной чанк.
+- Сетка витрины ≥1280 при toggle корзины — исключение: nested `LazyMotion` + `domMax` только вокруг каталога `DesktopHome` для `layout="position"` карточек. Остальная витрина остаётся на `domAnimation`.
 - В `package.json` держать только реально импортированные пакеты. Из Radix используются `dialog`, `popover`, `slot`, `tooltip` — остальные были мёртвым весом и удалены.
 - Новая тяжёлая страница — `lazy` в `app/router.tsx`, как `AdminPage`. Home и Product остаются eager: между ними анимация перехода.
 - Фото витрины — в `public/products`, `loading="lazy"` на `img` обязателен. Ориентир: ≤ 120 kB на файл.
@@ -577,12 +610,14 @@ chmod +x deploy.sh   # один раз
 - Не менять глобальный webhook URL в настройках кассы: свой адрес передаём через `hook_url` в заказе.
 - Не доверять суммам, `number` и артикулам из клиентского запроса на создание заказа.
 - Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
+- Не править `customers.score` напрямую из UI/API — только через `bonus_ledger` / `/api/bonus/adjust`.
+- Не читать Frontpad `score`/`sale` для лояльности сайта и не передавать `score` в `new_order`.
 - Не держать сессию клиента и сессию персонала в одном экземпляре `pb` и не смешивать их в коллекции `users`.
 - Не пытаться логинить VK ID через встроенный `authWithOAuth2({ provider: "vk" })` — только `pb_hooks` `/api/auth/vk/*` (One Tap → `POST /api/auth/vk/complete`).
 - Не импортировать `@vkid/sdk` в клиентский бандл — только self-hosted `/vk/vkid-sdk.js`.
 - Не доверять `userId` из клиентского запроса на создание заказа — его ставит хук из `e.auth`.
 - Не пытаться записать цену в справочник кассы и не показывать «состав из кассы»: ни того, ни другого API не отдаёт.
 - Не вешать `backdrop-filter` на полноэкранный оверлей модалки: размывать статичный фон через `filter` на витрине и гасить преломление `StickyBar` на это время.
-- Не включать `domMax` на витрине и не оставлять кнопок-заглушек (`toast("…заглушка")`) в админке.
+- Не включать `domMax` на витрине глобально и не оставлять кнопок-заглушек (`toast("…заглушка")`) в админке. Nested `domMax` — только для layout-сетки каталога в `DesktopHome`.
 - Не открывать админку PB (`/_/`) без пароля суперюзера; не путать её с `/admin`.
 - Не вешать витрину на `loomixx.ru`: канон — `shashlik.loomixx.ru`.

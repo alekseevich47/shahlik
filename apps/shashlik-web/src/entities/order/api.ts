@@ -38,6 +38,8 @@ export type CreateOrderInput = {
   discount: number
   total: number
   couponCode?: string | null
+  /** Клиент просит списать баллы; сумму клипует сервер. */
+  spendBonus?: boolean
   lines: OrderLineSnapshot[]
 }
 
@@ -78,6 +80,8 @@ type OrderRecord = {
   packFee?: number
   deliveryFee?: number
   discount?: number
+  bonusSpent?: number
+  bonusEarned?: number
   total: number
   couponCode?: string
   comment?: string
@@ -151,6 +155,8 @@ function mapOrder(record: OrderRecord): Order {
     packFee: record.packFee,
     deliveryFee: record.deliveryFee,
     discount: record.discount,
+    bonusSpent: record.bonusSpent,
+    bonusEarned: record.bonusEarned,
     total: record.total,
     couponCode: record.couponCode || undefined,
     comment: record.comment || undefined,
@@ -430,6 +436,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     discount: input.discount,
     total: input.total,
     couponCode: input.couponCode ?? "",
+    spendBonus: Boolean(input.spendBonus),
     lines: input.lines,
   })
   return mapOrder(record)

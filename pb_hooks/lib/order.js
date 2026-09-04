@@ -146,16 +146,19 @@ function calcCouponDiscount(goods, kind, value) {
   if (goods <= 0) {
     return 0
   }
+  if (kind === "bonus") {
+    return 0
+  }
   if (kind === "percent") {
     return Math.round((goods * Number(value)) / 100)
   }
   return Math.min(Math.round(Number(value)), goods)
 }
 
-function resolveCouponDiscount(goods, rawCode) {
+function resolveCouponDiscount(goods, rawCode, userId) {
   var code = rawCode ? String(rawCode).trim().toUpperCase() : ""
   if (!code) {
-    return { discount: 0, couponCode: "" }
+    return { discount: 0, couponCode: "", kind: "", value: 0, bonusValue: 0 }
   }
 
   var coupon
@@ -192,17 +195,31 @@ function resolveCouponDiscount(goods, rawCode) {
     throw new BadRequestError("Лимит использований промокода исчерпан")
   }
 
+  var targetUserId = ""
+  try {
+    targetUserId = coupon.getString("targetUserId") || ""
+  } catch (err) {
+    targetUserId = ""
+  }
+  if (targetUserId) {
+    if (!userId || userId !== targetUserId) {
+      throw new BadRequestError("Промокод недоступен для этого аккаунта")
+    }
+  }
+
   var kind = coupon.getString("kind")
   var value = coupon.getFloat("value") || 0
+  var discount = calcCouponDiscount(goods, kind, value)
   return {
-    discount: calcCouponDiscount(goods, kind, value),
+    discount: discount,
     couponCode: code,
     kind: kind,
     value: value,
+    bonusValue: kind === "bonus" ? Math.round(value) : 0,
   }
 }
 
-function checkPromo(rawCode, goods) {
+function checkPromo(rawCode, goods, userId) {
   var code = rawCode ? String(rawCode).trim().toUpperCase() : ""
   if (!code) {
     return { ok: false, message: "Введите промокод" }
@@ -214,12 +231,13 @@ function checkPromo(rawCode, goods) {
   }
 
   try {
-    var result = resolveCouponDiscount(goodsNum, code)
+    var result = resolveCouponDiscount(goodsNum, code, userId || "")
     return {
       ok: true,
       kind: result.kind,
       value: result.value,
       discount: result.discount,
+      bonusValue: result.bonusValue || 0,
     }
   } catch (err) {
     var msg = "Не удалось проверить промокод"
@@ -562,17 +580,6 @@ function validateAndRecalculateOrder(e) {
       ? settings.deliveryFee
       : 0
 
-  var couponCodeRaw = record.getString("couponCode") || record.getString("promo")
-  var couponResult = resolveCouponDiscount(goods, couponCodeRaw)
-  var discount = couponResult.discount
-  var total = Math.max(goods + packFee + deliveryFee - discount, 0)
-
-  if (goods < settings.minOrder) {
-    throw new BadRequestError(
-      "Минимальная сумма заказа — " + Math.round(settings.minOrder) + "₽",
-    )
-  }
-
   var userId = ""
   try {
     if (e.auth && e.auth.collection().name === "app_users") {
@@ -597,6 +604,73 @@ function validateAndRecalculateOrder(e) {
     throw new BadRequestError("Укажите телефон")
   }
 
+  var couponCodeRaw = record.getString("couponCode") || record.getString("promo")
+  var couponResult = resolveCouponDiscount(goods, couponCodeRaw, userId)
+  var discount = couponResult.discount
+
+  var customerId = ""
+  if (userId) {
+    try {
+      var profileLib = require(__hooks + "/lib/profile.js")
+      var appUser = $app.findRecordById("app_users", userId)
+      var customer = profileLib.ensureCustomer($app, appUser)
+      if (customer) {
+        customerId = customer.id
+      }
+    } catch (err) {
+      customerId = ""
+    }
+  }
+  if (!customerId) {
+    try {
+      var profileLib2 = require(__hooks + "/lib/profile.js")
+      var normalized = profileLib2.normalizePhone(phone)
+      if (normalized) {
+        var existingCustomer = null
+        try {
+          existingCustomer = $app.findFirstRecordByFilter("customers", "phone = {:phone}", {
+            phone: normalized,
+          })
+        } catch (err) {
+          existingCustomer = null
+        }
+        if (existingCustomer) {
+          customerId = existingCustomer.id
+        }
+      }
+    } catch (err) {
+      customerId = ""
+    }
+  }
+  record.set("customerId", customerId || "")
+
+  var spendBonusWanted = false
+  try {
+    var info = e.requestInfo()
+    if (info && info.body) {
+      spendBonusWanted = Boolean(info.body.spendBonus)
+    }
+  } catch (err) {
+    spendBonusWanted = false
+  }
+
+  var bonus = require(__hooks + "/lib/bonus.js")
+  var bonusSpent = bonus.resolveSpendForOrder({
+    spendBonus: spendBonusWanted,
+    goods: goods,
+    discount: discount,
+    userId: userId,
+    customerId: customerId,
+  })
+
+  var total = Math.max(goods + packFee + deliveryFee - discount - bonusSpent, 0)
+
+  if (goods < settings.minOrder) {
+    throw new BadRequestError(
+      "Минимальная сумма заказа — " + Math.round(settings.minOrder) + "₽",
+    )
+  }
+
   var tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
   if (countRecentOrdersByPhone(phone, tenMinutesAgo) >= 3) {
     throw new BadRequestError("Слишком много заказов с этого номера. Попробуйте позже")
@@ -613,6 +687,8 @@ function validateAndRecalculateOrder(e) {
   record.set("packFee", packFee)
   record.set("deliveryFee", deliveryFee)
   record.set("discount", discount)
+  record.set("bonusSpent", bonusSpent)
+  record.set("bonusEarned", 0)
   record.set("total", total)
   record.set("couponCode", couponResult.couponCode)
   record.set("promo", "")

@@ -299,7 +299,8 @@
 
   .cart-toggle-sum,
   .product-card-add,
-  .product-card-add button {
+  .product-card-add button,
+  .product-grid {
     transition: none !important;
   }
 }
@@ -528,6 +529,26 @@
     --catalog-gap: 16px;
   }
   .home-desktop[data-ready="0"] {
+    transition: none;
+  }
+
+  /* Сетка каталога: 2 колонки; при xl и закрытой корзине — 4, при открытой — 3.
+     Ширина колонок едет вместе с --cart-track; перестановка карточек — motion layout. */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--catalog-gap);
+    transition: grid-template-columns 0.55s var(--ease-out-soft);
+  }
+  @media (min-width: 1280px) {
+    .home-desktop[data-cart="open"] .product-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .home-desktop[data-cart="closed"] .product-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .home-desktop[data-ready="0"] .product-grid {
     transition: none;
   }
 

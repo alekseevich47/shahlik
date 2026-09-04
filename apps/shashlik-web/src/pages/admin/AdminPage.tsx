@@ -9,9 +9,11 @@ import { ProductEditor } from "./sections/ProductEditor"
 import { AddonsSection } from "./sections/addons/AddonsSection"
 import { BannersSection } from "./sections/banners/BannersSection"
 import { CategoriesSection } from "./sections/categories/CategoriesSection"
+import { BonusesSection } from "./sections/bonuses/BonusesSection"
 import { CouponsSection } from "./sections/coupons/CouponsSection"
 import { CustomersSection } from "./sections/customers/CustomersSection"
 import { DashboardSection } from "./sections/dashboard/DashboardSection"
+import { LogsSection } from "./sections/logs/LogsSection"
 import { OrdersSection } from "./sections/orders/OrdersSection"
 import { ProductsSection } from "./sections/products/ProductsSection"
 import { ReviewsSection } from "./sections/reviews/ReviewsSection"
@@ -104,6 +106,22 @@ export default function AdminPage() {
                 element={
                   <GuardedSection id="coupons">
                     <CouponsSection />
+                  </GuardedSection>
+                }
+              />
+              <Route
+                path="bonuses"
+                element={
+                  <GuardedSection id="bonuses">
+                    <BonusesSection />
+                  </GuardedSection>
+                }
+              />
+              <Route
+                path="logs"
+                element={
+                  <GuardedSection id="logs">
+                    <LogsSection />
                   </GuardedSection>
                 }
               />

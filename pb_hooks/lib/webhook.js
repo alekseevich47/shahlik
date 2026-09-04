@@ -83,6 +83,7 @@ function applyStatusChange(body, fpSettings) {
   }
 
   var currentStatus = record.getString("status")
+  var nextStatus = currentStatus
 
   if (fpStatus !== null) {
     record.set("frontpadStatus", fpStatus)
@@ -95,10 +96,21 @@ function applyStatusChange(body, fpSettings) {
     var mapped = fpSettings.statusMap ? fpSettings.statusMap[statusKey] : null
     if (mapped && !TERMINAL_STATUSES[currentStatus]) {
       record.set("status", mapped)
+      nextStatus = mapped
     }
   }
 
   $app.save(record)
+
+  if (nextStatus === "done" && currentStatus !== "done") {
+    try {
+      var bonus = require(__hooks + "/lib/bonus.js")
+      var fresh = $app.findRecordById("orders", record.id)
+      bonus.creditOrderEarn(fresh)
+    } catch (err) {
+      $app.logger().error("bonus earn webhook failed", "orderId", record.id, "error", String(err))
+    }
+  }
 }
 
 function handleStatusWebhook(e) {

@@ -95,6 +95,8 @@ export type Product = {
   rating: ProductRating
   order: number
   active: boolean
+  /** % начисления; null/undefined → default из bonus_settings */
+  bonusPercent?: number | null
   createdAt: string
   updatedAt: string
   stats: { views: number; addedToCart: number; orders: number; revenue: number }

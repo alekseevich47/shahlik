@@ -421,6 +421,20 @@ function lockAppUserIdentityFields(e) {
     e.record.set("birthday", oldBirthday)
   }
 
+  var oldReferred = orig.getString("referredBy") || ""
+  if (oldReferred) {
+    e.record.set("referredBy", oldReferred)
+  }
+
+  var oldReferralCode = orig.getString("referralCode") || ""
+  if (oldReferralCode) {
+    e.record.set("referralCode", oldReferralCode)
+  }
+
+  if (orig.getBool("pwaInstallClaimed")) {
+    e.record.set("pwaInstallClaimed", true)
+  }
+
   return e.next()
 }
 
@@ -428,6 +442,7 @@ module.exports = {
   CACHE_TTL_MS: CACHE_TTL_MS,
   normalizePhone: normalizePhone,
   bindPhoneToUser: bindPhoneToUser,
+  ensureCustomer: ensureCustomer,
   handleBonus: handleBonus,
   handleLink: handleLink,
   handleOAuthAuth: handleOAuthAuth,

@@ -1,4 +1,4 @@
-export type CouponKind = "percent" | "amount"
+export type CouponKind = "percent" | "amount" | "bonus"
 
 export type Coupon = {
   id: string
@@ -15,6 +15,7 @@ export type Coupon = {
   perCustomer: number
   uses: number
   active: boolean
+  targetUserId: string | null
   createdAt: string
 }
 
@@ -28,11 +29,13 @@ export type AppliedCoupon = {
 export const COUPON_CODE_PATTERN = /^[A-Z0-9]{3,32}$/
 
 export function formatCouponValue(kind: CouponKind, value: number): string {
+  if (kind === "bonus") return `${Math.round(value)} бон.`
   return kind === "percent" ? `${value}%` : `${Math.round(value)}₽`
 }
 
 export function calcCouponDiscount(goods: number, coupon: AppliedCoupon | null): number {
   if (!coupon || goods <= 0) return 0
+  if (coupon.kind === "bonus") return 0
   if (coupon.kind === "percent") {
     return Math.round((goods * coupon.value) / 100)
   }

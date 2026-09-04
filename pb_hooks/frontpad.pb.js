@@ -70,6 +70,40 @@ onRecordAfterCreateSuccess(function (e) {
   }
 
   try {
+    var bonusSpent = record.getFloat("bonusSpent") || 0
+    if (bonusSpent > 0) {
+      var bonus = require(__hooks + "/lib/bonus.js")
+      bonus.debitOrderSpend(
+        record.id,
+        record.getString("customerId") || "",
+        record.getString("userId") || "",
+        bonusSpent,
+      )
+    }
+  } catch (err) {
+    logger.error("bonus spend failed", "orderId", record.id, "error", String(err))
+  }
+
+  try {
+    var audit = require(__hooks + "/lib/audit.js")
+    var actorType = record.getString("userId") ? "user" : "guest"
+    audit.write({
+      actorType: actorType,
+      actorId: record.getString("userId") || "",
+      action: "orders.create",
+      entity: "orders",
+      entityId: record.id,
+      meta: {
+        total: record.getFloat("total") || 0,
+        bonusSpent: record.getFloat("bonusSpent") || 0,
+      },
+      e: e,
+    })
+  } catch (err) {
+    // ignore
+  }
+
+  try {
     var send = require(__hooks + "/lib/send.js")
     send.sendOrder(record.id)
   } catch (err) {

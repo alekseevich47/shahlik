@@ -25,6 +25,7 @@ type Props = {
 const KIND_OPTIONS = [
   { value: "percent" as const, label: "Процент" },
   { value: "amount" as const, label: "Сумма ₽" },
+  { value: "bonus" as const, label: "Бонусы" },
 ]
 
 function toDateInput(iso: string | null): string {
@@ -53,6 +54,7 @@ export function CouponForm({ open, onOpenChange, coupon }: Props) {
   const [usesLimit, setUsesLimit] = useState("0")
   const [perCustomer, setPerCustomer] = useState("0")
   const [active, setActive] = useState(true)
+  const [targetUserId, setTargetUserId] = useState("")
 
   useEffect(() => {
     if (!open) return
@@ -66,6 +68,7 @@ export function CouponForm({ open, onOpenChange, coupon }: Props) {
     setUsesLimit(String(coupon?.usesLimit ?? 0))
     setPerCustomer(String(coupon?.perCustomer ?? 0))
     setActive(coupon?.active ?? true)
+    setTargetUserId(coupon?.targetUserId ?? "")
   }, [open, coupon])
 
   async function submit() {
@@ -77,7 +80,7 @@ export function CouponForm({ open, onOpenChange, coupon }: Props) {
 
     const valueNum = Number(value.replace(",", "."))
     if (!Number.isFinite(valueNum) || valueNum <= 0) {
-      toast.error("Значение скидки — число > 0")
+      toast.error(kind === "bonus" ? "Бонусы — число > 0" : "Значение скидки — число > 0")
       return
     }
     if (kind === "percent" && valueNum > 100) {
@@ -120,6 +123,7 @@ export function CouponForm({ open, onOpenChange, coupon }: Props) {
       usesLimit: usesLimitNum,
       perCustomer: perCustomerNum,
       active,
+      targetUserId: targetUserId.trim() || null,
     }
 
     try {
@@ -143,7 +147,7 @@ export function CouponForm({ open, onOpenChange, coupon }: Props) {
             {isEdit ? "Редактировать купон" : "Новый купон"}
           </SheetTitle>
           <SheetDescription className="mt-1 text-[12.5px] text-fg-muted">
-            Ровно один вид скидки: процент или сумма. Коды наружу не отдаются.
+            Скидка %/₽ или начисление бонусов. Коды наружу не отдаются.
           </SheetDescription>
         </div>
 
@@ -159,21 +163,35 @@ export function CouponForm({ open, onOpenChange, coupon }: Props) {
             />
           </Field>
 
-          <Field label="Тип скидки">
+          <Field label="Тип">
             <Segmented
               value={kind}
               onChange={setKind}
               options={KIND_OPTIONS}
-              ariaLabel="Тип скидки"
+              ariaLabel="Тип купона"
             />
           </Field>
 
-          <Field label={kind === "percent" ? "Процент" : "Сумма, ₽"}>
+          <Field
+            label={
+              kind === "percent" ? "Процент" : kind === "bonus" ? "Бонусы" : "Сумма, ₽"
+            }
+          >
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
               inputMode="decimal"
               placeholder={kind === "percent" ? "10" : "200"}
+            />
+          </Field>
+
+          <Field label="Только для пользователя" hint="id app_users, пусто = всем">
+            <Input
+              value={targetUserId}
+              onChange={(e) => setTargetUserId(e.target.value.trim())}
+              placeholder="опционально"
+              autoComplete="off"
+              spellCheck={false}
             />
           </Field>
 

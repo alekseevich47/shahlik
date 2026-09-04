@@ -15,6 +15,15 @@ export type ProfileBonus = {
   score: number
   sale: number
   card: string
+  referralCode?: string
+  referredBy?: string
+  history?: Array<{
+    id: string
+    delta: number
+    balanceAfter: number
+    reason: string
+    created: string
+  }>
 }
 
 export type AppUser = {
@@ -28,6 +37,8 @@ export type AppUser = {
   addresses: SavedAddress[]
   customerId: string | null
   blocked: boolean
+  referralCode?: string
+  referredBy?: string | null
 }
 
 export type UpdateAccountInput = {
