@@ -386,7 +386,7 @@ Env процесса `pocketbase`:
 | CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |
 | CheckoutLineRow | `features/checkout/ui/CheckoutLineRow.tsx` — строка заказа read-only |
 | BonusesSection | `pages/admin/sections/bonuses/BonusesSection.tsx` — настройки программы + bulk % |
-| LogsSection | `pages/admin/sections/logs/LogsSection.tsx` — `activity_logs` |
+| LogsSection | `pages/admin/sections/activity-logs/LogsSection.tsx` — `activity_logs` |
 | bonus ledger | `entities/bonus` + `pb_hooks/lib/bonus.js` |
 | activity-log | `entities/activity-log` |
 | CheckoutPromoField | `features/checkout/ui/CheckoutPromoField.tsx` — `FloatingField` «Промокод» |
