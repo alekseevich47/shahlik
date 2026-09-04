@@ -39,6 +39,8 @@ export type AppUser = {
   blocked: boolean
   referralCode?: string
   referredBy?: string | null
+  pwaInstallClaimed?: boolean
+  registrationClaimed?: boolean
 }
 
 export type UpdateAccountInput = {

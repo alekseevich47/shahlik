@@ -6,6 +6,7 @@ export type BonusLedgerReason =
   | "referral"
   | "birthday"
   | "pwa_install"
+  | "registration"
   | "adjust"
 
 export type BonusLedgerEntry = {
@@ -26,8 +27,19 @@ export type BonusSettings = {
   referralInviterAmount: number
   referralInviteeAmount: number
   pwaInstallAmount: number
+  /** Подарок за первую регистрацию. */
+  registrationAmount: number
   maxSpendPercent: number
   earnOnStatus: "done"
+}
+
+/** Публичный срез настроек для витрины (гости). */
+export type PublicBonusSettings = {
+  enabled: boolean
+  defaultEarnPercent: number
+  registrationAmount: number
+  pwaInstallAmount: number
+  maxSpendPercent: number
 }
 
 export const BONUS_SETTINGS_ID = "main"
@@ -41,6 +53,7 @@ export const BONUS_REASON_LABEL: Record<string, string> = {
   referral: "Реферал",
   birthday: "День рождения",
   pwa_install: "Установка приложения",
+  registration: "Регистрация",
 }
 
 export function bonusSettingsFallback(): BonusSettings {
@@ -52,7 +65,19 @@ export function bonusSettingsFallback(): BonusSettings {
     referralInviterAmount: 200,
     referralInviteeAmount: 100,
     pwaInstallAmount: 150,
+    registrationAmount: 100,
     maxSpendPercent: 50,
     earnOnStatus: "done",
+  }
+}
+
+export function publicBonusSettingsFallback(): PublicBonusSettings {
+  const full = bonusSettingsFallback()
+  return {
+    enabled: full.enabled,
+    defaultEarnPercent: full.defaultEarnPercent,
+    registrationAmount: full.registrationAmount,
+    pwaInstallAmount: full.pwaInstallAmount,
+    maxSpendPercent: full.maxSpendPercent,
   }
 }

@@ -4,6 +4,9 @@ import { toast } from "sonner"
 
 import { addAddress, getAccount, useAccount, useProfileBonus } from "@/entities/account/api"
 import type { SavedAddress } from "@/entities/account/model"
+import { usePublicBonusSettings } from "@/entities/bonus/api"
+import { calcBonusSpendCap, calcCartEarn } from "@/entities/bonus/lib/earn"
+import { publicBonusSettingsFallback } from "@/entities/bonus/model"
 import { useCreateOrder, type CreateOrderInput } from "@/entities/order/api"
 import type { OrderAddressParts } from "@/entities/order/model"
 import { articleFor } from "@/entities/product/lib"
@@ -74,6 +77,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
   const createOrder = useCreateOrder()
   const navigate = useNavigate()
   const bonusQuery = useProfileBonus(open && Boolean(user))
+  const { data: bonusSettings = publicBonusSettingsFallback() } = usePublicBonusSettings()
 
   const [addressId, setAddressId] = useState(NEW_ADDRESS)
   const [saveAddress, setSaveAddress] = useState(false)
@@ -84,11 +88,30 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
   const belowMinOrder = minOrder > 0 && goods < minOrder
   const blocked = empty || !acceptingOrders || belowMinOrder
   const bonus = bonusQuery.data
-  const canSpendBonus = Boolean(user && bonus && bonus.score > 0)
-  const bonusDiscount =
-    spendBonus && bonus && bonus.score > 0
-      ? Math.min(bonus.score, Math.max(goods - discount, 0))
+  const canSpendBonus = Boolean(
+    user && bonusSettings.enabled && bonus && bonus.score > 0,
+  )
+  const spendCap =
+    canSpendBonus && bonus
+      ? calcBonusSpendCap({
+          score: bonus.score,
+          goods,
+          discount,
+          maxSpendPercent: bonusSettings.maxSpendPercent,
+        })
       : 0
+  const bonusDiscount = spendBonus && spendCap > 0 ? spendCap : 0
+  const bonusEarnedPreview =
+    spendBonus || !bonusSettings.enabled
+      ? 0
+      : calcCartEarn(
+          lines.map((line) => ({
+            total: line.total,
+            bonusPercent: line.product.bonusPercent,
+          })),
+          bonusSettings.defaultEarnPercent,
+          true,
+        )
   const checkoutTotal = Math.max(goods + packFee + deliveryFee - discount - bonusDiscount, 0)
   const isNewAddress =
     addressId === NEW_ADDRESS || !user?.addresses.length
@@ -257,6 +280,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     setSpendBonus,
     canSpendBonus,
     bonusScore: bonus?.score ?? 0,
+    bonusEarnedPreview,
     paymentMethod,
     setPaymentMethod,
     submit,

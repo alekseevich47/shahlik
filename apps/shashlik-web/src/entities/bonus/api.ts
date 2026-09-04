@@ -7,8 +7,10 @@ import { queryClient } from "@/shared/api/query-client"
 import {
   BONUS_SETTINGS_ID,
   bonusSettingsFallback,
+  publicBonusSettingsFallback,
   type BonusLedgerEntry,
   type BonusSettings,
+  type PublicBonusSettings,
 } from "./model"
 
 type BonusSettingsRecord = {
@@ -19,6 +21,7 @@ type BonusSettingsRecord = {
   referralInviterAmount?: number
   referralInviteeAmount?: number
   pwaInstallAmount?: number
+  registrationAmount?: number
   maxSpendPercent?: number
   earnOnStatus?: string
 }
@@ -43,6 +46,7 @@ function mapSettings(record: BonusSettingsRecord): BonusSettings {
     referralInviterAmount: record.referralInviterAmount ?? fallback.referralInviterAmount,
     referralInviteeAmount: record.referralInviteeAmount ?? fallback.referralInviteeAmount,
     pwaInstallAmount: record.pwaInstallAmount ?? fallback.pwaInstallAmount,
+    registrationAmount: record.registrationAmount ?? fallback.registrationAmount,
     maxSpendPercent: record.maxSpendPercent ?? fallback.maxSpendPercent,
     earnOnStatus: "done",
   }
@@ -62,6 +66,7 @@ function mapLedger(record: LedgerRecord): BonusLedgerEntry {
 
 export const bonusKeys = {
   settings: ["bonus_settings"] as const,
+  public: ["bonus_settings", "public"] as const,
   ledger: (customerId: string) => ["bonus_ledger", customerId] as const,
 }
 
@@ -84,6 +89,22 @@ export function useBonusSettings() {
   })
 }
 
+export async function fetchPublicBonusSettings(): Promise<PublicBonusSettings> {
+  try {
+    return await pbClient.send<PublicBonusSettings>("/api/bonus/public", { method: "GET" })
+  } catch {
+    return publicBonusSettingsFallback()
+  }
+}
+
+export function usePublicBonusSettings() {
+  return useQuery({
+    queryKey: bonusKeys.public,
+    queryFn: fetchPublicBonusSettings,
+    staleTime: 60_000,
+  })
+}
+
 export type UpdateBonusSettingsInput = Omit<BonusSettings, "id" | "earnOnStatus">
 
 export async function updateBonusSettings(
@@ -98,6 +119,7 @@ export async function updateBonusSettings(
       referralInviterAmount: input.referralInviterAmount,
       referralInviteeAmount: input.referralInviteeAmount,
       pwaInstallAmount: input.pwaInstallAmount,
+      registrationAmount: input.registrationAmount,
       maxSpendPercent: input.maxSpendPercent,
       earnOnStatus: "done",
     },
@@ -110,6 +132,13 @@ export function useUpdateBonusSettings() {
     mutationFn: updateBonusSettings,
     onSuccess: (data) => {
       queryClient.setQueryData(bonusKeys.settings, data)
+      queryClient.setQueryData(bonusKeys.public, {
+        enabled: data.enabled,
+        defaultEarnPercent: data.defaultEarnPercent,
+        registrationAmount: data.registrationAmount,
+        pwaInstallAmount: data.pwaInstallAmount,
+        maxSpendPercent: data.maxSpendPercent,
+      } satisfies PublicBonusSettings)
     },
   })
 }
@@ -165,11 +194,12 @@ export function useBulkBonusPercent() {
   })
 }
 
-/** Заглушка под будущее PWA — без UI. */
 export async function claimPwaInstallBonus(): Promise<{
   ok: boolean
   reason?: string
   score?: number
+  skipped?: boolean
+  delta?: number
 }> {
   return pbClient.send("/api/bonus/events/pwa-install", { method: "POST" })
 }

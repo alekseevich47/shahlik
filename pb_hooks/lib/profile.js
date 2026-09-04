@@ -322,6 +322,15 @@ function bindPhoneToUser(app, user, phoneRaw) {
     user.set("phone", phone)
     user.set("customerId", customer.id)
   })
+
+  try {
+    var bonus = require(__hooks + "/lib/bonus.js")
+    var freshUser = app.findRecordById("app_users", user.id)
+    bonus.creditRegistrationBonus(app, freshUser)
+  } catch (err) {
+    // ignore
+  }
+
   return result
 }
 
@@ -433,6 +442,10 @@ function lockAppUserIdentityFields(e) {
 
   if (orig.getBool("pwaInstallClaimed")) {
     e.record.set("pwaInstallClaimed", true)
+  }
+
+  if (orig.getBool("registrationClaimed")) {
+    e.record.set("registrationClaimed", true)
   }
 
   return e.next()

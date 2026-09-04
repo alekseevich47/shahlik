@@ -12,7 +12,7 @@ export const SITE = {
 
 /** Fallback экономики заказа; витрина/корзина берут цифры из `useSettings()`. */
 export const ORDER_RULES = {
-  packFee: 24,
+  packFee: 0,
   deliveryFee: 149,
   freeDeliveryFrom: 800,
   promo: { code: "BOSS10", percent: 10, title: "Скидка 10%", subtitle: "на первый заказ по промокоду" },

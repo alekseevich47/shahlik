@@ -80,7 +80,7 @@ apps/shashlik-web/
     pages/product/           # PDP (выбор варианта/размера/соусов/добавок)
     pages/admin/             # админка: sections/<раздел>/ + ui/ (каркас, таблицы), роуты /admin/*
     widgets/sidebar|hero|catalog|header|mobile|promo  # header: FloatingActions + StickyBar
-    features/cart|search|theme-toggle|checkout  # cart: store + panel; checkout: CheckoutDialog + useCheckout
+    features/cart|search|theme-toggle|checkout|engagement  # cart: store + panel; checkout: CheckoutDialog; engagement: reg/PWA modals
     entities/product|category|addon|banner|order|tag|badge  # category/ui: CategoryIcon; tag: фильтры витрины; badge: метки карточек
     shared/ui|lib|config|hooks
     mocks/products|categories|addons|banners|orders|tags
@@ -191,11 +191,13 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 | Правило | Значение |
 |---------|----------|
-| Упаковка | `ORDER_RULES.packFee` = 24₽, если есть позиции |
+| Упаковка | всегда `0` (бесплатно; UI и экономика админки без поля) |
 | Доставка | 149₽ при `mode=delivery` и сумма товаров < 800₽, иначе 0 |
 | Промо | код `BOSS10` → −10% от стоимости товаров |
 | Режим по умолчанию | `pickup` («Заберу сам») |
 | Заголовок панели | «Мой заказ» |
+| Бонусы в строке | справа от цены: авторизованный `(+N` + `/icons/coin.svg`)`; гость — `можно получить N` + монета. Формула: `line.total × (bonusPercent \| defaultEarnPercent)`, публичные настройки — `GET /api/bonus/public` |
+| Начислено бонусов | в `CartTotals` под «Стоимость товаров»; при списании в checkout = 0 |
 
 Оформление заказа — модалка `CheckoutDialog` (`features/checkout/ui/CheckoutDialog.tsx`), открывается из `CartPanel`. Payload — `createOrder` в коллекцию `orders`; статус — `subscribeOrderStatus` (PB realtime), без поллинга.
 
@@ -205,15 +207,17 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 | Колонка | Содержимое |
 |---------|------------|
-| Слева | «Ваш заказ» (read-only `CheckoutLineRow`, без stepper), ссылка «Изменить» → закрывает модалку, корзина сохраняется. `CheckoutPromoField` (плавающая подпись «Промокод» + кнопка-стрелка). «Мои бонусы» + чекбокс списания (только после входа). `Select` способа оплаты: «При получении» / «Онлайн-оплата». `CartTotals` с анимированной строкой «Скидка» (промо + бонусы). `SafePaymentBanner` — только при «Онлайн-оплата». |
+| Слева | «Ваш заказ» (read-only `CheckoutLineRow`, без stepper), ссылка «Изменить» → закрывает модалку, корзина сохраняется. `CheckoutPromoField` (плавающая подпись «Промокод» + кнопка-стрелка). Под промо — **«Списание бонусов»** (`Switch`, баланс + монета; при включении — сумма списания с учётом `maxSpendPercent` и пометка, что начисление за заказ отменяется). Только после входа и при score > 0. `Select` способа оплаты: «При получении» / «Онлайн-оплата». `CartTotals` с анимированной строкой «Скидка» (промо + бонусы) и «Начислено бонусов». `SafePaymentBanner` — только при «Онлайн-оплата». |
 | Справа | `CheckoutModeToggle` (иконки Car/Bike). Адрес: `AddressSection` — `Select` сохранённых адресов (Popover, скруглённый список); при выборе сохранённого — одна строка адреса под селектом, чекбокс «Сохранить» **нет**; «Новый адрес» — поля улица + сетка дом/подъезд/этаж/квартира, чекбокс «Сохранить новый адрес». Контакты — `IconInput` (User, Phone). Комментарий — `IconTextarea`, лимит 200. CTA «Оформить заказ · сумма». |
 | Футер | 4 плашки: доставка, горячее, качество, **«Сделаем с душой»** (Heart, «Спасибо Вам за заказ!») вместо «Поддержка 24/7». |
 
 Строка корзины (витрина и checkout): `CartLineTitle` — **название** + **размер** (мельче, серый) на одной строке; **вариант мяса** — строкой ниже (серый), только если вариантов > 1.
 
-Логика — `useCheckout.ts`: `PaymentMethod` (`cash` | `online`) — UI-only; скидка бонусами считается на клиенте (`min(score, goods − promo)`), суммы в payload справочные — сервер пересчитывает в хуке. Промокод — `POST /api/promo/check`, не публичное чтение `coupons`.
+Логика — `useCheckout.ts`: `PaymentMethod` (`cash` | `online`) — UI-only; скидка бонусами — `calcBonusSpendCap` (`min(score, goods−promo, maxSpendPercent)`), суммы в payload справочные — сервер пересчитывает в хуке. При `spendBonus` клиентский preview начисления = 0; сервер `creditOrderEarn` тоже пропускает, если `bonusSpent > 0`. Промокод — `POST /api/promo/check`, не публичное чтение `coupons`.
 
 Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — только `CheckoutPromoField`.
+
+Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость через ~45 с — регистрация и подарок `registrationAmount`; авторизованный — установка приложения (`pwaInstallAmount`), «Больше не показывать» → `localStorage`. Manifest — `/manifest.webmanifest`.
 
 ## Витрина (home)
 
@@ -288,16 +292,18 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 |---|---|
 | Ledger | коллекция `bonus_ledger` (append-only), денормализованный баланс — `customers.score` |
 | Writer | `pb_hooks/lib/bonus.js` → `applyLedgerDelta` / `applyLedgerDeltaTx`; прямая правка `score` из UI/API запрещена (хук + админка шлёт `/api/bonus/adjust`) |
-| Настройки | singleton `bonus_settings` id=`main`: default %, ДР, реферал, PWA amount, maxSpend %, `enabled` |
+| Настройки | singleton `bonus_settings` id=`main`: default %, ДР, реферал, PWA amount, **registrationAmount**, maxSpend %, `enabled` |
 | % на товар | `products.bonusPercent` (пусто → default); bulk — `POST /api/bonus/bulk-percent` |
-| Списание | checkout `spendBonus` → сервер клипует в `orders.bonusSpent`; debit ledger после create (`order_spend:<id>`) |
-| Начисление | при `status → done` (+ webhook): earn по строкам + promo kind=`bonus`; `order_earn:<id>` |
+| Публично | `GET /api/bonus/public` — enabled, defaultEarn %, registration/PWA amounts, maxSpend % (витрина/гости) |
+| Списание | checkout `spendBonus` → сервер клипует в `orders.bonusSpent`; debit ledger после create (`order_spend:<id>`); при списании earn = 0 |
+| Начисление | при `status → done` (+ webhook): earn по строкам + promo kind=`bonus`; `order_earn:<id>`; **не** если `bonusSpent > 0` |
 | Промо-бонусы | `coupons.kind = bonus`, опц. `targetUserId`; скидка 0, баллы начисляются с earn |
+| Регистрация | `registrationAmount`; `app_users.registrationClaimed`; `registration:<userId>` после привязки телефона / create |
 | Реферал | `app_users.referralCode` / `referredBy`; `POST /api/profile/referral` |
 | ДР | cron `bonus-birthday` 05:15 UTC; `birthday:<year>:<userId>` |
-| PWA stub | `POST /api/bonus/events/pwa-install` (идемпотентно), UI нет |
+| PWA | `POST /api/bonus/events/pwa-install` + UI `InstallAppModal`; иконка монеты `/icons/coin.svg` |
 | Профиль | `GET /api/profile/bonus` — score + history + referralCode |
-| Админка | `/admin/bonuses`, ручное ± в `CustomerDrawer`, журнал `/admin/logs` |
+| Админка | `/admin/bonuses` (в т.ч. «Регистрация, бонусы»), ручное ± в `CustomerDrawer`, журнал `/admin/logs` |
 
 Идемпотентность событий — уникальный `dedupeKey` в ledger.
 
@@ -382,10 +388,13 @@ Env процесса `pocketbase`:
 | CartLineRow | `features/cart/ui/CartLineRow.tsx` — stepper + удаление; заголовок через `CartLineTitle` |
 | CartLineTitle | `features/cart/ui/CartLineTitle.tsx` — название + размер + вариант мяса |
 | CartPromo | `features/cart/ui/CartPromo.tsx` — промокод в панели корзины (раскрывающийся) |
-| CartTotals | `features/cart/ui/CartTotals.tsx` — строка «Скидка» с анимацией; prop `bonusDiscount` для checkout |
+| CartTotals | `features/cart/ui/CartTotals.tsx` — «Начислено бонусов» + монета; «Скидка» с анимацией; prop `bonusDiscount` / `bonusEarned` |
+| BonusEarnHint | `features/cart/ui/BonusEarnHint.tsx` — подпись (+N) / «можно получить» у строки |
+| EngagementHost | `features/engagement` — модалки регистрации и установки приложения |
 | CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |
 | CheckoutLineRow | `features/checkout/ui/CheckoutLineRow.tsx` — строка заказа read-only |
 | BonusesSection | `pages/admin/sections/bonuses/BonusesSection.tsx` — настройки программы + bulk % |
+| CoinIcon | `shared/ui/coin-icon.tsx` ← `/icons/coin.svg` |
 | LogsSection | `pages/admin/sections/activity-logs/LogsSection.tsx` — `activity_logs` |
 | bonus ledger | `entities/bonus` + `pb_hooks/lib/bonus.js` |
 | activity-log | `entities/activity-log` |

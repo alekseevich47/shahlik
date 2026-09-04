@@ -2,6 +2,15 @@
 
 routerAdd(
   "GET",
+  "/api/bonus/public",
+  function (e) {
+    var bonus = require(__hooks + "/lib/bonus.js")
+    return bonus.handlePublicSettings(e)
+  },
+)
+
+routerAdd(
+  "GET",
   "/api/profile/bonus",
   function (e) {
     var bonus = require(__hooks + "/lib/bonus.js")
@@ -71,6 +80,7 @@ onBootstrap(function (e) {
       record.set("referralInviterAmount", defaults.referralInviterAmount)
       record.set("referralInviteeAmount", defaults.referralInviteeAmount)
       record.set("pwaInstallAmount", defaults.pwaInstallAmount)
+      record.set("registrationAmount", defaults.registrationAmount)
       record.set("maxSpendPercent", defaults.maxSpendPercent)
       record.set("earnOnStatus", defaults.earnOnStatus)
       $app.save(record)
@@ -116,12 +126,13 @@ onRecordUpdateRequest(function (e) {
   }
 }, "orders")
 
-// Реферальный код при создании app_users (OAuth).
+// Реферальный код + подарок за регистрацию при создании app_users (OAuth).
 onRecordAfterCreateSuccess(function (e) {
   try {
     var bonus = require(__hooks + "/lib/bonus.js")
     var user = $app.findRecordById("app_users", e.record.id)
     bonus.ensureReferralCode($app, user)
+    bonus.creditRegistrationBonus($app, user)
   } catch (err) {
     // ignore
   }

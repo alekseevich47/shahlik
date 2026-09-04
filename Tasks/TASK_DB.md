@@ -30,7 +30,7 @@
 | `addons` | `name`, `weight`, `price` (number), `image` (file), `kind` (select: extra/sauce), `article` (text optional) | |
 | `banners` | `image` (file), `note` (JSON optional `{title, text}`), `order` (number) | |
 | `orders` | `number` (text), `customer`, `phone`, `mode` (select: pickup/delivery), `address` (text optional), `status` (select: new/cooking/delivering/done/canceled), `positions` (number), `total` (number), `lines` (JSON — снимок корзины), `promo` (text optional), `bonusSpent` / `bonusEarned` (number), `frontpadOrderId` (number optional), `frontpadOrderNumber` (text optional), `frontpadError` (text optional) | пишет клиент (create) + патчит хук |
-| `bonus_settings` | singleton id=`main`: `enabled`, `defaultEarnPercent`, `birthdayAmount`, `referralInviterAmount`, `referralInviteeAmount`, `pwaInstallAmount`, `maxSpendPercent`, `earnOnStatus` | createRule null |
+| `bonus_settings` | singleton id=`main`: `enabled`, `defaultEarnPercent`, `birthdayAmount`, `referralInviterAmount`, `referralInviteeAmount`, `pwaInstallAmount`, `registrationAmount`, `maxSpendPercent`, `earnOnStatus` | createRule null |
 | `bonus_ledger` | append-only: `customerId`, `userId?`, `delta`, `balanceAfter`, `reason`, `dedupeKey` (unique), `meta`, `actor*` | create/update/delete с клиента закрыты |
 | `activity_logs` | audit: `actorType`, `actorId`, `action`, `entity`, `entityId`, `meta`, `ip`, `userAgent` | list/view admin |
 | `reviews` | `author`, `productName`, `score` (number), `text`, `published` (bool) | `created` — автополе |

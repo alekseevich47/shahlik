@@ -102,7 +102,7 @@ export function useCartTotals(): CartTotals {
   const count = lines.reduce((sum, l) => sum + l.line.quantity, 0)
   const goods = lines.reduce((sum, l) => sum + l.total, 0)
 
-  const packFee = lines.length ? settings.packFee : 0
+  const packFee = 0
   const freeDeliveryLeft = Math.max(settings.freeDeliveryFrom - goods, 0)
   const deliveryFee =
     mode === "delivery" && lines.length && freeDeliveryLeft > 0 ? settings.deliveryFee : 0

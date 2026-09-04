@@ -1,22 +1,35 @@
 import { X } from "lucide-react"
 
+import { useAccount } from "@/entities/account/api"
+import { usePublicBonusSettings } from "@/entities/bonus/api"
+import { calcLineEarn } from "@/entities/bonus/lib/earn"
+import { publicBonusSettingsFallback } from "@/entities/bonus/model"
 import { isAddonStopped, isSkuStopped, useStoppedArticles } from "@/entities/product/lib/stock"
 import type { ResolvedLine } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { formatPrice } from "@/shared/lib/format"
 import { Stepper } from "@/shared/ui/stepper"
 
+import { BonusEarnHint } from "./BonusEarnHint"
 import { CartLineTitle } from "./CartLineTitle"
 
 export function CartLineRow({ line }: { line: ResolvedLine }) {
   const setQuantity = useCartStore((s) => s.setQuantity)
   const remove = useCartStore((s) => s.remove)
   const bumpAddon = useCartStore((s) => s.bumpAddon)
+  const user = useAccount()
+  const { data: bonusSettings = publicBonusSettingsFallback() } = usePublicBonusSettings()
   const { data: stopped = new Set<string>() } = useStoppedArticles()
 
   const lineStopped =
     isSkuStopped(line.product, line.line.sizeId, line.line.variantId, stopped) ||
     line.addons.some(({ addon }) => isAddonStopped(addon, stopped))
+
+  const earnAmount = bonusSettings.enabled
+    ? Math.round(
+        calcLineEarn(line.total, line.product.bonusPercent, bonusSettings.defaultEarnPercent),
+      )
+    : 0
 
   return (
     <li className="flex flex-col gap-1.5 py-2.5">
@@ -36,8 +49,9 @@ export function CartLineRow({ line }: { line: ResolvedLine }) {
           {lineStopped ? (
             <p className="text-[11px] font-semibold text-red">Нет в наличии</p>
           ) : null}
-          <p className="text-[13px] font-extrabold text-fg tabular-nums">
+          <p className="flex flex-wrap items-baseline gap-x-1.5 text-[13px] font-extrabold text-fg tabular-nums">
             {formatPrice(line.unitPrice * line.line.quantity)}
+            <BonusEarnHint amount={earnAmount} guest={!user} />
           </p>
         </div>
         <Stepper

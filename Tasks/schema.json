@@ -1396,6 +1396,15 @@
       },
       {
         "hidden": false,
+        "id": "bool_app_users_registration",
+        "name": "registrationClaimed",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
         "id": "autodate2990389176",
         "name": "created",
         "onCreate": true,
@@ -3102,6 +3111,18 @@
       },
       {
         "hidden": false,
+        "id": "num_bonus_registration",
+        "max": null,
+        "min": 0,
+        "name": "registrationAmount",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "hidden": false,
         "id": "num_bonus_max_spend",
         "max": 100,
         "min": 0,
@@ -3243,6 +3264,7 @@
           "referral",
           "birthday",
           "pwa_install",
+          "registration",
           "adjust"
         ]
       },

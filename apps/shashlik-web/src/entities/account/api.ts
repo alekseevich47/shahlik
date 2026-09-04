@@ -80,6 +80,8 @@ export function mapAppUser(record: RecordModel): AppUser {
     blocked: Boolean(record.blocked),
     referralCode: asString(record.referralCode) || undefined,
     referredBy: asId(record.referredBy),
+    pwaInstallClaimed: Boolean(record.pwaInstallClaimed),
+    registrationClaimed: Boolean(record.registrationClaimed),
   }
 }
 

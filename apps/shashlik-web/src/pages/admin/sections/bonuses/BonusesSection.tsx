@@ -23,6 +23,7 @@ export function BonusesSection() {
   const [referralInviterAmount, setReferralInviterAmount] = useState("200")
   const [referralInviteeAmount, setReferralInviteeAmount] = useState("100")
   const [pwaInstallAmount, setPwaInstallAmount] = useState("150")
+  const [registrationAmount, setRegistrationAmount] = useState("100")
   const [maxSpendPercent, setMaxSpendPercent] = useState("50")
   const [bulkPercent, setBulkPercent] = useState("5")
 
@@ -34,6 +35,7 @@ export function BonusesSection() {
     setReferralInviterAmount(String(data.referralInviterAmount))
     setReferralInviteeAmount(String(data.referralInviteeAmount))
     setPwaInstallAmount(String(data.pwaInstallAmount))
+    setRegistrationAmount(String(data.registrationAmount))
     setMaxSpendPercent(String(data.maxSpendPercent))
   }, [data])
 
@@ -46,6 +48,7 @@ export function BonusesSection() {
       referralInviterAmount: num(referralInviterAmount),
       referralInviteeAmount: num(referralInviteeAmount),
       pwaInstallAmount: num(pwaInstallAmount),
+      registrationAmount: num(registrationAmount),
       maxSpendPercent: num(maxSpendPercent),
     }
     const nums = [
@@ -54,6 +57,7 @@ export function BonusesSection() {
       values.referralInviterAmount,
       values.referralInviteeAmount,
       values.pwaInstallAmount,
+      values.registrationAmount,
       values.maxSpendPercent,
     ]
     if (nums.some((value) => !Number.isFinite(value) || value < 0)) {
@@ -124,6 +128,15 @@ export function BonusesSection() {
                 className="tabular-nums"
               />
             </Field>
+            <Field label="Регистрация, бонусы">
+              <Input
+                value={registrationAmount}
+                onChange={(e) => setRegistrationAmount(e.target.value)}
+                inputMode="decimal"
+                disabled={busy}
+                className="tabular-nums"
+              />
+            </Field>
             <Field label="День рождения, бонусы">
               <Input
                 value={birthdayAmount}
@@ -181,12 +194,7 @@ export function BonusesSection() {
                   className="tabular-nums"
                 />
               </Field>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={busy}
-                onClick={() => void applyBulk()}
-              >
+              <Button type="button" disabled={busy} onClick={() => void applyBulk()}>
                 Применить ко всем
               </Button>
             </div>

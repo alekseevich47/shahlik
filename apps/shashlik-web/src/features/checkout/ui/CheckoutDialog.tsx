@@ -23,10 +23,12 @@ import { CheckoutTrustBadges } from "@/features/checkout/ui/CheckoutTrustBadges"
 import { SafePaymentBanner } from "@/features/checkout/ui/SafePaymentBanner"
 import { formatPrice } from "@/shared/lib/format"
 import { Button } from "@/shared/ui/button"
+import { CoinIcon } from "@/shared/ui/coin-icon"
 import { FloatingField } from "@/shared/ui/floating-field"
 import { IconTextarea } from "@/shared/ui/icon-input"
 import { Modal, ModalDescription, ModalTitle } from "@/shared/ui/modal"
 import { Select } from "@/shared/ui/select"
+import { Switch } from "@/shared/ui/switch"
 
 type CheckoutDialogProps = {
   open: boolean
@@ -82,20 +84,24 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
             ) : (
               <ul className="divide-y divide-line">
                 {lines.map((line) => (
-                  <CheckoutLineRow key={line.line.id} line={line} />
+                  <CheckoutLineRow
+                    key={line.line.id}
+                    line={line}
+                    earnDisabled={checkout.spendBonus}
+                  />
                 ))}
               </ul>
             )}
 
             <CheckoutPromoField />
 
-            {checkout.canSpendBonus ? (
-              <BonusRow
-                score={checkout.bonusScore}
-                checked={checkout.spendBonus}
-                onChange={checkout.setSpendBonus}
-              />
-            ) : null}
+            <BonusSpendBlock
+              visible={checkout.canSpendBonus}
+              score={checkout.bonusScore}
+              spendAmount={checkout.bonusDiscount}
+              checked={checkout.spendBonus}
+              onChange={checkout.setSpendBonus}
+            />
 
             <FieldBlock label="Способ оплаты">
               <Select
@@ -117,7 +123,10 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               </Select>
             </FieldBlock>
 
-            <CartTotals bonusDiscount={checkout.bonusDiscount} />
+            <CartTotals
+              bonusDiscount={checkout.bonusDiscount}
+              bonusEarned={checkout.bonusEarnedPreview}
+            />
 
             <div className="flex items-end justify-between gap-3 pt-1">
               <span className="text-[26px] leading-none font-extrabold text-fg tabular-nums">
@@ -232,31 +241,46 @@ function FieldBlock({ label, children }: { label: string; children: ReactNode })
   )
 }
 
-function BonusRow({
+function BonusSpendBlock({
+  visible,
   score,
+  spendAmount,
   checked,
   onChange,
 }: {
+  visible: boolean
   score: number
+  spendAmount: number
   checked: boolean
   onChange: (next: boolean) => void
 }) {
+  if (!visible) return null
+
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[var(--r-md)] border border-line bg-surface-2 px-3 py-2.5">
-      <span className="flex flex-col">
-        <span className="text-[12px] font-bold text-fg-muted">Мои бонусы</span>
-        <span className="text-[13px] font-extrabold text-fg tabular-nums">{score} баллов</span>
-      </span>
-      <span className="flex items-center gap-2 text-[12px] font-semibold text-fg">
-        Списать
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="size-4 shrink-0 cursor-pointer rounded-[4px] border border-line-strong accent-[var(--brand)]"
-        />
-      </span>
-    </label>
+    <div className="flex flex-col gap-2 rounded-[var(--r-md)] border border-line bg-surface-2 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1 text-[12px] font-bold text-fg-muted">
+            Списание бонусов
+            <CoinIcon className="size-3.5 opacity-80" />
+          </p>
+          <p className="mt-0.5 text-[13px] font-extrabold text-fg tabular-nums">
+            Доступно {score}
+          </p>
+        </div>
+        <Switch checked={checked} onCheckedChange={onChange} aria-label="Списать бонусы" />
+      </div>
+      {checked ? (
+        <div className="flex flex-col gap-0.5 border-t border-line/80 pt-2">
+          <p className="text-[12px] font-semibold text-fg tabular-nums">
+            Спишем {spendAmount} · −{formatPrice(spendAmount)}
+          </p>
+          <p className="text-[11px] leading-snug text-fg-muted">
+            При списании бонусы за этот заказ не начисляются
+          </p>
+        </div>
+      ) : null}
+    </div>
   )
 }
 

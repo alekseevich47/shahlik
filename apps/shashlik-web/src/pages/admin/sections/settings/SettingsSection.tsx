@@ -76,21 +76,15 @@ export function SettingsSection() {
   }
 
   const saveEconomy = async () => {
-    const packFee = parseNonNeg(String(draft.packFee), "Упаковка")
     const deliveryFee = parseNonNeg(String(draft.deliveryFee), "Доставка")
     const freeDeliveryFrom = parseNonNeg(String(draft.freeDeliveryFrom), "Бесплатная доставка от")
     const minOrder = parseNonNeg(String(draft.minOrder), "Мин. заказ")
-    if (
-      packFee === null ||
-      deliveryFee === null ||
-      freeDeliveryFrom === null ||
-      minOrder === null
-    ) {
+    if (deliveryFee === null || freeDeliveryFrom === null || minOrder === null) {
       return
     }
     try {
       await updateSettings.mutateAsync({
-        packFee,
+        packFee: 0,
         deliveryFee,
         freeDeliveryFrom,
         minOrder,
@@ -226,16 +220,6 @@ export function SettingsSection() {
       ) : tab === "economy" ? (
         <div className="flex flex-col gap-4 rounded-[var(--r-md)] border border-line bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Упаковка, ₽">
-              <Input
-                type="number"
-                min={0}
-                step={1}
-                value={draft.packFee}
-                onChange={(e) => patch("packFee", Number(e.target.value) || 0)}
-                disabled={busy}
-              />
-            </Field>
             <Field label="Доставка, ₽">
               <Input
                 type="number"

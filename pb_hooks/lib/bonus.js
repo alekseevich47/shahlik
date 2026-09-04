@@ -10,6 +10,7 @@ var BONUS_SETTINGS_DEFAULTS = {
   referralInviterAmount: 200,
   referralInviteeAmount: 100,
   pwaInstallAmount: 150,
+  registrationAmount: 100,
   maxSpendPercent: 50,
   earnOnStatus: "done",
 }
@@ -53,6 +54,7 @@ function loadBonusSettings(app) {
       referralInviterAmount: Math.max(0, record.getFloat("referralInviterAmount") || 0),
       referralInviteeAmount: Math.max(0, record.getFloat("referralInviteeAmount") || 0),
       pwaInstallAmount: Math.max(0, record.getFloat("pwaInstallAmount") || 0),
+      registrationAmount: Math.max(0, record.getFloat("registrationAmount") || 0),
       maxSpendPercent: maxSpend,
       earnOnStatus: record.getString("earnOnStatus") || BONUS_SETTINGS_DEFAULTS.earnOnStatus,
     }
@@ -65,10 +67,25 @@ function loadBonusSettings(app) {
       referralInviterAmount: BONUS_SETTINGS_DEFAULTS.referralInviterAmount,
       referralInviteeAmount: BONUS_SETTINGS_DEFAULTS.referralInviteeAmount,
       pwaInstallAmount: BONUS_SETTINGS_DEFAULTS.pwaInstallAmount,
+      registrationAmount: BONUS_SETTINGS_DEFAULTS.registrationAmount,
       maxSpendPercent: BONUS_SETTINGS_DEFAULTS.maxSpendPercent,
       earnOnStatus: BONUS_SETTINGS_DEFAULTS.earnOnStatus,
     }
   }
+}
+
+/**
+ * GET /api/bonus/public — витрина (гости): % и подарочные суммы.
+ */
+function handlePublicSettings(e) {
+  var settings = loadBonusSettings($app)
+  return e.json(200, {
+    enabled: Boolean(settings.enabled),
+    defaultEarnPercent: settings.defaultEarnPercent,
+    registrationAmount: settings.registrationAmount,
+    pwaInstallAmount: settings.pwaInstallAmount,
+    maxSpendPercent: settings.maxSpendPercent,
+  })
 }
 
 function findLedgerByDedupe(app, dedupeKey) {
@@ -317,6 +334,49 @@ function handleAdjust(e) {
 function resolveCustomerForUser(app, user) {
   var profile = require(__hooks + "/lib/profile.js")
   return profile.ensureCustomer(app, user)
+}
+
+/**
+ * Подарок за первую регистрацию (после привязки телефона / customer).
+ * Идемпотентно: registrationClaimed + dedupeKey.
+ */
+function creditRegistrationBonus(app, user) {
+  if (!user) {
+    return { ok: false, skipped: true }
+  }
+  var settings = loadBonusSettings(app)
+  if (!settings.enabled || settings.registrationAmount <= 0) {
+    return { ok: true, skipped: true, reason: "disabled" }
+  }
+  if (user.getBool("registrationClaimed")) {
+    return { ok: true, skipped: true, reason: "already_claimed" }
+  }
+
+  var customer = resolveCustomerForUser(app, user)
+  if (!customer) {
+    return { ok: false, skipped: true, reason: "no_customer" }
+  }
+
+  var result = applyLedgerDeltaTx({
+    customerId: customer.id,
+    userId: user.id,
+    delta: Math.round(settings.registrationAmount),
+    reason: "registration",
+    dedupeKey: "registration:" + user.id,
+    actorType: "user",
+    actorId: user.id,
+  })
+
+  if (!result.skipped) {
+    try {
+      user.set("registrationClaimed", true)
+      app.save(user)
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  return result
 }
 
 /**
@@ -584,6 +644,18 @@ function creditOrderEarn(orderRecord) {
     return { ok: true, skipped: true }
   }
 
+  // При списании бонусов за заказ начисление не происходит.
+  var spent = Math.round(orderRecord.getFloat("bonusSpent") || 0)
+  if (spent > 0) {
+    orderRecord.set("bonusEarned", 0)
+    try {
+      $app.save(orderRecord)
+    } catch (err) {
+      // ignore
+    }
+    return { ok: true, skipped: true, amount: 0, reason: "spent" }
+  }
+
   var amount = calcOrderEarnAmount(orderRecord, settings)
   orderRecord.set("bonusEarned", amount)
 
@@ -720,12 +792,14 @@ module.exports = {
   applyLedgerDeltaTx: applyLedgerDeltaTx,
   handleProfileBonus: handleProfileBonus,
   handleAdjust: handleAdjust,
+  handlePublicSettings: handlePublicSettings,
   handlePwaInstall: handlePwaInstall,
   handleReferral: handleReferral,
   handleBulkPercent: handleBulkPercent,
   resolveSpendForOrder: resolveSpendForOrder,
   debitOrderSpend: debitOrderSpend,
   creditOrderEarn: creditOrderEarn,
+  creditRegistrationBonus: creditRegistrationBonus,
   calcOrderEarnAmount: calcOrderEarnAmount,
   runBirthdayCron: runBirthdayCron,
   ensureReferralCode: ensureReferralCode,

@@ -3,6 +3,7 @@ import { MotionConfig } from "motion/react"
 import { BrowserRouter } from "react-router-dom"
 import { Toaster } from "sonner"
 
+import { EngagementHost } from "@/features/engagement/ui/EngagementHost"
 import { AdminAuthProvider } from "@/shared/api/auth"
 import { queryClient } from "@/shared/api/query-client"
 import { GlassDefs } from "@/shared/ui/glass"
@@ -25,6 +26,7 @@ export default function App() {
                 <BrowserRouter>
                   <ScrollToTop />
                   <AppRoutes />
+                  <EngagementHost />
                 </BrowserRouter>
               </MotionConfig>
               <Toaster

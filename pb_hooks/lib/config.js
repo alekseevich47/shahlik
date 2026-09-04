@@ -44,7 +44,7 @@ var DEFAULT_STATUS_MAP = {
 }
 
 var SITE_DEFAULTS = {
-  packFee: 24,
+  packFee: 0,
   deliveryFee: 149,
   freeDeliveryFrom: 800,
   minOrder: 0,

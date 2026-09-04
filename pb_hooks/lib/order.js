@@ -573,7 +573,7 @@ function validateAndRecalculateOrder(e) {
   }
 
   var mode = record.getString("mode")
-  var packFee = resolvedLines.length ? settings.packFee : 0
+  var packFee = 0
   var freeDeliveryLeft = Math.max(settings.freeDeliveryFrom - goods, 0)
   var deliveryFee =
     mode === "delivery" && resolvedLines.length && freeDeliveryLeft > 0
