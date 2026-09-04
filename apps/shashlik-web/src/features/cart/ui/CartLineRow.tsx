@@ -49,7 +49,7 @@ export function CartLineRow({ line }: { line: ResolvedLine }) {
           {lineStopped ? (
             <p className="text-[11px] font-semibold text-red">Нет в наличии</p>
           ) : null}
-          <p className="flex flex-wrap items-baseline gap-x-1.5 text-[13px] font-extrabold text-fg tabular-nums">
+          <p className="flex flex-wrap items-center gap-x-1.5 text-[13px] font-extrabold text-fg tabular-nums">
             {formatPrice(line.unitPrice * line.line.quantity)}
             <BonusEarnHint amount={earnAmount} guest={!user} />
           </p>

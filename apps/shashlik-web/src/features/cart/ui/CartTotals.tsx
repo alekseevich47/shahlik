@@ -56,12 +56,12 @@ export function CartTotals({
       {showBonusEarn && bonusSettings.enabled && earnedPreview > 0 ? (
         <div className="flex items-center justify-between gap-3">
           <span className="text-[12px] text-fg-muted">
-            {isGuest ? "можно получить" : "Начислено бонусов"}
+            {isGuest ? "Можно получить" : "Начислено бонусов"}
           </span>
           {isGuest ? (
             <span className="inline-flex items-center gap-1 text-[12px] font-bold text-fg tabular-nums">
               {earnedPreview}
-              <CoinIcon className="size-3.5 opacity-80" />
+              <CoinIcon className="size-7 opacity-80" />
             </span>
           ) : (
             <span className="text-[12px] font-bold text-fg tabular-nums">+{earnedPreview}</span>
