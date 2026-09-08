@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { claimPwaInstallBonus } from "@/entities/bonus/api"
@@ -6,7 +6,7 @@ import { CoinIcon } from "@/shared/ui/coin-icon"
 import { Button } from "@/shared/ui/button"
 import { Modal, ModalDescription, ModalTitle } from "@/shared/ui/modal"
 
-import { detectInstallPlatform, dismissPwaForever, markPwaInstalledOnDevice } from "../lib/storage"
+import { detectInstallPlatform, dismissPwaForever, markPwaInstalledOnDevice, markPwaSoftDismissed } from "../lib/storage"
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -23,6 +23,7 @@ export function InstallAppModal({ open, onOpenChange, amount }: InstallAppModalP
   const [step, setStep] = useState<"cta" | "howto">("cta")
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const platform = detectInstallPlatform()
+  const skipSoftDismiss = useRef(false)
 
   useEffect(() => {
     if (!open) setStep("cta")
@@ -63,6 +64,7 @@ export function InstallAppModal({ open, onOpenChange, amount }: InstallAppModalP
         const choice = await deferred.userChoice
         setDeferred(null)
         if (choice.outcome === "accepted") {
+          skipSoftDismiss.current = true
           await claimAfterInstall()
           onOpenChange(false)
           return
@@ -75,22 +77,34 @@ export function InstallAppModal({ open, onOpenChange, amount }: InstallAppModalP
   }
 
   function handleClose() {
-    onOpenChange(false)
+    handleOpenChange(false)
   }
 
   function handleNever() {
+    skipSoftDismiss.current = true
     dismissPwaForever()
     onOpenChange(false)
   }
 
   async function confirmInstalled() {
+    skipSoftDismiss.current = true
     await claimAfterInstall()
     dismissPwaForever()
     onOpenChange(false)
   }
 
+  function handleOpenChange(next: boolean) {
+    if (!next && open) {
+      if (!skipSoftDismiss.current) {
+        markPwaSoftDismissed()
+      }
+      skipSoftDismiss.current = false
+    }
+    onOpenChange(next)
+  }
+
   return (
-    <Modal open={open} onOpenChange={onOpenChange} className="w-[min(420px,calc(100vw-2rem))]">
+    <Modal open={open} onOpenChange={handleOpenChange} className="w-[min(420px,calc(100vw-2rem))]">
       <div className="flex flex-col gap-4 p-6">
         {step === "cta" ? (
           <>

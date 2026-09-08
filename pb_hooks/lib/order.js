@@ -647,8 +647,10 @@ function validateAndRecalculateOrder(e) {
   var spendBonusWanted = false
   try {
     var info = e.requestInfo()
-    if (info && info.body) {
-      spendBonusWanted = Boolean(info.body.spendBonus)
+    // Только флаг intent. Суммы bonusSpent/discount/total/goods с клиента игнорируем —
+    // ниже пересчёт; чужой bonusSpent в body не принимаем.
+    if (info && info.body && info.body.spendBonus === true) {
+      spendBonusWanted = true
     }
   } catch (err) {
     spendBonusWanted = false
@@ -749,11 +751,19 @@ function buildDescr(order) {
   if (order.couponCode) {
     parts.push("Промокод: " + order.couponCode)
   }
+  var bonusSpent = Math.round(Number(order.bonusSpent) || 0)
+  if (bonusSpent > 0) {
+    parts.push("Бонусы: -" + bonusSpent + "₽")
+  }
   return trimStr(parts.join(". "), 100)
 }
 
 /**
  * Сборка payload для Frontpad new_order.
+ *
+ * Деньги только из серверного снапшота заказа (после validateAndRecalculateOrder).
+ * Скидка сайта = купон + bonusSpent → sale_amount (не Frontpad score).
+ * product_price — цены сайта; при любой скидке форсим, иначе чек кассы ≠ сайт.
  *
  * @param {Object} order
  * @param {Object} fpSettings
@@ -761,6 +771,12 @@ function buildDescr(order) {
  */
 function buildNewOrderPayload(order, fpSettings) {
   var config = require(__hooks + "/lib/config.js")
+
+  var discount = Math.max(0, Math.round(Number(order.discount) || 0))
+  var bonusSpent = Math.max(0, Math.round(Number(order.bonusSpent) || 0))
+  var saleAmount = discount + bonusSpent
+  // Паритет с сайтом: при скидке/бонусах цены строк обязаны быть нашими.
+  var wantPrices = Boolean(fpSettings.sendPrices) || saleAmount > 0
 
   var products = []
   var productKol = []
@@ -777,7 +793,7 @@ function buildNewOrderPayload(order, fpSettings) {
     var parentIdx = products.length
     products.push(String(article))
     productKol.push(Number(getField(line, "quantity")) || 1)
-    if (fpSettings.sendPrices) {
+    if (wantPrices) {
       productPrices.push(Number(getField(line, "unitPrice")) || 0)
     }
 
@@ -792,7 +808,7 @@ function buildNewOrderPayload(order, fpSettings) {
       products.push(String(addonArticle))
       productKol.push(Number(getField(addon, "quantity")) || 1)
       productMod[String(addonIdx)] = parentIdx
-      if (fpSettings.sendPrices) {
+      if (wantPrices) {
         productPrices.push(Number(getField(addon, "price")) || 0)
       }
     }
@@ -801,7 +817,7 @@ function buildNewOrderPayload(order, fpSettings) {
   if (fpSettings.articlePack && order.packFee > 0) {
     products.push(String(fpSettings.articlePack))
     productKol.push(1)
-    if (fpSettings.sendPrices) {
+    if (wantPrices) {
       productPrices.push(order.packFee)
     }
   }
@@ -809,7 +825,7 @@ function buildNewOrderPayload(order, fpSettings) {
   if (fpSettings.articleDelivery && order.deliveryFee > 0) {
     products.push(String(fpSettings.articleDelivery))
     productKol.push(1)
-    if (fpSettings.sendPrices) {
+    if (wantPrices) {
       productPrices.push(order.deliveryFee)
     }
   }
@@ -829,12 +845,13 @@ function buildNewOrderPayload(order, fpSettings) {
     payload.product_mod = productMod
   }
 
-  if (fpSettings.sendPrices && productPrices.length > 0) {
+  if (wantPrices && productPrices.length > 0) {
     payload.product_price = productPrices
   }
 
-  if (order.discount > 0) {
-    payload.sale_amount = Math.round(order.discount)
+  // Купон + наши бонусы одной суммой. score кассы не передаём.
+  if (saleAmount > 0) {
+    payload.sale_amount = saleAmount
   }
 
   payload.phone = order.phone || ""

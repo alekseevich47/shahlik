@@ -13,8 +13,10 @@ import {
   submitReferral,
 } from "@/entities/account/api"
 import type { NewSavedAddress, SavedAddress } from "@/entities/account/model"
+import { BonusHistoryReason } from "@/entities/bonus/lib/history"
 import { useMyOrders } from "@/entities/order/api"
 import { isActiveOrderStatus, ORDER_STATUS_LABEL, type Order } from "@/entities/order/model"
+import { CoinIcon } from "@/shared/ui/coin-icon"
 import { formatAddressLine } from "@/features/checkout/model/useCheckout"
 import { getLatestLocalOrderId, listLocalOrderIds } from "@/features/order-tracking/model/localOrders"
 import { useLiveOrder } from "@/features/order-tracking/model/useLiveOrder"
@@ -577,18 +579,21 @@ function BonusTab() {
           <ul className="mt-3 flex flex-col gap-2">
             {data.history.map((row) => (
               <li key={row.id} className="flex items-center justify-between gap-2 text-[13px]">
-                <span className="text-fg-muted">
-                  {row.reason} · {formatDateTime(row.created)}
+                <span className="min-w-0 text-fg-muted">
+                  <BonusHistoryReason row={row} />
+                  {" · "}
+                  {formatDateTime(row.created)}
                 </span>
                 <span
                   className={
                     row.delta >= 0
-                      ? "tabular-nums font-bold text-success"
-                      : "tabular-nums font-bold text-fg"
+                      ? "inline-flex shrink-0 items-center gap-0.5 tabular-nums font-bold text-success"
+                      : "inline-flex shrink-0 items-center gap-0.5 tabular-nums font-bold text-red"
                   }
                 >
                   {row.delta >= 0 ? "+" : ""}
                   {row.delta}
+                  <CoinIcon className="size-3.5" />
                 </span>
               </li>
             ))}

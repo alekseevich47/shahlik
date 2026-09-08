@@ -129,12 +129,14 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
             subtitle={settings.promoSubtitle}
             code={settings.promoCode}
           />
-          <SidebarPromoCard
-            title={settings.promo2Title}
-            subtitle={settings.promo2Subtitle}
-            code={settings.promo2Code}
-            onClick={account ? undefined : () => navigate("/profile")}
-          />
+          {!account ? (
+            <SidebarPromoCard
+              title={settings.promo2Title}
+              subtitle={settings.promo2Subtitle}
+              code={settings.promo2Code}
+              onClick={() => navigate("/profile")}
+            />
+          ) : null}
 
           <NavLink
             to="/profile"

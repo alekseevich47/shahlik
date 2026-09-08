@@ -215,13 +215,25 @@ function listLedgerForCustomer(app, customerId, limit) {
 }
 
 function mapLedgerEntry(record) {
+  var refType = record.getString("refType") || ""
+  var refId = record.getString("refId") || ""
+  var orderNumber = ""
+  if (refType === "orders" && refId) {
+    try {
+      var order = $app.findRecordById("orders", refId)
+      orderNumber = order.getString("number") || ""
+    } catch (err) {
+      // заказ удалён или недоступен
+    }
+  }
   return {
     id: record.id,
     delta: record.getFloat("delta") || 0,
     balanceAfter: record.getFloat("balanceAfter") || 0,
     reason: record.getString("reason") || "",
-    refType: record.getString("refType") || "",
-    refId: record.getString("refId") || "",
+    refType: refType,
+    refId: refId,
+    orderNumber: orderNumber,
     created: record.getString("created") || "",
   }
 }

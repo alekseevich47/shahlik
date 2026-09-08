@@ -22,6 +22,9 @@ export type ProfileBonus = {
     delta: number
     balanceAfter: number
     reason: string
+    refType?: string
+    refId?: string
+    orderNumber?: string
     created: string
   }>
 }

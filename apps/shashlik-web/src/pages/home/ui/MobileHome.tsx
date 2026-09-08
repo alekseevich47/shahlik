@@ -66,12 +66,14 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
         subtitle={settings.promoSubtitle}
         code={settings.promoCode}
       />
-      <PromoBanner
-        title={settings.promo2Title}
-        subtitle={settings.promo2Subtitle}
-        code={settings.promo2Code}
-        onClick={account ? undefined : () => navigate("/profile")}
-      />
+      {!account ? (
+        <PromoBanner
+          title={settings.promo2Title}
+          subtitle={settings.promo2Subtitle}
+          code={settings.promo2Code}
+          onClick={() => navigate("/profile")}
+        />
+      ) : null}
 
       {combo.length ? (
         <ScrollSection title="Комбо" items={combo} onAdd={addProduct} />

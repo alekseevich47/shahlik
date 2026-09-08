@@ -219,9 +219,9 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — `CheckoutPromoField` в начале правой середины.
 
-Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость — после первого добавления в корзину (VK One Tap + Яндекс), подарок `registrationAmount`; после успешного входа reg-модалка закрывается. Авторизованный через ~45 с — установка приложения (`pwaInstallAmount`), если ещё не standalone / не `pwaInstallClaimed` / не ставили на этом устройстве (`localStorage` `shashlik:pwa:installed`) / не «Больше не показывать». Manifest — `/manifest.webmanifest`. Отступы контента модалок равные (`p-6`); запас под крестик только у title-row (`pr-10`). Reg-модалка — `contentOverflow="visible"` (VK One Tap «Продолжить»).
+Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость — после первого добавления в корзину (VK One Tap + Яндекс), подарок `registrationAmount`; после успешного входа reg-модалка закрывается. Авторизованный через ~**10 с** — установка приложения (`pwaInstallAmount`), если ещё не standalone / не `pwaInstallClaimed` / не ставили на этом устройстве (`localStorage` `shashlik:pwa:installed`) / не «Больше не показывать» / не в soft-cooldown **2 суток** после обычного закрытия (`shashlik:pwa-modal:soft-dismiss-at`). Session-флаг «показано» для PWA больше не стопит повтор. Manifest — `/manifest.webmanifest`. Отступы контента модалок равные (`p-6`); запас под крестик только у title-row (`pr-10`). Reg-модалка — `contentOverflow="visible"` (VK One Tap «Продолжить»).
 
-Промо на витрине — два блока из `settings`: `promo*` (купон) и `promo2*` (регистрация). Desktop — обе карточки в `Sidebar`; mobile — два `PromoBanner` подряд. Админка «Заведение» редактирует оба.
+Промо на витрине — `settings`: `promo*` (купон) всегда; `promo2*` (регистрация) — **только гостям** (`Sidebar` / `MobileHome`). Админка «Заведение» редактирует оба.
 
 ## Витрина (home)
 
@@ -299,14 +299,15 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | Настройки | singleton `bonus_settings` id=`main`: default %, ДР, реферал, PWA amount, **registrationAmount**, maxSpend %, `enabled` |
 | % на товар | `products.bonusPercent` (пусто → default); bulk — `POST /api/bonus/bulk-percent` |
 | Публично | `GET /api/bonus/public` — enabled, defaultEarn %, registration/PWA amounts, maxSpend % (витрина/гости) |
-| Списание | checkout `spendBonus` → сервер клипует в `orders.bonusSpent`; debit ledger после create (`order_spend:<id>`); при списании earn = 0 |
+| Списание | checkout `spendBonus: true` (только intent) → сервер клипует в `orders.bonusSpent` из баланса/`maxSpendPercent`; debit ledger после create (`order_spend:<id>`); при списании earn = 0. Клиентские `bonusSpent`/`total`/`goods` затираются |
 | Начисление | при `status → done` (+ webhook): earn по строкам + promo kind=`bonus`; `order_earn:<id>`; **не** если `bonusSpent > 0` |
+| В кассу | `sale_amount = discount + bonusSpent` (не `score` Frontpad). При скидке/бонусах всегда `product_price[]` из серверного снапшота, чтобы чек = `orders.total` |
 | Промо-бонусы | `coupons.kind = bonus`, опц. `targetUserId`; скидка 0, баллы начисляются с earn |
 | Регистрация | `registrationAmount`; `app_users.registrationClaimed`; dedupe `registration:customer:<customerId>` (+ skip если у customer уже есть ledger `reason=registration`); после привязки телефона / create. Merge VK↔Яндекс переносит claimed-флаги |
 | Реферал | `app_users.referralCode` / `referredBy`; `POST /api/profile/referral` |
 | ДР | cron `bonus-birthday` 05:15 UTC; `birthday:<year>:<userId>` |
-| PWA | `POST /api/bonus/events/pwa-install` + UI `InstallAppModal`; dedupe `pwa:customer:<customerId>`; клиент `shashlik:pwa:installed` не предлагает повторно; иконка монеты `/icons/coin.svg` |
-| Профиль | `GET /api/profile/bonus` — score + history + referralCode; в UI данных почта клиенту не показывается |
+| PWA | `POST /api/bonus/events/pwa-install` + UI `InstallAppModal`; dedupe `pwa:customer:<customerId>`; клиент `shashlik:pwa:installed` не предлагает повторно; soft-dismiss cooldown 2 дня (`shashlik:pwa-modal:soft-dismiss-at`); задержка показа ~10 с; иконка монеты `/icons/coin.png` (`CoinIcon`) |
+| Профиль | `GET /api/profile/bonus` — score + history (`refType`/`refId`/`orderNumber`) + referralCode; история: `registration` → «Бонус за регистрацию», `order_spend` → «Оплата за заказ №» + ссылка `/order/:id`; debit `text-red` + `CoinIcon`; в UI данных почта клиенту не показывается |
 | Админка | `/admin/bonuses` (в т.ч. «Регистрация, бонусы»), ручное ± в `CustomerDrawer`, журнал `/admin/logs` |
 
 Идемпотентность событий — уникальный `dedupeKey` в ledger.
@@ -324,8 +325,8 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 **Чего в API кассы нет** (не изобретать обходных путей):
 
 - **Получить заказ по id нельзя.** Наружу Frontpad отдаёт только вебхук `change_status`, поэтому правка состава/сумм в кассе до сайта не доезжает. `orders.lines` — снапшот, зафиксированный сервером при создании; пользователю показываем его + живой статус.
-- **Записать цену в справочник кассы нельзя.** `product_price[]` в `new_order` действует только внутри одного заказа и только если в кассе разрешено изменение цены (тумблер `sendPrices`). Синхронизация цен возможна лишь односторонняя: касса → сайт, через `get_products` → `frontpad_stock.price`.
-- **Начислением бонусов через API кассы не управлять.** Своя программа — `bonus_ledger` / `bonus_settings` (см. раздел «Бонусы»). Frontpad `score` не читаем и не передаём в `new_order`.
+- **Записать цену в справочник кассы нельзя.** `product_price[]` в `new_order` действует только внутри одного заказа и только если в кассе разрешено изменение цены (тумблер `sendPrices`). **Исключение:** при `discount + bonusSpent > 0` хук всё равно шлёт `product_price[]` из серверного снапшота — иначе `sale_amount` сядет на цены справочника кассы и чек разойдётся с сайтом. Синхронизация справочника цен — только касса → сайт (`get_products` → `frontpad_stock.price`).
+- **Начислением бонусов через API кассы не управлять.** Своя программа — `bonus_ledger` / `bonus_settings` (см. раздел «Бонусы»). Frontpad `score` не читаем и не передаём в `new_order`. Списание наших баллов в чек кассы — через `sale_amount = discount + bonusSpent`.
 
 Мост к кассе — только `pb_hooks` (каталог `pb_hooks/` в корне репозитория, деплой в `/opt/pocketbase/pb_hooks`). Ни витрина, ни админка Frontpad не зовут и секрета не видят.
 
@@ -352,11 +353,12 @@ Env процесса `pocketbase`:
 
 В git и в бандл env не попадают.
 
-- **Деньги считает сервер.** `onRecordCreateRequest("orders")` пересчитывает строки/упаковку/доставку/скидку из БД, валидирует стоп-лист и артикулы, генерирует `number`. Клиентские суммы затираются.
+- **Деньги считает сервер.** `onRecordCreateRequest("orders")` пересчитывает строки/упаковку/доставку/скидку/bonusSpent из БД, валидирует стоп-лист и артикулы, генерирует `number`, ставит `status=new`. Клиентские суммы и `status` затираются; списание бонусов — только флаг `spendBonus === true` + auth `app_users` + клип на сервере.
+- **Паритет чека с кассой.** `buildNewOrderPayload`: `sale_amount = discount + bonusSpent`; `product_price` из снапшота при `sendPrices` **или** любой скидке; `score` кассы не передаём. `recordToOrder` обязан нести `bonusSpent`.
 - **Отправка идемпотентна.** Перед `new_order` в транзакции ставится `sentAt`; повторно уходит только заказ с пустым `frontpadOrderId`. Неизвестный результат (таймаут) — `frontpadError` **без автоповтора**, дальше только ручная переотправка из админки. Ручной `resend_order` идёт с `force: true` — его блокирует только заполненный `frontpadOrderId`, но не `sentAt`.
 - **Очередь `frontpad_jobs` + cron-воркер** (раз в минуту, ≤2 отправки и ≤1 синхронизация за тик — лимиты кассы 30/мин, 2/сек). Бэкофф по `attempts`: 1/2/5/15/60 мин. `get_products` — жёсткий гейт 1/час по `lastProductsSyncAt`. Чистка старых джобов — отдельный суточный cron, не каждый тик.
 - **Джоб из админки исполняется сразу.** `onRecordAfterCreateSuccess("frontpad_jobs")` → `jobs.runJobById`, поэтому кнопка «Переотправить» не ждёт тика. Джобы, поставленные самими хуками после сбоя, помечаются `payload.auto = true` и немедленный прогон пропускают — иначе повтор уходит в кассу дважды в одном запросе.
-- **`hook_url` — пер-заказный:** глобальный webhook в настройках кассы занят сторонней интеграцией (FoodSoul) и не меняется; наши заказы передают свой `hook_url` + токен и `hook_status[]`. Роут `POST /api/webhooks/frontpad/status` сверяет токен, отвечает **всегда 200**, не понижает терминальные статусы, ставит `statusSource="hook"`.
+- **`hook_url` — пер-заказный:** глобальный webhook в настройках кассы занят сторонней интеграцией (FoodSoul) и не меняется; наши заказы передают свой `hook_url` + токен и `hook_status[]` (пусто = статусы с кассы не приедут). Роут `POST /api/webhooks/frontpad/status` сверяет токен (constant-time), отвечает **всегда 200**, мапит код через `statusMap` с fallback на `DEFAULT_STATUS_MAP` (`1→cooking`, `3→delivering`, `5→done`, `9→canceled`), не понижает терминальные статусы, ставит `statusSource="hook"`. Витрина/трекинг — PB realtime (`subscribeOrderStatus` / `useLiveOrder`).
 - **Dry-run:** `frontpad_settings.sendEnabled = false` — payload пишется в `frontpad_jobs.result` и в лог, запроса в кассу нет. Dry-run **снимает `sentAt`**, чтобы заказ можно было отправить по-настоящему после включения тумблера. Требует `send_order` в enum `frontpad_jobs.kind`; если его нет, dry-run всё равно проходит и пишет причину в `frontpadError`.
 - **Диагностика:** `GET /api/frontpad/diag?token=<FRONTPAD_HOOK_TOKEN>` — что видят хуки: наличие секрета, `sendEnabled`/`syncEnabled`, коды оплаты, собранный `hook_url`, `lastError`. Без токена — 404.
 - Стоп-лист (`frontpad_stock`, публичное чтение) режет витрину: `entities/product/lib/stock.ts` + `useCollectionRealtime`, не поллинг.
@@ -395,11 +397,13 @@ Env процесса `pocketbase`:
 | CartPromo | `features/cart/ui/CartPromo.tsx` — промокод в панели корзины (раскрывающийся) |
 | CartTotals | `features/cart/ui/CartTotals.tsx` — заголовок `title` (дефолт «Доставка и оплата», в checkout — «Чек»); `compact` для плотных строк; «Начислено бонусов» / гость «можно получить»; «Скидка»; prop `bonusDiscount` / `bonusEarned` |
 | BonusEarnHint | `features/cart/ui/BonusEarnHint.tsx` — подпись (+N) / «можно получить» у строки |
-| EngagementHost | `features/engagement` — модалки регистрации и установки приложения |
+| EngagementHost | `features/engagement` — модалки регистрации и установки приложения (~10 с, soft-cooldown 2 дня) |
 | CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |
 | CheckoutLineRow | `features/checkout/ui/CheckoutLineRow.tsx` — строка заказа read-only |
+| OrderDetails | `features/order-tracking/ui/OrderDetails.tsx` — одна плашка (шапка / позиции / итоги), разделители `border-fg/20` |
 | BonusesSection | `pages/admin/sections/bonuses/BonusesSection.tsx` — настройки программы + bulk % |
-| CoinIcon | `shared/ui/coin-icon.tsx` ← `/icons/coin.svg` |
+| CoinIcon | `shared/ui/coin-icon.tsx` ← `/icons/coin.png` |
+| BonusHistoryReason | `entities/bonus/lib/history.tsx` — подписи истории бонусов (регистрация / оплата заказа №) |
 | LogsSection | `pages/admin/sections/activity-logs/LogsSection.tsx` — `activity_logs` |
 | bonus ledger | `entities/bonus` + `pb_hooks/lib/bonus.js` |
 | activity-log | `entities/activity-log` |
@@ -628,7 +632,8 @@ chmod +x deploy.sh   # один раз
 - Не доверять суммам, `number` и артикулам из клиентского запроса на создание заказа.
 - Не отдавать `coupons` публичным правилом чтения и не хардкодить промокод в бандл.
 - Не править `customers.score` напрямую из UI/API — только через `bonus_ledger` / `/api/bonus/adjust`.
-- Не читать Frontpad `score`/`sale` для лояльности сайта и не передавать `score` в `new_order`.
+- Не читать Frontpad `score`/`sale` для лояльности сайта и не передавать `score` в `new_order` — наши баллы только через `sale_amount` (`discount + bonusSpent`).
+- Не доверять клиентским `goods`/`total`/`bonusSpent`/`status` при create заказа — только серверный пересчёт и `spendBonus === true`.
 - Не держать сессию клиента и сессию персонала в одном экземпляре `pb` и не смешивать их в коллекции `users`.
 - Не пытаться логинить VK ID через встроенный `authWithOAuth2({ provider: "vk" })` — только `pb_hooks` `/api/auth/vk/*` (One Tap → `POST /api/auth/vk/complete`).
 - Не импортировать `@vkid/sdk` в клиентский бандл — только self-hosted `/vk/vkid-sdk.js`.

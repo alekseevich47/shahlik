@@ -53,7 +53,7 @@ export const BONUS_REASON_LABEL: Record<string, string> = {
   referral: "Реферал",
   birthday: "День рождения",
   pwa_install: "Установка приложения",
-  registration: "Регистрация",
+  registration: "Бонус за регистрацию",
 }
 
 export function bonusSettingsFallback(): BonusSettings {

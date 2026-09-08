@@ -28,6 +28,8 @@ function recordToOrder(record, parseJsonField) {
     packFee: record.getFloat("packFee") || 0,
     deliveryFee: record.getFloat("deliveryFee") || 0,
     discount: record.getFloat("discount") || 0,
+    // Серверный клип из validateAndRecalculateOrder — не клиентская сумма.
+    bonusSpent: record.getFloat("bonusSpent") || 0,
     total: record.getFloat("total") || 0,
     addressParts: parseJsonField(record.get("addressParts"), null),
     personCount: record.getFloat("personCount") || 0,

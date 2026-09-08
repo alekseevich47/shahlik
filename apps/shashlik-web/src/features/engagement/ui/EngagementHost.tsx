@@ -9,9 +9,9 @@ import { useCartStore } from "@/features/cart/model/store"
 import {
   ENGAGEMENT_DELAY_MS,
   isPwaDismissedForever,
+  isPwaSoftCooldownActive,
   isStandaloneDisplay,
   markSessionShown,
-  PWA_SESSION_KEY,
   REG_SESSION_KEY,
   wasPwaInstalledOnDevice,
   wasSessionShown,
@@ -60,19 +60,18 @@ export function EngagementHost() {
     settings.registrationAmount,
   ])
 
-  // Авторизованный: PWA через ~45 с.
+  // Авторизованный: PWA через ~10 с (soft-dismiss cooldown 2 дня).
   useEffect(() => {
     if (!ready || onAdmin || onAuth || !user || !settings.enabled) return
     if (isStandaloneDisplay() || wasPwaInstalledOnDevice()) return
     if (user.pwaInstallClaimed) return
     if (isPwaDismissedForever()) return
-    if (wasSessionShown(PWA_SESSION_KEY)) return
+    if (isPwaSoftCooldownActive()) return
     if (settings.pwaInstallAmount <= 0) return
 
     const timer = window.setTimeout(() => {
-      if (wasSessionShown(PWA_SESSION_KEY)) return
+      if (isPwaDismissedForever() || isPwaSoftCooldownActive()) return
       if (isStandaloneDisplay() || wasPwaInstalledOnDevice()) return
-      markSessionShown(PWA_SESSION_KEY)
       setPwaOpen(true)
     }, ENGAGEMENT_DELAY_MS)
 

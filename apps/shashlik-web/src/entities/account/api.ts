@@ -421,6 +421,9 @@ type BonusResponse = {
     delta?: number
     balanceAfter?: number
     reason?: string
+    refType?: string
+    refId?: string
+    orderNumber?: string
     created?: string
   }>
 }
@@ -439,6 +442,9 @@ export async function fetchBonus(): Promise<ProfileBonus> {
           delta: Number(row.delta) || 0,
           balanceAfter: Number(row.balanceAfter) || 0,
           reason: String(row.reason ?? ""),
+          refType: row.refType ? String(row.refType) : "",
+          refId: row.refId ? String(row.refId) : "",
+          orderNumber: row.orderNumber ? String(row.orderNumber) : "",
           created: String(row.created ?? ""),
         }))
       : [],
