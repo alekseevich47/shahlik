@@ -17,6 +17,8 @@ type CartTotalsProps = {
   bonusEarned?: number
   /** Показать строку бонусов. */
   showBonusEarn?: boolean
+  /** Заголовок блока сумм. */
+  title?: string
   className?: string
 }
 
@@ -24,6 +26,7 @@ export function CartTotals({
   bonusDiscount = 0,
   bonusEarned,
   showBonusEarn = true,
+  title = "Доставка и оплата",
   className,
 }: CartTotalsProps) {
   const { lines, goods, deliveryFee, discount, freeDeliveryLeft, minOrder, acceptingOrders, stopMessage } =
@@ -51,7 +54,7 @@ export function CartTotals({
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <p className="text-[12px] font-extrabold text-brand">Доставка и оплата</p>
+      <p className="text-[12px] font-extrabold text-brand">{title}</p>
       <SumRow label="Стоимость товаров" value={formatPrice(goods)} />
       {showBonusEarn && bonusSettings.enabled && earnedPreview > 0 ? (
         <div className="flex items-center justify-between gap-3">
@@ -66,8 +69,10 @@ export function CartTotals({
       ) : null}
       <div
         className={cn(
-          "grid transition-[grid-template-rows,opacity] duration-300 ease-out",
-          showDiscount ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          "grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
+          showDiscount
+            ? "grid-rows-[1fr] opacity-100"
+            : "mb-[-0.375rem] grid-rows-[0fr] opacity-0",
         )}
         aria-hidden={!showDiscount}
       >

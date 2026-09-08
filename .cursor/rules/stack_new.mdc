@@ -200,19 +200,21 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 ### Оформление заказа (checkout)
 
-Модалка `CheckoutDialog` — две колонки + футер доверия (`CheckoutTrustBadges`):
+Модалка `CheckoutDialog` — две колонки + футер доверия (`CheckoutTrustBadges`). На `md+` у каждой колонки sticky-шапка и sticky-низ, скролл только середины:
 
 | Колонка | Содержимое |
 |---------|------------|
-| Слева | «Ваш заказ» (read-only `CheckoutLineRow`, без stepper), ссылка «Изменить» → закрывает модалку, корзина сохраняется. `CheckoutPromoField` (плавающая подпись «Промокод» + кнопка-стрелка). Под промо — **«Списание бонусов»** (`Switch`, баланс + монета; при включении — сумма списания с учётом `maxSpendPercent` и пометка, что начисление за заказ отменяется). Только после входа и при score > 0. `Select` способа оплаты: «При получении» / «Онлайн-оплата». `CartTotals` с анимированной строкой «Скидка» (промо + бонусы) и «Начислено бонусов». `SafePaymentBanner` — только при «Онлайн-оплата». |
-| Справа | `CheckoutModeToggle` (иконки Car/Bike). Адрес: `AddressSection` — `Select` сохранённых адресов (Popover, скруглённый список); при выборе сохранённого — одна строка адреса под селектом, чекбокс «Сохранить» **нет**; «Новый адрес» — поля улица + сетка дом/подъезд/этаж/квартира, чекбокс «Сохранить новый адрес». Контакты — `IconInput` (User, Phone). Комментарий — `IconTextarea`, лимит 200. CTA «Оформить заказ · сумма». |
+| Слева | **Верх (fixed):** «Ваш заказ» + «Изменить» → закрывает модалку, корзина сохраняется. **Середина (scroll):** read-only `CheckoutLineRow` + **«Списание бонусов»** (`Switch`, баланс + монета; при score > 0 и входе). **Низ (fixed):** `CartTotals` с заголовком **«Чек»** (на витрине в `CartPanel` — по-прежнему «Доставка и оплата»), анимированная «Скидка», строка «Итого». Свёрнутый блок скидки не даёт лишний gap перед «Доставка». |
+| Справа | **Верх (fixed):** `CheckoutModeToggle` (Car/Bike). **Середина (scroll):** адрес (`AddressSection` / pickup `FloatingField`), имя + телефон (маска `+7 (XXX) XXX - XX - XX` через `shared/lib/phone.ts`), комментарий (лимит 200), чекбокс «Сохранить новый адрес». **Низ (fixed):** `CheckoutPromoField`, `Select` оплаты (placeholder «Выберите способ оплаты», без дефолта), `SafePaymentBanner` при online, CTA «Оформить заказ · сумма». |
 | Футер | 4 плашки: доставка, горячее, качество, **«Сделаем с душой»** (Heart, «Спасибо Вам за заказ!») вместо «Поддержка 24/7». |
+
+**Обязательные поля:** имя, полный телефон, способ оплаты; при delivery — улица и дом. CTA `disabled`, пока не заполнены (плюс пустая корзина / стоп / мин. сумма).
 
 Строка корзины (витрина и checkout): `CartLineTitle` — **название** + **размер** (мельче, серый) на одной строке; **вариант мяса** — строкой ниже (серый), только если вариантов > 1.
 
-Логика — `useCheckout.ts`: `PaymentMethod` (`cash` | `online`) — UI-only; скидка бонусами — `calcBonusSpendCap` (`min(score, goods−promo, maxSpendPercent)`), суммы в payload справочные — сервер пересчитывает в хуке. При `spendBonus` клиентский preview начисления = 0; сервер `creditOrderEarn` тоже пропускает, если `bonusSpent > 0`. Промокод — `POST /api/promo/check`, не публичное чтение `coupons`.
+Логика — `useCheckout.ts`: `PaymentMethod` (`cash` | `online` | `""`) — UI-only, старт пустой; скидка бонусами — `calcBonusSpendCap` (`min(score, goods−promo, maxSpendPercent)`), суммы в payload справочные — сервер пересчитывает в хуке. При `spendBonus` клиентский preview начисления = 0; сервер `creditOrderEarn` тоже пропускает, если `bonusSpent > 0`. Промокод — `POST /api/promo/check`, не публичное чтение `coupons`. Телефон в заказ — `toE164Ru` (`+7999…`).
 
-Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — только `CheckoutPromoField`.
+Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — только `CheckoutPromoField` (правый низ).
 
 Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость — после первого добавления в корзину (VK One Tap + Яндекс), подарок `registrationAmount`; после успешного входа reg-модалка закрывается. Авторизованный через ~45 с — установка приложения (`pwaInstallAmount`), если ещё не standalone / не `pwaInstallClaimed` / не ставили на этом устройстве (`localStorage` `shashlik:pwa:installed`) / не «Больше не показывать». Manifest — `/manifest.webmanifest`. Отступы контента модалок равные (`p-6`); запас под крестик только у title-row (`pr-10`). Reg-модалка — `contentOverflow="visible"` (VK One Tap «Продолжить»).
 
@@ -387,7 +389,7 @@ Env процесса `pocketbase`:
 | CartLineRow | `features/cart/ui/CartLineRow.tsx` — stepper + удаление; заголовок через `CartLineTitle` |
 | CartLineTitle | `features/cart/ui/CartLineTitle.tsx` — название + размер + вариант мяса |
 | CartPromo | `features/cart/ui/CartPromo.tsx` — промокод в панели корзины (раскрывающийся) |
-| CartTotals | `features/cart/ui/CartTotals.tsx` — «Начислено бонусов» / гость «можно получить»; «Скидка»; prop `bonusDiscount` / `bonusEarned` |
+| CartTotals | `features/cart/ui/CartTotals.tsx` — заголовок `title` (дефолт «Доставка и оплата», в checkout — «Чек»); «Начислено бонусов» / гость «можно получить»; «Скидка»; prop `bonusDiscount` / `bonusEarned` |
 | BonusEarnHint | `features/cart/ui/BonusEarnHint.tsx` — подпись (+N) / «можно получить» у строки |
 | EngagementHost | `features/engagement` — модалки регистрации и установки приложения |
 | CheckoutDialog | `features/checkout/ui/CheckoutDialog.tsx` — модалка оформления (см. раздел «Оформление заказа») |
@@ -402,7 +404,8 @@ Env процесса `pocketbase`:
 | AddressSection | `features/checkout/ui/AddressSection.tsx` — выбор/ввод адреса |
 | CheckoutTrustBadges | `features/checkout/ui/CheckoutTrustBadges.tsx` — футер модалки |
 | SafePaymentBanner | `features/checkout/ui/SafePaymentBanner.tsx` — блок «Безопасная оплата» |
-| useCheckout | `features/checkout/model/useCheckout.ts` — валидация, submit, бонусы, оплата |
+| useCheckout | `features/checkout/model/useCheckout.ts` — валидация (имя/телефон/адрес/оплата), submit, бонусы, оплата без дефолта |
+| phone | `shared/lib/phone.ts` — маска `+7 (XXX) XXX - XX - XX`, `toE164Ru` |
 | FloatingField | `shared/ui/floating-field.tsx` — input с плавающей подписью |
 | IconInput | `shared/ui/icon-input.tsx` — input/textarea с иконкой слева |
 | Segmented (Заберу сам / Надо привезти) | `shared/ui/segmented.tsx` |

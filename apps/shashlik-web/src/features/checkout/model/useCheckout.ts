@@ -15,6 +15,7 @@ import { EMPTY_ADDRESS_PARTS, useCartStore } from "@/features/cart/model/store"
 import { rememberLocalOrder } from "@/features/order-tracking/model/localOrders"
 import { pbErrorMessage } from "@/shared/api/crud"
 import { formatPrice } from "@/shared/lib/format"
+import { formatPhoneInput, isCompleteRuPhone, toE164Ru } from "@/shared/lib/phone"
 
 export const NEW_ADDRESS = "new"
 
@@ -82,11 +83,18 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
   const [addressId, setAddressId] = useState(NEW_ADDRESS)
   const [saveAddress, setSaveAddress] = useState(false)
   const [spendBonus, setSpendBonus] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash")
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("")
 
   const empty = lines.length === 0
   const belowMinOrder = minOrder > 0 && goods < minOrder
-  const blocked = empty || !acceptingOrders || belowMinOrder
+  const deliveryStreet = addressParts.street?.trim() ?? ""
+  const deliveryHome = addressParts.home?.trim() ?? ""
+  const missingRequired =
+    !customer.trim() ||
+    !isCompleteRuPhone(phone) ||
+    !paymentMethod ||
+    (mode === "delivery" && (!deliveryStreet || !deliveryHome))
+  const blocked = empty || !acceptingOrders || belowMinOrder || missingRequired
   const bonus = bonusQuery.data
   const canSpendBonus = Boolean(
     user && bonusSettings.enabled && bonus && bonus.score > 0,
@@ -119,7 +127,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
   useEffect(() => {
     if (!open) {
       setSpendBonus(false)
-      setPaymentMethod("cash")
+      setPaymentMethod("")
       return
     }
     const account = getAccount()
@@ -133,7 +141,9 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
       if (name) state.setCustomer(name)
     }
     if (!state.phone.trim() && account.phone) {
-      state.setPhone(account.phone)
+      state.setPhone(formatPhoneInput(account.phone))
+    } else if (state.phone.trim()) {
+      state.setPhone(formatPhoneInput(state.phone))
     }
     const fallback = account.addresses.find((item) => item.isDefault) ?? account.addresses[0]
     if (!fallback) {
@@ -166,7 +176,7 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     const deliveryAddress = mode === "delivery" ? formatAddressLine(addressParts) : undefined
     return {
       customer: customer.trim(),
-      phone: phone.trim(),
+      phone: toE164Ru(phone) || phone.trim(),
       mode,
       address: deliveryAddress,
       addressParts: mode === "delivery" ? addressParts : null,
@@ -206,11 +216,12 @@ export function useCheckout({ open, onOpenChange }: UseCheckoutArgs) {
     if (!acceptingOrders) return stopMessage || "Сейчас заказы не принимаем"
     if (belowMinOrder) return `Минимальная сумма заказа ${formatPrice(minOrder)}`
     if (empty) return "Добавьте товары в корзину"
+    if (!customer.trim()) return "Укажите имя"
     if (!phone.trim()) return "Укажите телефон"
+    if (!isCompleteRuPhone(phone)) return "Укажите полный номер телефона"
+    if (!paymentMethod) return "Выберите способ оплаты"
     if (mode === "delivery") {
-      const street = addressParts.street?.trim() ?? ""
-      const home = addressParts.home?.trim() ?? ""
-      if (!street || !home) return "Укажите улицу и дом для доставки"
+      if (!deliveryStreet || !deliveryHome) return "Укажите улицу и дом для доставки"
     }
     return null
   }

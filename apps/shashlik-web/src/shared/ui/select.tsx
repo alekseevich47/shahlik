@@ -39,6 +39,8 @@ type SelectProps = Omit<ComponentProps<"select">, "size"> & {
   children?: ReactNode
   /** Кастомный рендер пункта (триггер и список). */
   formatOption?: (option: OptionData) => ReactNode
+  /** Текст, если value не совпал ни с одной опцией (без автовыбора первой). */
+  placeholder?: string
 }
 
 export function Select({
@@ -53,6 +55,7 @@ export function Select({
   required,
   "aria-label": ariaLabel,
   formatOption,
+  placeholder,
   ...rest
 }: SelectProps) {
   const listId = useId()
@@ -64,11 +67,15 @@ export function Select({
     defaultValue == null ? (options[0]?.value ?? "") : String(defaultValue),
   )
   const current = controlled ? String(value) : uncontrolled
-  const selected = options.find((opt) => opt.value === current) ?? options[0]
+  const matched = options.find((opt) => opt.value === current)
+  const selected = matched ?? (placeholder != null ? undefined : options[0])
   const label = selected?.label ?? ""
-  const selectedContent = selected
-    ? (formatOption?.(selected) ?? label)
-    : (label || "Выберите…")
+  const showPlaceholder = !matched && placeholder != null
+  const selectedContent = showPlaceholder
+    ? placeholder
+    : selected
+      ? (formatOption?.(selected) ?? label)
+      : (label || placeholder || "Выберите…")
 
   function commit(next: string) {
     if (!controlled) setUncontrolled(next)
@@ -94,6 +101,11 @@ export function Select({
           onChange={() => {}}
           {...rest}
         >
+          {placeholder != null && !options.some((opt) => opt.value === "") ? (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          ) : null}
           {options.map((opt) => (
             <option key={`${opt.value}::${opt.label}`} value={opt.value} disabled={opt.disabled}>
               {opt.label}
@@ -118,7 +130,14 @@ export function Select({
               open && "border-brand-border shadow-[0_0_0_3px_var(--brand-ring)]",
             )}
           >
-            <span className="flex min-w-0 items-center gap-2 truncate">{selectedContent}</span>
+            <span
+              className={cn(
+                "flex min-w-0 items-center gap-2 truncate",
+                showPlaceholder && "font-semibold text-fg-muted",
+              )}
+            >
+              {selectedContent}
+            </span>
             <ChevronDown
               size={16}
               strokeWidth={2.4}

@@ -22,6 +22,7 @@ import { CheckoutPromoField } from "@/features/checkout/ui/CheckoutPromoField"
 import { CheckoutTrustBadges } from "@/features/checkout/ui/CheckoutTrustBadges"
 import { SafePaymentBanner } from "@/features/checkout/ui/SafePaymentBanner"
 import { formatPrice } from "@/shared/lib/format"
+import { formatPhoneInput, PHONE_MASK_LENGTH } from "@/shared/lib/phone"
 import { Button } from "@/shared/ui/button"
 import { CoinIcon } from "@/shared/ui/coin-icon"
 import { FloatingField } from "@/shared/ui/floating-field"
@@ -66,8 +67,8 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto md:grid md:grid-cols-2 md:overflow-hidden">
-          <section className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 scrollbar-slim md:border-r md:border-line">
-            <div className="flex items-center justify-between gap-3">
+          <section className="flex min-h-0 flex-col md:overflow-hidden md:border-r md:border-line">
+            <div className="flex shrink-0 items-center justify-between gap-3 px-5 pt-5 pb-3">
               <h3 className="text-[15px] font-extrabold text-fg">Ваш заказ</h3>
               <button
                 type="button"
@@ -79,136 +80,146 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               </button>
             </div>
 
-            {lines.length === 0 ? (
-              <p className="py-8 text-center text-[13px] font-semibold text-fg-muted">Корзина пуста</p>
-            ) : (
-              <ul className="divide-y divide-line">
-                {lines.map((line) => (
-                  <CheckoutLineRow
-                    key={line.line.id}
-                    line={line}
-                    earnDisabled={checkout.spendBonus}
-                  />
-                ))}
-              </ul>
-            )}
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 scrollbar-slim">
+              {lines.length === 0 ? (
+                <p className="py-8 text-center text-[13px] font-semibold text-fg-muted">Корзина пуста</p>
+              ) : (
+                <ul className="divide-y divide-line">
+                  {lines.map((line) => (
+                    <CheckoutLineRow
+                      key={line.line.id}
+                      line={line}
+                      earnDisabled={checkout.spendBonus}
+                    />
+                  ))}
+                </ul>
+              )}
 
-            <CheckoutPromoField />
+              <BonusSpendBlock
+                visible={checkout.canSpendBonus}
+                score={checkout.bonusScore}
+                spendAmount={checkout.bonusDiscount}
+                checked={checkout.spendBonus}
+                onChange={checkout.setSpendBonus}
+              />
+            </div>
 
-            <BonusSpendBlock
-              visible={checkout.canSpendBonus}
-              score={checkout.bonusScore}
-              spendAmount={checkout.bonusDiscount}
-              checked={checkout.spendBonus}
-              onChange={checkout.setSpendBonus}
-            />
-
-            <FieldBlock label="Способ оплаты">
-              <Select
-                value={checkout.paymentMethod}
-                onChange={(e) => checkout.setPaymentMethod(e.target.value as "cash" | "online")}
-                aria-label="Способ оплаты"
-                formatOption={(opt) => (
-                  <span className="flex items-center gap-2">
-                    <Wallet size={15} strokeWidth={2.3} className="shrink-0 text-fg-faint" />
-                    {opt.label}
-                  </span>
-                )}
-              >
-                {PAYMENT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </FieldBlock>
-
-            <CartTotals
-              bonusDiscount={checkout.bonusDiscount}
-              bonusEarned={checkout.bonusEarnedPreview}
-            />
-
-            <div className="flex items-end justify-between gap-3 pt-1">
+            <div className="flex shrink-0 flex-col gap-1 border-t border-line px-5 pt-3 pb-4">
+              <CartTotals
+                title="Чек"
+                bonusDiscount={checkout.bonusDiscount}
+                bonusEarned={checkout.bonusEarnedPreview}
+              />
               <span className="text-[26px] leading-none font-extrabold text-fg tabular-nums">
                 Итого {formatPrice(checkout.total)}
               </span>
             </div>
-
-            <SafePaymentBanner visible={checkout.paymentMethod === "online"} />
           </section>
 
-          <section className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 scrollbar-slim">
-            <CheckoutModeToggle value={checkout.mode} onChange={checkout.setMode} />
-
-            {checkout.mode === "delivery" ? (
-              checkout.user && checkout.user.addresses.length > 0 ? (
-                <AddressSection
-                  addresses={checkout.user.addresses}
-                  addressId={checkout.addressId}
-                  onSelectAddress={checkout.selectSavedAddress}
-                  parts={checkout.addressParts}
-                  onPartChange={checkout.setAddressPart}
-                />
-              ) : (
-                <AddressSection
-                  addresses={[]}
-                  addressId={checkout.addressId}
-                  onSelectAddress={checkout.selectSavedAddress}
-                  parts={checkout.addressParts}
-                  onPartChange={checkout.setAddressPart}
-                />
-              )
-            ) : (
-              <FloatingField
-                label="Заберу сам"
-                icon={<MapPin size={16} strokeWidth={2.3} />}
-                value={settings.address}
-                readOnly
-                tabIndex={-1}
-                aria-label={`Заберу сам — ${settings.address}`}
-              />
-            )}
-
-            <div className="flex flex-col gap-2">
-              <FloatingField
-                label="Имя"
-                icon={<User size={16} strokeWidth={2.3} />}
-                value={checkout.customer}
-                onChange={(e) => checkout.setCustomer(e.target.value)}
-                autoComplete="name"
-                maxLength={50}
-              />
-              <FloatingField
-                label="Телефон"
-                icon={<Phone size={16} strokeWidth={2.3} />}
-                value={checkout.phone}
-                onChange={(e) => checkout.setPhone(e.target.value)}
-                type="tel"
-                autoComplete="tel"
-                maxLength={20}
-              />
+          <section className="flex min-h-0 flex-col md:overflow-hidden">
+            <div className="shrink-0 px-5 pt-5 pb-3">
+              <CheckoutModeToggle value={checkout.mode} onChange={checkout.setMode} />
             </div>
 
-            <FieldBlock label="Комментарий к заказу">
-              <IconTextarea
-                icon={<MessageSquare size={16} strokeWidth={2.3} />}
-                value={checkout.comment}
-                onChange={(e) => checkout.setComment(e.target.value)}
-                placeholder="Пожелания к заказу…"
-                rows={3}
-                maxLength={200}
-              />
-            </FieldBlock>
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 scrollbar-slim">
+              {checkout.mode === "delivery" ? (
+                checkout.user && checkout.user.addresses.length > 0 ? (
+                  <AddressSection
+                    addresses={checkout.user.addresses}
+                    addressId={checkout.addressId}
+                    onSelectAddress={checkout.selectSavedAddress}
+                    parts={checkout.addressParts}
+                    onPartChange={checkout.setAddressPart}
+                  />
+                ) : (
+                  <AddressSection
+                    addresses={[]}
+                    addressId={checkout.addressId}
+                    onSelectAddress={checkout.selectSavedAddress}
+                    parts={checkout.addressParts}
+                    onPartChange={checkout.setAddressPart}
+                  />
+                )
+              ) : (
+                <FloatingField
+                  label="Заберу сам"
+                  icon={<MapPin size={16} strokeWidth={2.3} />}
+                  value={settings.address}
+                  readOnly
+                  tabIndex={-1}
+                  aria-label={`Заберу сам — ${settings.address}`}
+                />
+              )}
 
-            {checkout.user && checkout.mode === "delivery" && checkout.isNewAddress ? (
-              <CheckRow
-                checked={checkout.saveAddress}
-                onChange={checkout.setSaveAddress}
-                label="Сохранить новый адрес"
-              />
-            ) : null}
+              <div className="flex flex-col gap-2">
+                <FloatingField
+                  label="Имя"
+                  icon={<User size={16} strokeWidth={2.3} />}
+                  value={checkout.customer}
+                  onChange={(e) => checkout.setCustomer(e.target.value)}
+                  autoComplete="name"
+                  maxLength={50}
+                />
+                <FloatingField
+                  label="Телефон"
+                  icon={<Phone size={16} strokeWidth={2.3} />}
+                  value={checkout.phone}
+                  onChange={(e) => checkout.setPhone(formatPhoneInput(e.target.value))}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  maxLength={PHONE_MASK_LENGTH}
+                />
+              </div>
 
-            <div className="mt-auto flex flex-col gap-2.5 pt-2">
+              <FieldBlock label="Комментарий к заказу">
+                <IconTextarea
+                  icon={<MessageSquare size={16} strokeWidth={2.3} />}
+                  value={checkout.comment}
+                  onChange={(e) => checkout.setComment(e.target.value)}
+                  placeholder="Пожелания к заказу…"
+                  rows={3}
+                  maxLength={200}
+                />
+              </FieldBlock>
+
+              {checkout.user && checkout.mode === "delivery" && checkout.isNewAddress ? (
+                <CheckRow
+                  checked={checkout.saveAddress}
+                  onChange={checkout.setSaveAddress}
+                  label="Сохранить новый адрес"
+                />
+              ) : null}
+            </div>
+
+            <div className="flex shrink-0 flex-col gap-2.5 border-t border-line px-5 pt-3 pb-4">
+              <CheckoutPromoField />
+
+              <FieldBlock label="Способ оплаты">
+                <Select
+                  value={checkout.paymentMethod}
+                  onChange={(e) =>
+                    checkout.setPaymentMethod(e.target.value as "cash" | "online" | "")
+                  }
+                  aria-label="Способ оплаты"
+                  placeholder="Выберите способ оплаты"
+                  formatOption={(opt) => (
+                    <span className="flex items-center gap-2">
+                      <Wallet size={15} strokeWidth={2.3} className="shrink-0 text-fg-faint" />
+                      {opt.label}
+                    </span>
+                  )}
+                >
+                  {PAYMENT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </FieldBlock>
+
+              <SafePaymentBanner visible={checkout.paymentMethod === "online"} />
+
               <Button
                 size="lg"
                 disabled={checkout.blocked || checkout.pending}
