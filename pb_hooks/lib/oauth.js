@@ -286,12 +286,18 @@ function reassignOrders(app, fromUserId, toUserId) {
 
 /**
  * Переносит source → target, source удаляется. target сохраняет токен текущего входа.
+ * Телефон: сначала освобождаем unique у source (idx_app_users_phone), затем пишем на target —
+ * иначе save(target) с тем же номером падает validation_not_unique (Яндекс link → VK-аккаунт).
  */
 function mergeUsersIntoTarget(app, sourceId, targetId) {
   if (!sourceId || !targetId || sourceId === targetId) return targetId
 
   var source = app.findRecordById(COLLECTION, sourceId)
   var target = app.findRecordById(COLLECTION, targetId)
+
+  var sourcePhone = normalizePhone(source.getString("phone"))
+  var targetPhone = normalizePhone(target.getString("phone"))
+  var phoneToKeep = targetPhone || sourcePhone
 
   addEmailsToRecord(target, [source.getString("email")])
   addEmailsToRecord(target, readExtraEmails(source))
@@ -310,17 +316,23 @@ function mergeUsersIntoTarget(app, sourceId, targetId) {
   if (!target.getString("customerId") && source.getString("customerId")) {
     target.set("customerId", source.getString("customerId"))
   }
-  if (!normalizePhone(target.getString("phone")) && normalizePhone(source.getString("phone"))) {
-    target.set("phone", normalizePhone(source.getString("phone")))
-  }
   if (!target.getString("birthday") && source.getString("birthday")) {
     target.set("birthday", source.getString("birthday"))
   }
 
   moveExternalAuths(app, sourceId, targetId)
   reassignOrders(app, sourceId, targetId)
+
+  // Без phone на target, пока source жив — unique WHERE phone != ''.
   app.save(target)
   app.delete(source)
+
+  if (phoneToKeep && !targetPhone) {
+    target = app.findRecordById(COLLECTION, targetId)
+    target.set("phone", phoneToKeep)
+    app.save(target)
+  }
+
   return targetId
 }
 

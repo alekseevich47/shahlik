@@ -476,7 +476,7 @@ Env процесса `pocketbase`:
 | Что | Как |
 |---|---|
 | Телефон | Канонический ключ аккаунта: `+7XXXXXXXXXX`. Яндекс — `default_phone` / `phones[]` из `rawUser` (до и после `e.next()`). VK — scope `email phone`, поле `user.phone` из `user_info`. |
-| Слияние | Один номер → один `app_users`: при совпадении телефона старая запись **сливается в текущую** (токен входа сохраняется), переносятся `_externalAuths`, заказы, адреса, `customerId`. |
+| Слияние | Один номер → один `app_users`: при совпадении телефона старая запись **сливается в текущую** (токен входа сохраняется), переносятся `_externalAuths`, заказы, адреса, `customerId`, бонусы через тот же `customers`. Порядок в `mergeUsersIntoTarget`: save(target) **без** phone → delete(source) → phone на target (иначе `validation_not_unique` на `idx_app_users_phone`). Тот же путь у `POST /api/profile/link` через `bindPhoneToUser`. |
 | Почта | Основная — `email`; дополнительные с других входов — `extraEmails` (json-массив). Хук добавляет без дублей. |
 | Имена | Яндекс: `yandexNamePair()` в `oauth.js` — если `first_name` уже «Имя Фамилия», `last_name` не дублируем; иначе split `real_name`/`display_name`. VK — `first_name`/`last_name`. Клиент дублирует sync имён из meta после входа (`api.ts`). |
 | Customers | `bindPhoneToUser` → `customers` + `backfillOrders` (гостевые заказы по телефону). |

@@ -1250,8 +1250,8 @@
     "semantic_hash": ""
   },
   "pb_hooks/lib/oauth.js": {
-    "mtime": 1787889356.396009,
-    "ast_hash": "df6adb4323e92d75710c487a0df71993",
+    "mtime": 1788841495.9405768,
+    "ast_hash": "7bf78b638c861d62c825f709882f62a4",
     "semantic_hash": ""
   },
   "pb_hooks/lib/vkid.js": {
@@ -1557,11 +1557,6 @@
   "apps/shashlik-web/src/shared/ui/theme-aware-image.tsx": {
     "mtime": 1788837582.265505,
     "ast_hash": "b07bfb365f2aa9c09c499f66fecab382",
-    "semantic_hash": ""
-  },
-  "temp/_patch_stack_new.py": {
-    "mtime": 1788840063.6660538,
-    "ast_hash": "46e1095ad5cfecc5a5b526abf8e5b208",
     "semantic_hash": ""
   }
 }
