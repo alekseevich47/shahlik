@@ -1,6 +1,7 @@
 const REG_SESSION_KEY = "shashlik:reg-modal:shown"
 const PWA_SESSION_KEY = "shashlik:pwa-modal:shown"
 const PWA_DISMISS_KEY = "shashlik:pwa-modal:dismissed"
+const PWA_INSTALLED_KEY = "shashlik:pwa:installed"
 
 export const ENGAGEMENT_DELAY_MS = 45_000
 
@@ -36,7 +37,27 @@ export function dismissPwaForever() {
   }
 }
 
-export { REG_SESSION_KEY, PWA_SESSION_KEY, PWA_DISMISS_KEY }
+export function markPwaInstalledOnDevice() {
+  try {
+    localStorage.setItem(PWA_INSTALLED_KEY, "1")
+  } catch {
+    // ignore
+  }
+}
+
+export function wasPwaInstalledOnDevice(): boolean {
+  if (isStandaloneDisplay()) {
+    markPwaInstalledOnDevice()
+    return true
+  }
+  try {
+    return localStorage.getItem(PWA_INSTALLED_KEY) === "1"
+  } catch {
+    return true
+  }
+}
+
+export { REG_SESSION_KEY, PWA_SESSION_KEY, PWA_DISMISS_KEY, PWA_INSTALLED_KEY }
 
 export function detectInstallPlatform(): "ios" | "android" | "desktop" {
   if (typeof navigator === "undefined") return "desktop"

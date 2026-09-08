@@ -319,6 +319,12 @@ function mergeUsersIntoTarget(app, sourceId, targetId) {
   if (!target.getString("birthday") && source.getString("birthday")) {
     target.set("birthday", source.getString("birthday"))
   }
+  if (source.getBool("registrationClaimed") || target.getBool("registrationClaimed")) {
+    target.set("registrationClaimed", true)
+  }
+  if (source.getBool("pwaInstallClaimed") || target.getBool("pwaInstallClaimed")) {
+    target.set("pwaInstallClaimed", true)
+  }
 
   moveExternalAuths(app, sourceId, targetId)
   reassignOrders(app, sourceId, targetId)

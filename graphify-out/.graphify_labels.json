@@ -110,5 +110,6 @@
   "108": "@radix-ui/react-dialog",
   "109": "@radix-ui/react-popover",
   "110": "@radix-ui/react-tooltip",
-  "111": "router.tsx"
+  "111": "router.tsx",
+  "112": "ProductsSection"
 }

@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ProductPage.tsx": {
-    "mtime": 1788837633.256075,
-    "ast_hash": "59609368761a9e85a5568c0150bcb7a8",
+    "mtime": 1788844834.3362508,
+    "ast_hash": "9b0f94714df0da9f4f244417e6a57bf3",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/AddonRow.tsx": {
@@ -1155,8 +1155,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/ui/modal.tsx": {
-    "mtime": 1788107875.0906823,
-    "ast_hash": "2f3b644a78415c28899c52592903381f",
+    "mtime": 1788844847.580709,
+    "ast_hash": "32547c776ad89b12f7bc688c7d9338bd",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/lib/prices.ts": {
@@ -1230,8 +1230,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/profile/ProfilePage.tsx": {
-    "mtime": 1788514155.7238233,
-    "ast_hash": "eeb91d4904f19e08503d7db22fc6e87d",
+    "mtime": 1788844888.4475632,
+    "ast_hash": "bcdf06a161d10e79c5f2ad5f21f208e0",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/profile/ui/LoginPanel.tsx": {
@@ -1250,8 +1250,8 @@
     "semantic_hash": ""
   },
   "pb_hooks/lib/oauth.js": {
-    "mtime": 1788841495.9405768,
-    "ast_hash": "7bf78b638c861d62c825f709882f62a4",
+    "mtime": 1788844818.0317822,
+    "ast_hash": "451fcf35e4a9c0fe026968d48d268c37",
     "semantic_hash": ""
   },
   "pb_hooks/lib/vkid.js": {
@@ -1410,8 +1410,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/account/ui/VkOneTap.tsx": {
-    "mtime": 1788519257.4331431,
-    "ast_hash": "b8650b94dd26a25bbfe64aa1cf03d14e",
+    "mtime": 1788844848.2903857,
+    "ast_hash": "4f2943ba1a5e6c0186308f062711b002",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/activity-log/api.ts": {
@@ -1445,8 +1445,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/engagement/lib/storage.ts": {
-    "mtime": 1788518298.9325404,
-    "ast_hash": "1507ef8c1563e6fdc5f9e90b7c320520",
+    "mtime": 1788844861.7973871,
+    "ast_hash": "03bb4a677442fde08669b92e5ee143e5",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/engagement/ui/AuthButtons.tsx": {
@@ -1455,18 +1455,18 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/engagement/ui/EngagementHost.tsx": {
-    "mtime": 1788519244.4335463,
-    "ast_hash": "94654852c5ff4f1f2d647c50ffbcbc71",
+    "mtime": 1788844862.0426745,
+    "ast_hash": "eb35ca50b24c7e1fded0f694a46f254d",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/engagement/ui/InstallAppModal.tsx": {
-    "mtime": 1788518448.902743,
-    "ast_hash": "c076989c89085ed514a636bd3c32578f",
+    "mtime": 1788844878.1250565,
+    "ast_hash": "7c4c8e9b9da41dc2b8dfe2395b225e36",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/engagement/ui/RegistrationBonusModal.tsx": {
-    "mtime": 1788519240.4767165,
-    "ast_hash": "24f3a40e3609c685794b06289839cc63",
+    "mtime": 1788844848.2909055,
+    "ast_hash": "c70ddd7d3e80943c1230b03178df327d",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/admin/sections/activity-logs/LogsSection.tsx": {
@@ -1500,8 +1500,8 @@
     "semantic_hash": ""
   },
   "pb_hooks/lib/bonus.js": {
-    "mtime": 1788518148.9162807,
-    "ast_hash": "7cbca3817c371bb15f3e6b21fa40031b",
+    "mtime": 1788844823.568668,
+    "ast_hash": "7c492ad67f05f805fe92f76242119273",
     "semantic_hash": ""
   },
   "apps/shashlik-web/public/icons/coin.svg": {

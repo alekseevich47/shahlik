@@ -41,5 +41,5 @@ export function VkOneTap({ disabled, onError }: VkOneTapProps) {
     }
   }, [disabled])
 
-  return <div ref={containerRef} className="min-h-11 w-full" />
+  return <div ref={containerRef} className="min-h-14 w-full" />
 }

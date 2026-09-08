@@ -6,7 +6,7 @@ import { CoinIcon } from "@/shared/ui/coin-icon"
 import { Button } from "@/shared/ui/button"
 import { Modal, ModalDescription, ModalTitle } from "@/shared/ui/modal"
 
-import { detectInstallPlatform, dismissPwaForever } from "../lib/storage"
+import { detectInstallPlatform, dismissPwaForever, markPwaInstalledOnDevice } from "../lib/storage"
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -45,6 +45,7 @@ export function InstallAppModal({ open, onOpenChange, amount }: InstallAppModalP
   }, [])
 
   async function claimAfterInstall() {
+    markPwaInstalledOnDevice()
     try {
       const result = await claimPwaInstallBonus()
       if (result.ok && !result.skipped) {
@@ -90,11 +91,11 @@ export function InstallAppModal({ open, onOpenChange, amount }: InstallAppModalP
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} className="w-[min(420px,calc(100vw-2rem))]">
-      <div className="flex flex-col gap-4 p-6 pr-14">
+      <div className="flex flex-col gap-4 p-6">
         {step === "cta" ? (
           <>
-            <div className="flex items-center gap-2">
-              <CoinIcon className="size-8" />
+            <div className="flex items-center gap-2 pr-10">
+              <CoinIcon className="size-8 shrink-0" />
               <ModalTitle className="text-[20px] leading-tight font-extrabold tracking-[-0.02em] text-fg">
                 Поставьте приложение
               </ModalTitle>
@@ -130,7 +131,7 @@ export function InstallAppModal({ open, onOpenChange, amount }: InstallAppModalP
           </>
         ) : (
           <>
-            <ModalTitle className="text-[18px] leading-tight font-extrabold tracking-[-0.02em] text-fg">
+            <ModalTitle className="pr-10 text-[18px] leading-tight font-extrabold tracking-[-0.02em] text-fg">
               Как добавить на экран
             </ModalTitle>
             <ModalDescription className="sr-only">

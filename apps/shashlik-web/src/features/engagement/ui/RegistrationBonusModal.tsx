@@ -16,10 +16,15 @@ export function RegistrationBonusModal({
   amount,
 }: RegistrationBonusModalProps) {
   return (
-    <Modal open={open} onOpenChange={onOpenChange} className="w-[min(420px,calc(100vw-2rem))]">
-      <div className="flex flex-col gap-4 p-6 pr-14">
-        <div className="flex items-center gap-2">
-          <CoinIcon className="size-8" />
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      contentOverflow="visible"
+      className="w-[min(420px,calc(100vw-2rem))]"
+    >
+      <div className="flex flex-col gap-4 p-6">
+        <div className="flex items-center gap-2 pr-10">
+          <CoinIcon className="size-8 shrink-0" />
           <ModalTitle className="text-[20px] leading-tight font-extrabold tracking-[-0.02em] text-fg">
             Бонусы за регистрацию
           </ModalTitle>

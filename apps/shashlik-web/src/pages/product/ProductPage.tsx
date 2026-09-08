@@ -104,15 +104,14 @@ export function ProductView({ onClose, className }: ProductViewProps) {
 
   return (
     <div className={cn("bg-canvas", className)}>
-      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px] dark:lg:items-start">
+      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px]">
         <section className="relative overflow-hidden bg-surface lg:rounded-[var(--r-2xl)] dark:bg-surface-3">
           <div
             className={cn(
               "relative flex w-full items-center justify-center",
-              /* mobile + dark: канон 3∶2 */
-              "max-lg:[aspect-ratio:var(--product-ar)] dark:lg:[aspect-ratio:var(--product-ar)]",
-              /* light desktop: высота = правая колонка, фото по центру */
-              "lg:h-full lg:min-h-[280px] dark:lg:h-auto dark:lg:min-h-0",
+              /* mobile: канон 3∶2; desktop: высота = правая колонка (light и dark одинаково) */
+              "max-lg:[aspect-ratio:var(--product-ar)]",
+              "lg:h-full lg:min-h-[280px]",
             )}
             style={{ ["--product-ar" as string]: PRODUCT_ASPECT_RATIO }}
           >

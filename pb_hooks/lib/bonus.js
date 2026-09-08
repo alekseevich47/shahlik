@@ -99,6 +99,22 @@ function findLedgerByDedupe(app, dedupeKey) {
   }
 }
 
+/** Уже начисляли reason этому customer (старые user-scoped dedupeKey тоже ловятся). */
+function findLedgerByCustomerReason(app, customerId, reason) {
+  if (!customerId || !reason) {
+    return null
+  }
+  try {
+    return app.findFirstRecordByFilter(
+      "bonus_ledger",
+      "customerId = {:c} && reason = {:r}",
+      { c: customerId, r: reason },
+    )
+  } catch (err) {
+    return null
+  }
+}
+
 /**
  * Единый writer. Вызывать внутри runInTransaction с txApp.
  * @returns {{ ok: boolean, skipped?: boolean, balanceAfter?: number, delta?: number, error?: string }}
@@ -338,7 +354,7 @@ function resolveCustomerForUser(app, user) {
 
 /**
  * Подарок за первую регистрацию (после привязки телефона / customer).
- * Идемпотентно: registrationClaimed + dedupeKey.
+ * Идемпотентно: registrationClaimed + dedupeKey на customer (+ legacy ledger reason).
  */
 function creditRegistrationBonus(app, user) {
   if (!user) {
@@ -357,23 +373,38 @@ function creditRegistrationBonus(app, user) {
     return { ok: false, skipped: true, reason: "no_customer" }
   }
 
-  var result = applyLedgerDeltaTx({
-    customerId: customer.id,
-    userId: user.id,
-    delta: Math.round(settings.registrationAmount),
-    reason: "registration",
-    dedupeKey: "registration:" + user.id,
-    actorType: "user",
-    actorId: user.id,
-  })
-
-  if (!result.skipped) {
+  var prior = findLedgerByCustomerReason(app, customer.id, "registration")
+  if (prior) {
     try {
       user.set("registrationClaimed", true)
       app.save(user)
     } catch (err) {
       // ignore
     }
+    return {
+      ok: true,
+      skipped: true,
+      reason: "already_claimed",
+      balanceAfter: prior.getFloat("balanceAfter") || 0,
+      delta: prior.getFloat("delta") || 0,
+    }
+  }
+
+  var result = applyLedgerDeltaTx({
+    customerId: customer.id,
+    userId: user.id,
+    delta: Math.round(settings.registrationAmount),
+    reason: "registration",
+    dedupeKey: "registration:customer:" + customer.id,
+    actorType: "user",
+    actorId: user.id,
+  })
+
+  try {
+    user.set("registrationClaimed", true)
+    app.save(user)
+  } catch (err) {
+    // ignore
   }
 
   return result
@@ -399,20 +430,38 @@ function handlePwaInstall(e) {
     throw new BadRequestError("Привяжите телефон")
   }
 
-  var dedupeKey = "pwa:" + user.id
+  var prior = findLedgerByCustomerReason($app, customer.id, "pwa_install")
+  if (prior) {
+    try {
+      user.set("pwaInstallClaimed", true)
+      $app.save(user)
+    } catch (err) {
+      // ignore
+    }
+    return e.json(200, {
+      ok: false,
+      reason: "already_claimed",
+      skipped: true,
+      score: prior.getFloat("balanceAfter") || 0,
+      delta: prior.getFloat("delta") || 0,
+    })
+  }
+
   var result = applyLedgerDeltaTx({
     customerId: customer.id,
     userId: user.id,
     delta: Math.round(settings.pwaInstallAmount),
     reason: "pwa_install",
-    dedupeKey: dedupeKey,
+    dedupeKey: "pwa:customer:" + customer.id,
     actorType: "user",
     actorId: user.id,
   })
 
-  if (!result.skipped) {
+  try {
     user.set("pwaInstallClaimed", true)
     $app.save(user)
+  } catch (err) {
+    // ignore
   }
 
   try {

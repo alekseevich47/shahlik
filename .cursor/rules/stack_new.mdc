@@ -214,7 +214,7 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 Промо в панели корзины на витрине — `CartPromo` (раскрывающийся блок). В checkout — только `CheckoutPromoField`.
 
-Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость — после первого добавления в корзину (VK One Tap + Яндекс), подарок `registrationAmount`; авторизованный через ~45 с — установка приложения (`pwaInstallAmount`), «Больше не показывать» → `localStorage`. Manifest — `/manifest.webmanifest`.
+Модалки вовлечения — `features/engagement` (`EngagementHost` в `App.tsx`, не на `/admin`): гость — после первого добавления в корзину (VK One Tap + Яндекс), подарок `registrationAmount`; после успешного входа reg-модалка закрывается. Авторизованный через ~45 с — установка приложения (`pwaInstallAmount`), если ещё не standalone / не `pwaInstallClaimed` / не ставили на этом устройстве (`localStorage` `shashlik:pwa:installed`) / не «Больше не показывать». Manifest — `/manifest.webmanifest`. Отступы контента модалок равные (`p-6`); запас под крестик только у title-row (`pr-10`). Reg-модалка — `contentOverflow="visible"` (VK One Tap «Продолжить»).
 
 Промо на витрине — два блока из `settings`: `promo*` (купон) и `promo2*` (регистрация). Desktop — обе карточки в `Sidebar`; mobile — два `PromoBanner` подряд. Админка «Заведение» редактирует оба.
 
@@ -235,7 +235,7 @@ Mobile (`MobileHome`, <1024): `MobileHeader` + `AddressBar` + баннер + `Ca
 
 ## Страница товара (PDP)
 
-`pages/product/ProductPage.tsx` — две колонки: фото слева, конфигуратор справа (ширина −⅓ от прежнего: `lg` 413px / `xl` 467px). Сетка light `lg:items-stretch` (высота фото = правая колонка); dark — `items-start`.
+`pages/product/ProductPage.tsx` — две колонки: фото слева, конфигуратор справа (ширина −⅓ от прежнего: `lg` 413px / `xl` 467px). Сетка `lg:items-stretch`: высота блока фото на desktop = правая колонка (light и dark одинаково). Mobile — aspect-ratio канона.
 
 - Light desktop: левый блок `bg-surface` (белый), фото `object-contain` по центру; оценка + состав — нижний левый угол. Dark / mobile: cover + канон `aspect-ratio` 1536×1024
 - Открытие/закрытие — `motion` + `AnimatePresence` в `app/router.tsx` (Home/Product грузятся сразу, не lazy). `viewTransition` у RR здесь не работает: нужен data-router, а стоит `BrowserRouter`. Уход маршрута — `position: absolute; inset: 0; overflow: hidden`, без scale (иначе рывок). Скроллбар: `scrollbar-gutter: stable` на `html`, чтобы исчезающая полоса Home не дёргала PDP вправо
@@ -296,11 +296,11 @@ Layout-анимации (`layoutId`, перестановка строк) тре
 | Списание | checkout `spendBonus` → сервер клипует в `orders.bonusSpent`; debit ledger после create (`order_spend:<id>`); при списании earn = 0 |
 | Начисление | при `status → done` (+ webhook): earn по строкам + promo kind=`bonus`; `order_earn:<id>`; **не** если `bonusSpent > 0` |
 | Промо-бонусы | `coupons.kind = bonus`, опц. `targetUserId`; скидка 0, баллы начисляются с earn |
-| Регистрация | `registrationAmount`; `app_users.registrationClaimed`; `registration:<userId>` после привязки телефона / create |
+| Регистрация | `registrationAmount`; `app_users.registrationClaimed`; dedupe `registration:customer:<customerId>` (+ skip если у customer уже есть ledger `reason=registration`); после привязки телефона / create. Merge VK↔Яндекс переносит claimed-флаги |
 | Реферал | `app_users.referralCode` / `referredBy`; `POST /api/profile/referral` |
 | ДР | cron `bonus-birthday` 05:15 UTC; `birthday:<year>:<userId>` |
-| PWA | `POST /api/bonus/events/pwa-install` + UI `InstallAppModal`; иконка монеты `/icons/coin.svg` |
-| Профиль | `GET /api/profile/bonus` — score + history + referralCode |
+| PWA | `POST /api/bonus/events/pwa-install` + UI `InstallAppModal`; dedupe `pwa:customer:<customerId>`; клиент `shashlik:pwa:installed` не предлагает повторно; иконка монеты `/icons/coin.svg` |
+| Профиль | `GET /api/profile/bonus` — score + history + referralCode; в UI данных почта клиенту не показывается |
 | Админка | `/admin/bonuses` (в т.ч. «Регистрация, бонусы»), ручное ± в `CustomerDrawer`, журнал `/admin/logs` |
 
 Идемпотентность событий — уникальный `dedupeKey` в ledger.

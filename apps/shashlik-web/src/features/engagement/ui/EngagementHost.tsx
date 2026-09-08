@@ -13,6 +13,7 @@ import {
   markSessionShown,
   PWA_SESSION_KEY,
   REG_SESSION_KEY,
+  wasPwaInstalledOnDevice,
   wasSessionShown,
 } from "../lib/storage"
 import { InstallAppModal } from "./InstallAppModal"
@@ -31,6 +32,11 @@ export function EngagementHost() {
 
   const onAdmin = pathname.startsWith("/admin")
   const onAuth = pathname.startsWith("/auth")
+
+  // После входа закрываем модалку регистрации (VK / Яндекс).
+  useEffect(() => {
+    if (user) setRegOpen(false)
+  }, [user])
 
   // Гость: после первого добавления в корзину (0 → >0), раз за сессию.
   useEffect(() => {
@@ -57,7 +63,7 @@ export function EngagementHost() {
   // Авторизованный: PWA через ~45 с.
   useEffect(() => {
     if (!ready || onAdmin || onAuth || !user || !settings.enabled) return
-    if (isStandaloneDisplay()) return
+    if (isStandaloneDisplay() || wasPwaInstalledOnDevice()) return
     if (user.pwaInstallClaimed) return
     if (isPwaDismissedForever()) return
     if (wasSessionShown(PWA_SESSION_KEY)) return
@@ -65,6 +71,7 @@ export function EngagementHost() {
 
     const timer = window.setTimeout(() => {
       if (wasSessionShown(PWA_SESSION_KEY)) return
+      if (isStandaloneDisplay() || wasPwaInstalledOnDevice()) return
       markSessionShown(PWA_SESSION_KEY)
       setPwaOpen(true)
     }, ENGAGEMENT_DELAY_MS)

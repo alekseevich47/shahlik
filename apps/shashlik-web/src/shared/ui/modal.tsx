@@ -12,10 +12,18 @@ type ModalProps = {
   onOpenChange: (open: boolean) => void
   children: ReactNode
   className?: string
+  /** По умолчанию overflow-hidden; для VK One Tap в engagement — visible */
+  contentOverflow?: "hidden" | "visible"
 }
 
 /** Центрированный Dialog. Без Glass, анимация только opacity + scale. */
-export function Modal({ open, onOpenChange, children, className }: ModalProps) {
+export function Modal({
+  open,
+  onOpenChange,
+  children,
+  className,
+  contentOverflow = "hidden",
+}: ModalProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -30,7 +38,8 @@ export function Modal({ open, onOpenChange, children, className }: ModalProps) {
           className={cn(
             "fixed top-1/2 left-1/2 z-301 max-h-[92vh] -translate-x-1/2 -translate-y-1/2",
             "w-[min(960px,calc(100vw-2rem))]",
-            "overflow-hidden rounded-[var(--r-2xl)] border border-line bg-surface shadow-[var(--shadow-panel)] outline-none",
+            contentOverflow === "visible" ? "overflow-visible" : "overflow-hidden",
+            "rounded-[var(--r-2xl)] border border-line bg-surface shadow-[var(--shadow-panel)] outline-none",
             "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
             "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
@@ -40,7 +49,7 @@ export function Modal({ open, onOpenChange, children, className }: ModalProps) {
           {children}
           <DialogPrimitive.Close
             aria-label="Закрыть"
-            className="absolute top-4 right-4 grid size-9 cursor-pointer place-items-center rounded-[var(--r-sm)] text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
+            className="absolute top-4 right-4 z-10 grid size-9 cursor-pointer place-items-center rounded-[var(--r-sm)] text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
           >
             <X size={18} strokeWidth={2.4} />
           </DialogPrimitive.Close>

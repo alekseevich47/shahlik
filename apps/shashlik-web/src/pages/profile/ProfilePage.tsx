@@ -12,7 +12,7 @@ import {
   useProfileBonus,
   submitReferral,
 } from "@/entities/account/api"
-import type { AppUser, NewSavedAddress, SavedAddress } from "@/entities/account/model"
+import type { NewSavedAddress, SavedAddress } from "@/entities/account/model"
 import { useMyOrders } from "@/entities/order/api"
 import { isActiveOrderStatus, ORDER_STATUS_LABEL, type Order } from "@/entities/order/model"
 import { formatAddressLine } from "@/features/checkout/model/useCheckout"
@@ -222,20 +222,6 @@ function HistoryTab({ onOpen }: { onOpen: (id: string) => void }) {
   )
 }
 
-function allEmails(user: AppUser): string[] {
-  const primary = user.email.trim()
-  const extras = user.extraEmails ?? []
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const item of [primary, ...extras]) {
-    const email = item.trim()
-    if (!email || seen.has(email)) continue
-    seen.add(email)
-    out.push(email)
-  }
-  return out
-}
-
 function DataTab() {
   const { user } = useAccount()
   if (!user) return null
@@ -279,17 +265,6 @@ function DataTab() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3 rounded-[var(--r-xl)] border border-line bg-surface p-4">
-      {user && allEmails(user).length > 0 ? (
-        <Field label="Почта" hint="Сохраняются все адреса с разных входов">
-          <div className="flex flex-col gap-1 rounded-[var(--r-md)] border border-line bg-surface-3 px-3 py-2">
-            {allEmails(user).map((email) => (
-              <span key={email} className="text-[13px] font-semibold text-fg">
-                {email}
-              </span>
-            ))}
-          </div>
-        </Field>
-      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Имя">
           <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={50} />

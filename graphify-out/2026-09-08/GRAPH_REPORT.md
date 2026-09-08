@@ -1,16 +1,16 @@
 # Graph Report - shahlik  (2026-09-08)
 
 ## Corpus Check
-- 249 files · ~1,502,189 words
+- 248 files · ~1,501,321 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1873 nodes · 4791 edges · 113 communities (102 shown, 11 thin omitted)
+- 1872 nodes · 4791 edges · 112 communities (101 shown, 11 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 224 edges (avg confidence: 0.54)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5d645811`
+- Built from commit: `d6ed6cf7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -147,7 +147,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (113 total, 11 thin omitted)
+## Communities (112 total, 11 thin omitted)
 
 ### Community 0 - "addon/api.ts"
 Cohesion: 0.15
@@ -183,7 +183,7 @@ Nodes (18): API-правила (PB Rules), Env / инфра, `pb_hooks` (JSVM), 
 
 ### Community 8 - "package.json"
 Cohesion: 0.11
-Nodes (19): dependencies, class-variance-authority, lenis, lucide-react, motion, @radix-ui/react-slot, react-dom, react-router-dom (+11 more)
+Nodes (19): dependencies, class-variance-authority, lucide-react, motion, @radix-ui/react-slot, @radix-ui/react-tooltip, react-dom, react-router-dom (+11 more)
 
 ### Community 10 - "Frontpad API"
 Cohesion: 0.33
@@ -539,11 +539,11 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `figma-make-app` and `Logo RGB`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `dependencies` connect `package.json` to `loginWithOAuth`, `react`, `pb`, `sonner`, `zustand`, `@radix-ui/react-dialog`, `package.json`, `@radix-ui/react-popover`, `@radix-ui/react-tooltip`, `category/api.ts`?**
+- **Why does `dependencies` connect `package.json` to `loginWithOAuth`, `react`, `pb`, `sonner`, `zustand`, `@radix-ui/react-dialog`, `package.json`, `@radix-ui/react-tooltip`, `@radix-ui/react-popover`, `category/api.ts`?**
   _High betweenness centrality (0.081) - this node is a cross-community bridge._
 - **Why does `cn()` connect `SettingsSection.tsx` to `Meal Add-ons UI`, `cn`, `cn.ts`, `useCategories`, `banner/api.ts`, `order/model.ts`, `HomePage.tsx`, `CustomerDrawer.tsx`, `order/model.ts`, `@radix-ui/react-slot`, `HomePage.tsx`, `ProductCard.tsx`, `sonner`, `CouponForm.tsx`, `AdminPage.tsx`, `MobileHome.tsx`, `CartLineRow.tsx`, `category/api.ts`, `files.ts`, `NutritionHint.tsx`, `pbErrorMessage`, `AddonRow.tsx`, `ProductsSection.tsx`, `clsx`, `theme.tsx`, `VitrineScroll.tsx`, `NutritionHint.tsx`, `banner-image-field.tsx`, `router.tsx`?**
-  _High betweenness centrality (0.079) - this node is a cross-community bridge._
-- **Why does `VitrineScrollProvider()` connect `StickyBar.tsx` to `package.json`, `HomePage.tsx`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
+- **Why does `VitrineScrollProvider()` connect `StickyBar.tsx` to `@radix-ui/react-tooltip`, `HomePage.tsx`?**
   _High betweenness centrality (0.078) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `ProductEditor()` (e.g. with `e()` and `n()`) actually correct?**
   _`ProductEditor()` has 2 INFERRED edges - model-reasoned connections that need verification._
