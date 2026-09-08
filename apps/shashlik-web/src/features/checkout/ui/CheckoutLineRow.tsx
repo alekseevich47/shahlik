@@ -42,8 +42,8 @@ export function CheckoutLineRow({
           variantLabel={line.variantLabel}
           product={line.product}
         />
-        <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[13px] font-extrabold text-fg tabular-nums">
-          {formatPrice(line.unitPrice * line.line.quantity)}
+        <p className="mt-1 flex flex-nowrap items-center gap-x-1.5 text-[13px] font-extrabold text-fg tabular-nums">
+          {formatPrice(line.total)}
           <BonusEarnHint amount={earnAmount} guest={!user} />
         </p>
       </div>

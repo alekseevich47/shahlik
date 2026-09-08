@@ -76,6 +76,5 @@
   "74": "class-variance-authority",
   "75": "@radix-ui/react-popover",
   "76": "tailwind-merge",
-  "77": "lucide-react",
-  "78": "zustand"
+  "77": "lucide-react"
 }

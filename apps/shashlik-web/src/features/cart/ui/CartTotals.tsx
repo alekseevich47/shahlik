@@ -19,6 +19,8 @@ type CartTotalsProps = {
   showBonusEarn?: boolean
   /** Заголовок блока сумм. */
   title?: string
+  /** Плотнее строки (checkout «Чек»). */
+  compact?: boolean
   className?: string
 }
 
@@ -27,6 +29,7 @@ export function CartTotals({
   bonusEarned,
   showBonusEarn = true,
   title = "Доставка и оплата",
+  compact = false,
   className,
 }: CartTotalsProps) {
   const { lines, goods, deliveryFee, discount, freeDeliveryLeft, minOrder, acceptingOrders, stopMessage } =
@@ -52,16 +55,25 @@ export function CartTotals({
           bonusSettings.enabled,
         )
 
+  const rowSize = compact ? "text-[11px]" : "text-[12px]"
+  const gapClass = compact ? "gap-1" : "gap-1.5"
+  const collapsedMb = compact ? "mb-[-0.25rem]" : "mb-[-0.375rem]"
+
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <p className="text-[12px] font-extrabold text-brand">{title}</p>
-      <SumRow label="Стоимость товаров" value={formatPrice(goods)} />
+    <div className={cn("flex flex-col", gapClass, className)}>
+      <p className={cn("font-extrabold text-brand", rowSize)}>{title}</p>
+      <SumRow dense={compact} label="Стоимость товаров" value={formatPrice(goods)} />
       {showBonusEarn && bonusSettings.enabled && earnedPreview > 0 ? (
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[12px] text-fg-muted">
+          <span className={cn(rowSize, "text-fg-muted")}>
             {isGuest ? "Можно получить" : "Начислено бонусов"}
           </span>
-          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[12px] font-bold leading-none text-fg tabular-nums">
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-bold leading-none text-fg tabular-nums",
+              rowSize,
+            )}
+          >
             {isGuest ? earnedPreview : `+${earnedPreview}`}
             <CoinIcon />
           </span>
@@ -70,18 +82,22 @@ export function CartTotals({
       <div
         className={cn(
           "grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
-          showDiscount
-            ? "grid-rows-[1fr] opacity-100"
-            : "mb-[-0.375rem] grid-rows-[0fr] opacity-0",
+          showDiscount ? "grid-rows-[1fr] opacity-100" : cn(collapsedMb, "grid-rows-[0fr] opacity-0"),
         )}
         aria-hidden={!showDiscount}
       >
         <div className="overflow-hidden">
-          <SumRow label="Скидка" value={`−${formatPrice(totalDiscount)}`} tone="success" />
+          <SumRow
+            dense={compact}
+            label="Скидка"
+            value={`−${formatPrice(totalDiscount)}`}
+            tone="success"
+          />
         </div>
       </div>
       {mode === "delivery" ? (
         <SumRow
+          dense={compact}
           label="Доставка"
           value={deliveryFee ? formatPrice(deliveryFee) : "Бесплатно"}
           tone={deliveryFee ? "default" : "success"}
@@ -95,7 +111,9 @@ export function CartTotals({
           Мин. заказ {formatPrice(minOrder)} — ещё {formatPrice(minOrder - goods)}
         </p>
       ) : null}
-      {!acceptingOrders ? <p className="text-[12px] font-bold text-red">{stopMessage}</p> : null}
+      {!acceptingOrders ? (
+        <p className={cn("font-bold text-red", rowSize)}>{stopMessage}</p>
+      ) : null}
     </div>
   )
 }

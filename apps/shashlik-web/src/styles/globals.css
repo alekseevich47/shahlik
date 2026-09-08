@@ -348,7 +348,16 @@
     overflow: hidden;
   }
 
+  /* scrollbar-gutter: stable уже резервирует полосу; RemoveScroll не должен
+     добавлять padding-right — иначе витрина «сжимается» под Search/Dialog. */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    --removed-body-scroll-bar-size: 0px;
+  }
+
   [data-modal-open="1"] {
+    pointer-events: none;
     filter: blur(10px);
   }
 

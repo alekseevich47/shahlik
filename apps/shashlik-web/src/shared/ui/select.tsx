@@ -157,7 +157,7 @@ export function Select({
           collisionPadding={12}
           onOpenAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            "z-100 w-[var(--radix-popover-trigger-width)] max-w-none overflow-hidden p-1",
+            "z-[400] w-[var(--radix-popover-trigger-width)] max-w-none overflow-hidden p-1",
             "rounded-[var(--r-lg)] border border-line bg-surface shadow-[var(--shadow-pop)]",
             "origin-[var(--radix-popover-content-transform-origin)]",
             "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1",

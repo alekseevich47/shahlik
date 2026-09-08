@@ -28,26 +28,32 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
   const label = badgeLabel(product.badge, badges)
   const hasVariants = product.variants.length > 0
   const outOfStock = isProductStopped(product, stopped)
+  const href = `/product/${product.slug}`
 
   return (
     <article
       className={cn(
-        "product-card group flex flex-col overflow-hidden rounded-[var(--r-xl)] border border-line bg-surface",
+        "product-card group relative flex flex-col overflow-hidden rounded-[var(--r-xl)] border border-line bg-surface",
         "shadow-[var(--shadow-card)] transition-all duration-300 ease-[var(--ease-out-soft)]",
         "hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]",
         className,
       )}
     >
       <Link
-        to={`/product/${product.slug}`}
+        to={href}
         state={productState}
-        className="relative block overflow-hidden bg-surface-3"
+        aria-label={product.name}
+        className="absolute inset-0 z-0"
+      />
+
+      <div
+        className="pointer-events-none relative overflow-hidden bg-surface-3"
         style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
         <ThemeAwareImage
           lightSrc={product.image}
           darkSrc={product.imagesDark[0]}
-          alt={product.name}
+          alt=""
           loading="lazy"
           className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-[1.04]"
         />
@@ -56,18 +62,14 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
             {label}
           </Badge>
         ) : null}
-      </Link>
+      </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-3.5">
+      <div className="pointer-events-none relative flex flex-1 flex-col gap-2 p-3.5">
         <div className="flex flex-col gap-0.5">
-          <Link
-            to={`/product/${product.slug}`}
-            state={productState}
-            className="line-clamp-2 text-[20px] leading-tight font-extrabold tracking-[-0.01em] text-fg transition-colors hover:text-brand"
-          >
+          <h3 className="line-clamp-2 text-[20px] leading-tight font-extrabold tracking-[-0.01em] text-fg transition-colors group-hover:text-brand">
             {product.name}
             {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
-          </Link>
+          </h3>
 
           {hasVariants ? (
             <div className="flex flex-wrap gap-1.5">
@@ -97,13 +99,17 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
           <span className="text-[22px] leading-none font-extrabold text-fg tabular-nums">
             от {formatPrice(minPrice(product))}
           </span>
-          <div className="product-card-add">
+          <div className="product-card-add pointer-events-auto relative z-10">
             <div>
               <Button
                 variant="soft"
                 size="sm"
                 disabled={outOfStock}
-                onClick={() => onAdd(product)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onAdd(product)
+                }}
                 className="dark:text-fg dark:hover:text-fg"
                 aria-label={
                   outOfStock

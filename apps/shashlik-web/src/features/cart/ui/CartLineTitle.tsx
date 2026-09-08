@@ -9,7 +9,7 @@ type CartLineTitleProps = {
   className?: string
 }
 
-/** Название + размер (серый) и вариант мяса строкой ниже. */
+/** Название; размер и мясо одной строкой через запятую («L, Курица»). */
 export function CartLineTitle({
   name,
   sizeLabel,
@@ -18,17 +18,13 @@ export function CartLineTitle({
   className,
 }: CartLineTitleProps) {
   const showVariant = Boolean(variantLabel && product.variants.length > 1)
+  const meta = [sizeLabel, showVariant ? variantLabel : null].filter(Boolean).join(", ")
 
   return (
     <div className={cn("min-w-0", className)}>
-      <p className="truncate text-[12.5px] leading-snug text-fg">
-        <span className="font-bold">{name}</span>
-        {sizeLabel ? (
-          <span className="text-[11.5px] font-semibold text-fg-muted"> · {sizeLabel}</span>
-        ) : null}
-      </p>
-      {showVariant ? (
-        <p className="truncate text-[11.5px] font-medium text-fg-muted">{variantLabel}</p>
+      <p className="truncate text-[12.5px] leading-snug font-bold text-fg">{name}</p>
+      {meta ? (
+        <p className="truncate text-[11.5px] font-medium text-fg-muted">{meta}</p>
       ) : null}
     </div>
   )

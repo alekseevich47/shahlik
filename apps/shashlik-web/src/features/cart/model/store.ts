@@ -36,6 +36,8 @@ type CartState = {
   phone: string
   appliedCoupon: AppliedCoupon | null
   add: (payload: AddPayload) => void
+  /** Перезапись строки (edit из PDP); id сохраняется. Нет строки → как add. */
+  replaceLine: (lineId: string, payload: AddPayload) => void
   setQuantity: (lineId: string, quantity: number) => void
   remove: (lineId: string) => void
   clear: () => void
@@ -87,6 +89,39 @@ export const useCartStore = create<CartState>()(
           }
           return {
             items: [...state.items, { ...payload, addons: payload.addons ?? [], id: uid(), quantity }],
+          }
+        }),
+
+      replaceLine: (lineId, payload) =>
+        set((state) => {
+          const quantity = payload.quantity ?? 1
+          const addons = payload.addons ?? []
+          if (!state.items.some((item) => item.id === lineId)) {
+            return {
+              items: [
+                ...state.items,
+                {
+                  ...payload,
+                  addons,
+                  id: uid(),
+                  quantity,
+                },
+              ],
+            }
+          }
+          return {
+            items: state.items.map((item) =>
+              item.id === lineId
+                ? {
+                    ...item,
+                    productId: payload.productId,
+                    variantId: payload.variantId,
+                    sizeId: payload.sizeId,
+                    quantity,
+                    addons,
+                  }
+                : item,
+            ),
           }
         }),
 

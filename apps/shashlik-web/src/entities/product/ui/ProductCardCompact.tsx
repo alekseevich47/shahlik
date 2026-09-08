@@ -32,24 +32,30 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
     ...product.variants.map((v) => v.label),
     ...product.sizes.map((s) => s.label),
   ].join(" • ")
+  const href = `/product/${product.slug}`
 
   return (
     <article
       className={cn(
-        "flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-line bg-surface shadow-[var(--shadow-card)]",
+        "relative flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-line bg-surface shadow-[var(--shadow-card)]",
         className,
       )}
     >
       <Link
-        to={`/product/${product.slug}`}
+        to={href}
         state={productState}
-        className="relative block bg-surface-3"
+        aria-label={product.name}
+        className="absolute inset-0 z-0"
+      />
+
+      <div
+        className="pointer-events-none relative bg-surface-3"
         style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
         <ThemeAwareImage
           lightSrc={product.image}
           darkSrc={product.imagesDark[0]}
-          alt={product.name}
+          alt=""
           loading="lazy"
           className="size-full object-cover"
         />
@@ -58,17 +64,13 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
             {label}
           </Badge>
         ) : null}
-      </Link>
+      </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-2.5">
-        <Link
-          to={`/product/${product.slug}`}
-          state={productState}
-          className="text-[13.5px] leading-tight font-extrabold text-fg"
-        >
+      <div className="pointer-events-none relative flex flex-1 flex-col gap-1 p-2.5">
+        <h3 className="text-[13.5px] leading-tight font-extrabold text-fg">
           {product.name}
           {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
-        </Link>
+        </h3>
         {meta ? <p className="text-[10.5px] text-fg-muted">{meta}</p> : null}
         <span
           className="text-[11px] font-extrabold tabular-nums"
@@ -85,9 +87,13 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
           ) : (
             <button
               type="button"
-              onClick={() => onAdd(product)}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onAdd(product)
+              }}
               aria-label={`Добавить «${product.name}»`}
-              className="grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand shadow-brand transition-colors hover:bg-brand-hover"
+              className="pointer-events-auto relative z-10 grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand shadow-brand transition-colors hover:bg-brand-hover"
             >
               <Plus size={15} strokeWidth={3} />
             </button>

@@ -4,17 +4,21 @@ export function SumRow({
   label,
   value,
   tone = "default",
+  dense = false,
 }: {
   label: string
   value: string
   tone?: "default" | "success"
+  dense?: boolean
 }) {
+  const size = dense ? "text-[11px]" : "text-[12px]"
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-[12px] text-fg-muted">{label}</span>
+      <span className={cn(size, "text-fg-muted")}>{label}</span>
       <span
         className={cn(
-          "text-[12px] font-bold tabular-nums",
+          size,
+          "font-bold tabular-nums",
           tone === "success" ? "text-success" : "text-fg",
         )}
       >

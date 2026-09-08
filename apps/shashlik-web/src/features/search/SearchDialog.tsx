@@ -45,8 +45,14 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-200 bg-black/45 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content className="fixed top-[12vh] left-1/2 z-201 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-[var(--r-xl)] border border-line bg-surface shadow-[var(--shadow-panel)] outline-none data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:zoom-in-95">
+        <DialogPrimitive.Overlay
+          data-lenis-prevent
+          className="fixed inset-0 z-200 bg-black/45 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+        />
+        <DialogPrimitive.Content
+          data-lenis-prevent
+          className="fixed top-[12vh] left-1/2 z-201 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-[var(--r-xl)] border border-line bg-surface shadow-[var(--shadow-panel)] outline-none data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:zoom-in-95"
+        >
           <DialogPrimitive.Title className="sr-only">Поиск по меню</DialogPrimitive.Title>
 
           <div className="flex items-center gap-2.5 border-b border-line px-4">

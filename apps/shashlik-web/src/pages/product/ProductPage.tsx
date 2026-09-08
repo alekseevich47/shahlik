@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { ArrowLeft, Drumstick, Ham, Heart, Leaf, Star, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import { useBadges } from "@/entities/badge/api"
@@ -20,6 +20,7 @@ import {
 import { useProductBySlug } from "@/entities/product/api"
 import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import { useCartStore } from "@/features/cart/model/store"
+import { productEditOf } from "@/shared/lib/background-location"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice, pluralize } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
@@ -43,6 +44,8 @@ type ProductViewProps = {
 /** Содержимое PDP без page-shell и без Navigate — для страницы и модалки. */
 export function ProductView({ onClose, className }: ProductViewProps) {
   const { slug = "" } = useParams()
+  const location = useLocation()
+  const { editLineId, draft } = productEditOf(location)
   useFrontpadStockRealtime()
   const { data: product, isPending } = useProductBySlug(slug)
   const { data: stopped = new Set<string>() } = useStoppedArticles()
@@ -56,13 +59,24 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   const [picked, setPicked] = useState<Record<string, number>>({})
   const [liked, setLiked] = useState(false)
   const add = useCartStore((s) => s.add)
+  const replaceLine = useCartStore((s) => s.replaceLine)
+  const isEditing = Boolean(editLineId)
 
   useEffect(() => {
+    if (editLineId && draft) {
+      setVariantId(draft.variantId)
+      setSizeId(draft.sizeId)
+      setQuantity(draft.quantity)
+      setPicked(
+        Object.fromEntries(draft.addons.map((a) => [a.addonId, a.quantity])),
+      )
+      return
+    }
     setVariantId(undefined)
     setSizeId(undefined)
     setPicked({})
     setQuantity(1)
-  }, [slug])
+  }, [slug, editLineId, draft, location.key])
 
   const resolvedVariantId = variantId ?? product?.variants[0]?.id
   const resolvedSizeId = sizeId ?? product?.sizes[0]?.id ?? ""
@@ -89,7 +103,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   const visibleExtras = extras.filter((addon) => !isAddonStopped(addon, stopped))
 
   const submit = () => {
-    add({
+    const payload = {
       productId: product.id,
       variantId: variant?.id,
       sizeId: size.id,
@@ -97,8 +111,14 @@ export function ProductView({ onClose, className }: ProductViewProps) {
       addons: Object.entries(picked)
         .filter(([, qty]) => qty > 0)
         .map(([addonId, qty]) => ({ addonId, quantity: qty })),
-    })
-    toast.success(`«${product.name}» в заказе`)
+    }
+    if (editLineId) {
+      replaceLine(editLineId, payload)
+      toast.success(`«${product.name}» обновлён`)
+    } else {
+      add(payload)
+      toast.success(`«${product.name}» в заказе`)
+    }
     onClose()
   }
 
@@ -304,7 +324,11 @@ export function ProductView({ onClose, className }: ProductViewProps) {
               disabled={skuStopped}
               onClick={submit}
             >
-              {skuStopped ? "Нет в наличии" : `В корзину • ${formatPrice(total)}`}
+              {skuStopped
+                ? "Нет в наличии"
+                : isEditing
+                  ? `Сохранить • ${formatPrice(total)}`
+                  : `В корзину • ${formatPrice(total)}`}
             </Button>
           </div>
           </div>
@@ -349,6 +373,7 @@ export function ProductModal() {
     >
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
+          data-lenis-prevent
           className={cn(
             "fixed inset-0 z-300 bg-black/45",
             "data-[state=open]:animate-in data-[state=open]:fade-in-0",
@@ -356,10 +381,11 @@ export function ProductModal() {
           )}
         />
         <DialogPrimitive.Content
+          data-lenis-prevent
           aria-describedby={undefined}
           className={cn(
             "fixed top-1/2 left-1/2 z-301 flex w-[min(1200px,calc(100vw-1rem))] max-h-[94vh] -translate-x-1/2 -translate-y-1/2 flex-col",
-            "overflow-y-auto rounded-[var(--r-2xl)] border border-line bg-canvas shadow-[var(--shadow-panel)] outline-none",
+            "overflow-y-auto overscroll-contain rounded-[var(--r-2xl)] border border-line bg-canvas shadow-[var(--shadow-panel)] outline-none",
             "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
             "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",

@@ -47,7 +47,10 @@ export function CartPanel({ className }: { className?: string }) {
         />
       </div>
 
-      <div className="scrollbar-slim flex-1 overflow-y-auto px-4">
+      <div
+        className="scrollbar-slim flex-1 overflow-y-auto overscroll-contain px-4"
+        data-lenis-prevent
+      >
         {empty ? (
           <div className="flex h-full min-h-40 flex-col items-center justify-center gap-2 py-8 text-center">
             <ShoppingBag size={30} className="text-fg-faint" strokeWidth={1.6} />

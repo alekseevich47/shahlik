@@ -32,12 +32,19 @@ type Props = {
   paused?: boolean
 }
 
+function isProductModalOpen() {
+  return Boolean(document.querySelector('[data-modal-open="1"]'))
+}
+
 export function VitrineScrollProvider({ children, paused = false }: Props) {
   const lenisRef = useRef<Lenis | null>(null)
+  const pausedRef = useRef(paused)
+  pausedRef.current = paused
 
   useEffect(() => {
     const lenis = new Lenis(LENIS_OPTIONS)
     lenisRef.current = lenis
+    if (pausedRef.current || isProductModalOpen()) lenis.stop()
     return () => {
       lenis.destroy()
       lenisRef.current = null
@@ -47,8 +54,21 @@ export function VitrineScrollProvider({ children, paused = false }: Props) {
   useEffect(() => {
     const lenis = lenisRef.current
     if (!lenis) return
-    if (paused) lenis.stop()
-    else lenis.start()
+
+    const sync = () => {
+      if (pausedRef.current || isProductModalOpen()) lenis.stop()
+      else lenis.start()
+    }
+
+    sync()
+
+    const observer = new MutationObserver(sync)
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-modal-open"],
+      subtree: true,
+    })
+    return () => observer.disconnect()
   }, [paused])
 
   const api = useMemo<VitrineScrollApi>(

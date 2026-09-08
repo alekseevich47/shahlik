@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useLocation } from "react-router-dom"
 
 import { useProducts } from "@/entities/product/api"
 import { useFrontpadStockRealtime } from "@/entities/product/lib/stock"
@@ -6,6 +7,7 @@ import { CartPanel } from "@/features/cart/ui/CartPanel"
 import { useCheckoutDialogStore } from "@/features/checkout/model/dialog"
 import { CheckoutDialog } from "@/features/checkout/ui/CheckoutDialog"
 import { SearchDialog } from "@/features/search/SearchDialog"
+import { backgroundOf } from "@/shared/lib/background-location"
 import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
 import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
@@ -41,6 +43,7 @@ function HomeMobileTabBar({
 
 export default function HomePage() {
   useFrontpadStockRealtime()
+  const location = useLocation()
   const { data: products = [] } = useProducts()
   const [category, setCategory] = useState("shawarma")
   const [searchOpen, setSearchOpen] = useState(false)
@@ -50,6 +53,7 @@ export default function HomePage() {
   const isDesktop = useIsDesktop()
   const checkoutOpen = useCheckoutDialogStore((s) => s.open)
   const setCheckoutOpen = useCheckoutDialogStore((s) => s.setOpen)
+  const productModalOpen = Boolean(backgroundOf(location))
 
   useEffect(() => {
     if (checkoutOpen) setCartOpen(false)
@@ -62,7 +66,8 @@ export default function HomePage() {
     setMenuOpen(false)
   }, [])
 
-  const scrollPaused = cartOpen || menuOpen || checkoutOpen
+  const scrollPaused =
+    cartOpen || menuOpen || checkoutOpen || searchOpen || productModalOpen
 
   return (
     <div className="min-h-dvh bg-canvas">

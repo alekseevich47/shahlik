@@ -490,8 +490,8 @@
     "semantic_hash": ""
   },
   "src/widgets/header/StickyBar.tsx": {
-    "mtime": 1788828328.690486,
-    "ast_hash": "8f321f2a5133ac00e2e7434d84a856ce",
+    "mtime": 1788832742.9861248,
+    "ast_hash": "8632854a52a1a00c4160ec05e45c1dcf",
     "semantic_hash": ""
   },
   "src/widgets/sidebar/rail.ts": {
@@ -875,8 +875,8 @@
     "semantic_hash": ""
   },
   "src/pages/home/lib/catalogSection.ts": {
-    "mtime": 1787493253.7718349,
-    "ast_hash": "04420c6293f13f771f4b82095a3cf557",
+    "mtime": 1788831868.971869,
+    "ast_hash": "acfd1e9c3a4d471fb173459471229d95",
     "semantic_hash": ""
   },
   "src/pages/home/lib/groupByCategory.ts": {
@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/pages/home/lib/useCatalogScrollSpy.ts": {
-    "mtime": 1787890980.1448927,
-    "ast_hash": "f14fe4bc2df4ac433ce9854659266289",
+    "mtime": 1788831868.971869,
+    "ast_hash": "d1efcd396bf5d649930714bd03bd26ef",
     "semantic_hash": ""
   },
   "src/pages/home/ui/CatalogCategorySection.tsx": {
@@ -915,8 +915,8 @@
     "semantic_hash": ""
   },
   "src/features/cart/ui/CartTotals.tsx": {
-    "mtime": 1788521177.4739447,
-    "ast_hash": "d6475f89d125752a6b31611040fffa2b",
+    "mtime": 1788830508.6413796,
+    "ast_hash": "29a2873da781094cb2d009bbad493502",
     "semantic_hash": ""
   },
   "src/features/cart/ui/SumRow.tsx": {
@@ -1165,8 +1165,8 @@
     "semantic_hash": ""
   },
   "src/features/cart/ui/BonusEarnHint.tsx": {
-    "mtime": 1788521177.2132072,
-    "ast_hash": "a561dbd394b37ef831e0654222f74a34",
+    "mtime": 1788830508.7628975,
+    "ast_hash": "c0b4d5458028e80e1226cba265f43703",
     "semantic_hash": ""
   },
   "src/features/engagement/lib/storage.ts": {
@@ -1195,8 +1195,8 @@
     "semantic_hash": ""
   },
   "src/shared/ui/coin-icon.tsx": {
-    "mtime": 1788518101.0777552,
-    "ast_hash": "9321e86175e277e9b894a375ace69130",
+    "mtime": 1788831929.1777036,
+    "ast_hash": "f4cee855053f71626473600fb92a9300",
     "semantic_hash": ""
   },
   "public/icons/coin.svg": {
@@ -1217,6 +1217,21 @@
   "src/shared/hooks/useAxisLockedHorizontalScroll.ts": {
     "mtime": 1788828304.755537,
     "ast_hash": "554d243d90a62ff142e99df9a770bfb9",
+    "semantic_hash": ""
+  },
+  "src/shared/hooks/useScrollEdgeCues.ts": {
+    "mtime": 1788832731.536326,
+    "ast_hash": "65ccb3bece68c6a4e98d374aa3b18be4",
+    "semantic_hash": ""
+  },
+  "src/shared/ui/scroll-edge-button.tsx": {
+    "mtime": 1788832717.6121416,
+    "ast_hash": "462b0b11bdeb56ea946b2cf81d167632",
+    "semantic_hash": ""
+  },
+  "public/icons/coin.png": {
+    "mtime": 1788831853.0612884,
+    "ast_hash": "ee8218c5b751833cf75a55bb731d4119",
     "semantic_hash": ""
   }
 }

@@ -21,6 +21,7 @@ import { CheckoutModeToggle } from "@/features/checkout/ui/CheckoutModeToggle"
 import { CheckoutPromoField } from "@/features/checkout/ui/CheckoutPromoField"
 import { CheckoutTrustBadges } from "@/features/checkout/ui/CheckoutTrustBadges"
 import { SafePaymentBanner } from "@/features/checkout/ui/SafePaymentBanner"
+import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 import { formatPhoneInput, PHONE_MASK_LENGTH } from "@/shared/lib/phone"
 import { Button } from "@/shared/ui/button"
@@ -40,6 +41,13 @@ const PAYMENT_OPTIONS = [
   { value: "cash", label: "При получении" },
   { value: "online", label: "Онлайн-оплата" },
 ] as const
+
+const stickyTop =
+  "relative z-10 flex h-14 shrink-0 items-center bg-surface px-5 shadow-[0_6px_14px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_6px_14px_-8px_rgba(0,0,0,0.45)]"
+const stickyBottom =
+  "relative z-10 flex shrink-0 flex-col bg-surface px-5 pt-3 pb-4 shadow-[0_-6px_14px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_-6px_14px_-8px_rgba(0,0,0,0.45)]"
+const scrollMid =
+  "min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-3 scrollbar-slim"
 
 export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
   const { lines } = useCartTotals()
@@ -66,9 +74,9 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
           </ModalDescription>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto md:grid md:grid-cols-2 md:overflow-hidden">
-          <section className="flex min-h-0 flex-col md:overflow-hidden md:border-r md:border-line">
-            <div className="flex shrink-0 items-center justify-between gap-3 px-5 pt-5 pb-3">
+        <div className="min-h-0 flex-1 overflow-y-auto md:grid md:grid-cols-2 md:grid-rows-1 md:overflow-hidden">
+          <section className="flex h-full min-h-0 flex-col overflow-hidden md:border-r md:border-line">
+            <div className={cn(stickyTop, "justify-between gap-3")}>
               <h3 className="text-[15px] font-extrabold text-fg">Ваш заказ</h3>
               <button
                 type="button"
@@ -80,7 +88,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 scrollbar-slim">
+            <div className={cn(scrollMid, "space-y-4")} data-lenis-prevent>
               {lines.length === 0 ? (
                 <p className="py-8 text-center text-[13px] font-semibold text-fg-muted">Корзина пуста</p>
               ) : (
@@ -104,9 +112,10 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               />
             </div>
 
-            <div className="flex shrink-0 flex-col gap-1 border-t border-line px-5 pt-3 pb-4">
+            <div className={cn(stickyBottom, "gap-3")}>
               <CartTotals
                 title="Чек"
+                compact
                 bonusDiscount={checkout.bonusDiscount}
                 bonusEarned={checkout.bonusEarnedPreview}
               />
@@ -116,12 +125,18 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col md:overflow-hidden">
-            <div className="shrink-0 px-5 pt-5 pb-3">
-              <CheckoutModeToggle value={checkout.mode} onChange={checkout.setMode} />
+          <section className="flex h-full min-h-0 flex-col overflow-hidden">
+            <div className={stickyTop}>
+              <CheckoutModeToggle
+                value={checkout.mode}
+                onChange={checkout.setMode}
+                className="w-full"
+              />
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 scrollbar-slim">
+            <div className={cn(scrollMid, "flex flex-col gap-4")} data-lenis-prevent>
+              <CheckoutPromoField />
+
               {checkout.mode === "delivery" ? (
                 checkout.user && checkout.user.addresses.length > 0 ? (
                   <AddressSection
@@ -192,9 +207,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
               ) : null}
             </div>
 
-            <div className="flex shrink-0 flex-col gap-2.5 border-t border-line px-5 pt-3 pb-4">
-              <CheckoutPromoField />
-
+            <div className={cn(stickyBottom, "gap-2.5")}>
               <FieldBlock label="Способ оплаты">
                 <Select
                   value={checkout.paymentMethod}
