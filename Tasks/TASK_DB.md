@@ -24,11 +24,10 @@
 | Коллекция | Поля | Заметки |
 |---|---|---|
 | `categories` | `name`, `icon` (text, путь `/icons/*.png` или пусто), `order` (number) | id записи = код категории (`shawarma`, `shashlik`, …) — задать вручную при создании, не автоген, чтобы совпадало с `CategoryId` |
-| `product_tags` | `categoryId` (relation → `categories`, cascade), `slug` (`^[a-z0-9-]+$`), `name`, `emoji` (text, optional), `order` (number) | уникально `(categoryId, slug)`. Чип «Все» не хранится. Сид: `mocks/tags.ts` |
 | `product_badges` | `slug` (unique, `^[a-z0-9-]+$`), `label`, `order` (number) | Справочник бейджей витрины. Сид: `mocks/badges.ts` (hit/new/spicy). На товаре — `products.badge` = slug |
-| `products` | `name`, `slug` (unique), `categoryId` (text/select = `CategoryId`), `emoji` (text, optional, legacy), `tagline`, `composition`, `image` (file, **до 5**), `badge` (text optional = slug из `product_badges`), `nutrition` (JSON), `tags` (JSON массив slug из `product_tags` своей категории), `variants` (JSON массив, **`required: false`** — пустой `[]` валиден), `sizes` (JSON массив, **`required: false`** — пустой `[]` у черновика; артикул кассы — `sizes[].article`), `rating` (JSON), `order` (number, `required: false`), `active` (bool, **`required: false`** — иначе PB отвергает `false`), `stats` (JSON) | `created`/`updated` — встроенные автополя PB (не заводить свои `createdAt`/`updatedAt`). Бывший select `classic|spicy|…` заменить на json, значения slug оставить. PB: `required` у bool = только `true`, у json = непустой — см. `stack_new.mdc` |
+| `products` | `name`, `slug` (unique), `categoryId` (text/select = `CategoryId`), `emoji` (text, optional, legacy), `tagline`, `composition`, `image` (file, **до 5**), `imageDark` (file, **до 5**, optional — фото для тёмной темы; иначе fallback на `image`), `badge` (text optional = slug из `product_badges`), `nutrition` (JSON), `variants` (JSON массив, **`required: false`** — пустой `[]` валиден), `sizes` (JSON массив, **`required: false`** — пустой `[]` у черновика; артикул кассы — `sizes[].article`), `rating` (JSON), `order` (number, `required: false`), `active` (bool, **`required: false`** — иначе PB отвергает `false`), `stats` (JSON) | `created`/`updated` — встроенные автополя PB (не заводить свои `createdAt`/`updatedAt`). PB: `required` у bool = только `true`, у json = непустой — см. `stack_new.mdc`. Поле `imageDark` добавить вручную в PB Admin `/_/` (миграций в репо нет) |
 | `addons` | `name`, `weight`, `price` (number), `image` (file), `kind` (select: extra/sauce), `article` (text optional) | |
-| `banners` | `image` (file), `note` (JSON optional `{title, text}`), `order` (number) | |
+| `banners` | `image` (file), `imageDark` (file, optional — тёмная тема; иначе fallback на `image`), `note` (JSON optional `{title, text}`), `order` (number) | `imageDark` — вручную в PB Admin `/_/` |
 | `orders` | `number` (text), `customer`, `phone`, `mode` (select: pickup/delivery), `address` (text optional), `status` (select: new/cooking/delivering/done/canceled), `positions` (number), `total` (number), `lines` (JSON — снимок корзины), `promo` (text optional), `bonusSpent` / `bonusEarned` (number), `frontpadOrderId` (number optional), `frontpadOrderNumber` (text optional), `frontpadError` (text optional) | пишет клиент (create) + патчит хук |
 | `bonus_settings` | singleton id=`main`: `enabled`, `defaultEarnPercent`, `birthdayAmount`, `referralInviterAmount`, `referralInviteeAmount`, `pwaInstallAmount`, `registrationAmount`, `maxSpendPercent`, `earnOnStatus` | createRule null |
 | `bonus_ledger` | append-only: `customerId`, `userId?`, `delta`, `balanceAfter`, `reason`, `dedupeKey` (unique), `meta`, `actor*` | create/update/delete с клиента закрыты |
@@ -39,7 +38,7 @@
 
 ### API-правила (PB Rules)
 
-- `categories`/`product_tags`/`product_badges`/`products`/`addons`/`banners`/`reviews` (published=true): List/View — публично; Create/Update/Delete — `@request.auth.role = "admin"`.
+- `categories`/`product_badges`/`products`/`addons`/`banners`/`reviews` (published=true): List/View — публично; Create/Update/Delete — `@request.auth.role = "admin"`.
 - `orders`: Create — публично (с валидацией полей); List/View/Update — только `admin`; клиенту для realtime-подписки на свою запись достаточно `view` по id, если правило это разрешает точечно.
 - `frontpad_stock`: List/View — публично (для проверки стоп-листа на сайте); запись — только хук/суперюзер.
 - `users`: обычные правила auth-коллекции, регистрация закрыта (создавать сотрудников из `/_/`).
@@ -75,7 +74,6 @@
 Для каждой сущности — один новый файл `entities/<name>/api.ts` (список + get by id/slug, маппинг PB-записи → тип из `model.ts`; для `image`/`icon` — `pb.files.getUrl`).
 
 - Прочитать: `entities/category/model.ts`, `mocks/categories.ts` → создать `entities/category/api.ts`.
-- Прочитать: `entities/tag/model.ts`, `mocks/tags.ts` → создать `entities/tag/api.ts` (`product_tags`).
 - Прочитать: `entities/product/model.ts`, `entities/product/lib.ts`, `mocks/products.ts` → создать `entities/product/api.ts`.
 - Прочитать: `entities/addon/model.ts`, `mocks/addons.ts` → создать `entities/addon/api.ts`.
 - Прочитать: `entities/banner/model.ts`, `mocks/banners.ts` → создать `entities/banner/api.ts`.
@@ -86,7 +84,7 @@
 Точечно, файл за файлом — заменить импорт из `mocks/*` на хук из `entities/*/api.ts` (react-query `useQuery`):
 
 - `pages/home/HomePage.tsx`, `pages/home/ui/DesktopHome.tsx`, `pages/home/ui/MobileHome.tsx`
-- `widgets/sidebar/Sidebar.tsx`, `widgets/hero/HeroBanner.tsx`, `widgets/catalog/CategoryTiles.tsx`, `widgets/catalog/TagFilters.tsx`
+- `widgets/sidebar/Sidebar.tsx`, `widgets/hero/HeroBanner.tsx`, `widgets/catalog/CategoryTiles.tsx`
 - `pages/product/ProductPage.tsx`
 - `entities/product/ui/ProductCard.tsx`, `entities/product/ui/ProductCardCompact.tsx` (если тянут моки напрямую — проверить)
 

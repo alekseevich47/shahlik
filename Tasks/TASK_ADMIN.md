@@ -44,7 +44,7 @@
 
 | Коллекция | Что сделать | Зачем |
 |---|---|---|
-| `categories`, `product_tags`, `products`, `banners` | number `order`: снять **Nonzero/Required** (`required: false`) | иначе `order: 0` → `validation_required`; админка шлёт 1-based, но 0 всё равно нужен при сиде/reorder |
+| `categories`, `products`, `banners` | number `order`: снять **Nonzero/Required** (`required: false`) | иначе `order: 0` → `validation_required`; админка шлёт 1-based, но 0 всё равно нужен при сиде/reorder |
 | `addons` | number `price`: Nonzero off, `min: 0` | цена 0₽ для бесплатных соусов |
 | `products` | `categoryId`: **select → relation** на `categories` (maxSelect 1, required, cascadeDelete **false**) | иначе новая категория из админки требует ручной правки схемы. Для кода семантика не меняется: single relation отдаёт тот же id-строку |
 | `products` | file `image`: добавить `thumbs: ["100x100", "600x400"]` | превью в таблицах не тянет 5 МБ |
@@ -73,7 +73,7 @@
 
 | Коллекция | List / View | Create | Update | Delete |
 |---|---|---|---|---|
-| `categories`, `product_tags`, `products`, `addons`, `banners` | публично (у `products` остаётся `active = true \|\| S`) | `A` | `A` | `A` |
+| `categories`, `products`, `addons`, `banners` | публично (у `products` остаётся `active = true \|\| S`) | `A` | `A` | `A` |
 | `reviews` | `published = true \|\| S` | `A` | `S` | `A` |
 | `orders` | List `S`; View публично (id — capability-ссылка для realtime статуса) | публично | `S` | `A` |
 | `customers` | `S` | — (только хук) | `S` | `A` |
@@ -134,7 +134,7 @@
 
 ### Шаг 2. Ядро CRUD: мутации, файлы, realtime
 
-**Читать:** `shared/api/pb.ts`, `shared/api/query-client.ts`, `entities/tag/api.ts` (образец мутаций).
+**Читать:** `shared/api/pb.ts`, `shared/api/query-client.ts`, `entities/category/api.ts` (образец мутаций).
 
 **Создать:**
 
@@ -167,7 +167,7 @@
 
 ### Шаг 4. Категории
 
-**Читать:** `entities/category/model.ts`, `entities/category/api.ts`, `pages/admin/sections/CatalogTables.tsx` (`CategoriesTable`), `pages/admin/sections/CategoryTagsEditor.tsx`.
+**Читать:** `entities/category/model.ts`, `entities/category/api.ts`, `pages/admin/sections/CatalogTables.tsx` (`CategoriesTable`).
 
 **Создать:** `shared/config/icons.ts` — `CATEGORY_ICONS` (`/icons/shaurma.png`, `shahlik`, `pizza`, `combo`, `garnir`, `drinks`; `kcal.png` — не иконка категории). `pages/admin/sections/categories/CategoriesSection.tsx`, `CategoryForm.tsx`.
 

@@ -1,21 +1,19 @@
 import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
-import type { TagFilterId } from "@/entities/tag/model"
 import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
 import { useScrollEdgeCues } from "@/shared/hooks/useScrollEdgeCues"
 import { cn } from "@/shared/lib/cn"
 import { Chip } from "@/shared/ui/chip"
 import { Glass } from "@/shared/ui/glass"
 import { ScrollEdgeButton } from "@/shared/ui/scroll-edge-button"
-import { TagFilters } from "@/widgets/catalog/TagFilters"
 import { FloatingActions } from "@/widgets/header/FloatingActions"
 
 /**
  * Геометрия плашки. Должна совпадать с раскладкой ниже и с `.sticky-bar` в
  * globals.css: пороги наблюдателей считаются отсюда, иначе плашка мигает.
- * compact = 6+40+6, expanded = 8+40+8+(36+pb).
+ * compact = expanded = один ряд 6+40+6 / 8+40+8 (категории раскрываются влево).
  */
-export const STICKY_BAR = { top: 20, compact: 52, expanded: 100 } as const
+export const STICKY_BAR = { top: 20, compact: 52, expanded: 52 } as const
 
 /** Неактивный чип на стекле: без своей поверхности, иначе стекло не видно. */
 const GLASS_CHIP =
@@ -27,14 +25,12 @@ const GLASS_CHIP_ACTIVE =
 type Props = {
   /** Верхние действия ушли из вида — плашка выезжает. */
   visible: boolean
-  /** Строка тегов ушла из вида — на плашке появляются категории и теги. */
+  /** Баннер ушёл из вида — на плашке появляются категории. */
   expanded: boolean
   /** Идёт переход геометрии — преломление стекла выключено на эти кадры. */
   animating?: boolean
   category: string
   onCategoryChange: (id: string) => void
-  tag: TagFilterId
-  onTagChange: (tag: TagFilterId) => void
   onSearch: () => void
   onCart: () => void
   cartPressed?: boolean
@@ -47,8 +43,6 @@ export function StickyBar({
   animating,
   category,
   onCategoryChange,
-  tag,
-  onTagChange,
   onSearch,
   onCart,
   cartPressed,
@@ -97,7 +91,7 @@ export function StickyBar({
                 label="Прокрутить категории влево"
                 onPeekEnter={() => categoryEdges.onPeekEnter("left")}
                 onPeekLeave={categoryEdges.onPeekLeave}
-                onPageScroll={() => categoryEdges.onPageScroll("left")}
+                onStepScroll={() => categoryEdges.onStepScroll("left")}
               />
               <ScrollEdgeButton
                 side="right"
@@ -105,7 +99,7 @@ export function StickyBar({
                 label="Прокрутить категории вправо"
                 onPeekEnter={() => categoryEdges.onPeekEnter("right")}
                 onPeekLeave={categoryEdges.onPeekLeave}
-                onPageScroll={() => categoryEdges.onPageScroll("right")}
+                onStepScroll={() => categoryEdges.onStepScroll("right")}
               />
             </div>
           </div>
@@ -118,21 +112,6 @@ export function StickyBar({
             onCart={onCart}
             cartPressed={cartPressed}
           />
-        </div>
-
-        <div className="sticky-bar-tags">
-          <div>
-            <TagFilters
-              categoryId={category}
-              value={tag}
-              onChange={onTagChange}
-              layoutGroup="glass-tags"
-              animated={false}
-              scrollMode="axis-lock"
-              className="sticky-bar-fade px-2 pb-2"
-              chipClassName={(active) => (active ? GLASS_CHIP_ACTIVE : GLASS_CHIP)}
-            />
-          </div>
         </div>
       </Glass>
     </div>

@@ -12,6 +12,7 @@ import { Button } from "@/shared/ui/button"
 import { Field, Input } from "@/shared/ui/input"
 import { BannerImageField } from "@/shared/ui/banner-image-field"
 import { IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
+import { PhotoThemeToggle, type PhotoTheme } from "@/shared/ui/photo-theme-toggle"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet"
 
 type Props = {
@@ -36,18 +37,27 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
 
   const [noteTitle, setNoteTitle] = useState("")
   const [noteText, setNoteText] = useState("")
-  const [image, setImage] = useState<File | null>(null)
+  const [photoTheme, setPhotoTheme] = useState<PhotoTheme>("light")
+  const [imageLight, setImageLight] = useState<File | null>(null)
+  const [imageDark, setImageDark] = useState<File | null>(null)
 
   useEffect(() => {
     if (!open) return
     setNoteTitle(banner?.note?.title ?? "")
     setNoteText(banner?.note?.text ?? "")
-    setImage(null)
+    setPhotoTheme("light")
+    setImageLight(null)
+    setImageDark(null)
   }, [open, banner])
 
+  const activeFile = photoTheme === "light" ? imageLight : imageDark
+  const setActiveFile = photoTheme === "light" ? setImageLight : setImageDark
+  const previewUrl =
+    photoTheme === "light" ? banner?.image || null : banner?.imageDark || null
+
   async function submit() {
-    if (!isEdit && !image) {
-      toast.error("Добавьте изображение")
+    if (!isEdit && !imageLight) {
+      toast.error("Добавьте изображение (светлая тема)")
       return
     }
 
@@ -59,14 +69,16 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
           id: banner.id,
           data: {
             note,
-            ...(image ? { image } : {}),
+            ...(imageLight ? { image: imageLight } : {}),
+            ...(imageDark ? { imageDark } : {}),
           },
         })
       } else {
         await createBanner.mutateAsync({
           order: nextOrder,
           note,
-          image: image!,
+          image: imageLight!,
+          ...(imageDark ? { imageDark } : {}),
         })
       }
       toast.success(isEdit ? "Сохранено" : "Баннер создан")
@@ -96,14 +108,24 @@ export function BannerForm({ open, onOpenChange, banner, nextOrder }: Props) {
             void submit()
           }}
         >
-          <Field label="Изображение" hint={`Формат ${BANNER_FORMAT_LABEL} — подгоняется при загрузке`}>
-            <BannerImageField
-              previewUrl={banner?.image || null}
-              value={image}
-              onChange={setImage}
-              maxBytes={IMAGE_MAX_BYTES.banner}
-              disabled={busy}
-            />
+          <Field
+            label="Изображение"
+            hint={
+              photoTheme === "dark"
+                ? `Формат ${BANNER_FORMAT_LABEL}, опционально — иначе светлое`
+                : `Формат ${BANNER_FORMAT_LABEL} — подгоняется при загрузке`
+            }
+          >
+            <div className="flex flex-col gap-2">
+              <PhotoThemeToggle value={photoTheme} onChange={setPhotoTheme} disabled={busy} />
+              <BannerImageField
+                previewUrl={previewUrl}
+                value={activeFile}
+                onChange={setActiveFile}
+                maxBytes={IMAGE_MAX_BYTES.banner}
+                disabled={busy}
+              />
+            </div>
           </Field>
 
           <div className="rounded-[var(--r-md)] border border-line bg-surface-2 p-3">

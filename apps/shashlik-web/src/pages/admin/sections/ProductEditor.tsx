@@ -39,7 +39,6 @@ import {
   useDuplicateProduct,
   useUpdateProduct,
 } from "@/entities/product/api"
-import { useCategoryTags } from "@/entities/tag/api"
 import { useSizeTemplates } from "@/entities/size-template/api"
 import type { SizeTemplate } from "@/entities/size-template/model"
 import { ArticleMatrix } from "@/pages/admin/sections/products/ArticleMatrix"
@@ -52,7 +51,6 @@ import { cn } from "@/shared/lib/cn"
 import { formatDate, formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { Chip } from "@/shared/ui/chip"
 import { useConfirm } from "@/shared/ui/confirm-dialog"
 import { Field, Input, Textarea } from "@/shared/ui/input"
 import { IMAGE_MAX_BYTES } from "@/shared/ui/image-field"
@@ -61,6 +59,7 @@ import {
   multiImageDiff,
   type MultiImageItem,
 } from "@/shared/ui/multi-image-field"
+import { PhotoThemeToggle, type PhotoTheme } from "@/shared/ui/photo-theme-toggle"
 import { scoreColor } from "@/shared/ui/rating"
 import { Select } from "@/shared/ui/select"
 import { Switch } from "@/shared/ui/switch"
@@ -90,6 +89,15 @@ function imagesFromProduct(product: Product): MultiImageItem[] {
     key: `ex-${product.imageFilenames[index] ?? index}`,
     url,
     filename: product.imageFilenames[index] ?? `legacy-${index}`,
+  }))
+}
+
+function imagesDarkFromProduct(product: Product): MultiImageItem[] {
+  return product.imagesDark.map((url, index) => ({
+    kind: "existing" as const,
+    key: `ex-dark-${product.imageDarkFilenames[index] ?? index}`,
+    url,
+    filename: product.imageDarkFilenames[index] ?? `legacy-dark-${index}`,
   }))
 }
 
@@ -138,21 +146,28 @@ export function ProductEditor({ product, onBack }: Props) {
   const [badge, setBadge] = useState<"" | ProductBadge>(product.badge ?? "")
   const [badgeManagerOpen, setBadgeManagerOpen] = useState(false)
   const [sizeTemplateManagerOpen, setSizeTemplateManagerOpen] = useState(false)
-  const [tags, setTags] = useState<string[]>(product.tags)
   const [variants, setVariants] = useState<ProductVariant[]>(product.variants)
   const [sizes, setSizes] = useState<ProductSize[]>(product.sizes)
   const [active, setActive] = useState(product.active)
   const [bonusPercent, setBonusPercent] = useState(
     product.bonusPercent == null ? "" : String(product.bonusPercent),
   )
-  const [photoItems, setPhotoItems] = useState<MultiImageItem[]>(() => imagesFromProduct(product))
+  const [photoTheme, setPhotoTheme] = useState<PhotoTheme>("light")
+  const [photoItemsLight, setPhotoItemsLight] = useState<MultiImageItem[]>(() =>
+    imagesFromProduct(product),
+  )
+  const [photoItemsDark, setPhotoItemsDark] = useState<MultiImageItem[]>(() =>
+    imagesDarkFromProduct(product),
+  )
   const [initialFilenames, setInitialFilenames] = useState(product.imageFilenames)
+  const [initialDarkFilenames, setInitialDarkFilenames] = useState(product.imageDarkFilenames)
   const [criteria, setCriteria] = useState(product.rating.criteria)
   const [preview, setPreview] = useState<"desktop" | "mobile">("desktop")
   const [previewIndex, setPreviewIndex] = useState(0)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
 
-  const { data: categoryTags, isPending: categoryTagsPending } = useCategoryTags(categoryId)
+  const photoItems = photoTheme === "light" ? photoItemsLight : photoItemsDark
+  const setPhotoItems = photoTheme === "light" ? setPhotoItemsLight : setPhotoItemsDark
 
   useEffect(() => {
     setName(product.name)
@@ -163,22 +178,24 @@ export function ProductEditor({ product, onBack }: Props) {
     setComposition(product.composition)
     setCompositionByVariant(product.compositionByVariant ?? {})
     setBadge(product.badge ?? "")
-    setTags(product.tags)
     setVariants(product.variants)
     setSizes(product.sizes)
     setActive(product.active)
     setBonusPercent(product.bonusPercent == null ? "" : String(product.bonusPercent))
-    setPhotoItems(imagesFromProduct(product))
+    setPhotoItemsLight(imagesFromProduct(product))
+    setPhotoItemsDark(imagesDarkFromProduct(product))
     setInitialFilenames(product.imageFilenames)
+    setInitialDarkFilenames(product.imageDarkFilenames)
+    setPhotoTheme("light")
     setCriteria(product.rating.criteria)
     setPreviewIndex(0)
   }, [product])
 
   useEffect(() => {
-    if (previewIndex >= photoItems.length) {
-      setPreviewIndex(Math.max(0, photoItems.length - 1))
+    if (previewIndex >= photoItemsLight.length) {
+      setPreviewIndex(Math.max(0, photoItemsLight.length - 1))
     }
-  }, [photoItems.length, previewIndex])
+  }, [photoItemsLight.length, previewIndex])
 
   const draftProduct: Product = {
     ...product,
@@ -190,13 +207,12 @@ export function ProductEditor({ product, onBack }: Props) {
     compositionByVariant: Object.keys(compositionByVariant).length ? compositionByVariant : undefined,
     badge: badge || undefined,
     nutrition: defaultNutritionFromSizes(sizes, variants),
-    tags,
     variants,
     sizes,
     active,
   }
 
-  const previewImages = photoItems.map((item) => item.url)
+  const previewImages = photoItemsLight.map((item) => item.url)
   const previewImage = previewImages[previewIndex] ?? previewImages[0] ?? ""
   const selectedBadgeLabel = badge ? badgeLabel(badge, badges) : ""
 
@@ -256,8 +272,8 @@ export function ProductEditor({ product, onBack }: Props) {
       toast.error("Добавьте размер перед публикацией на витрину")
       return
     }
-    if (!photoItems.length) {
-      toast.error("Добавьте хотя бы одно фото")
+    if (!photoItemsLight.length) {
+      toast.error("Добавьте хотя бы одно фото (светлая тема)")
       return
     }
     const articleError = validateArticles()
@@ -321,7 +337,11 @@ export function ProductEditor({ product, onBack }: Props) {
         : composition.trim()
       const fallbackNutrition = defaultNutritionFromSizes(cleanedSizes, normalizedVariants)
 
-      const { files, remove } = multiImageDiff(initialFilenames, photoItems)
+      const { files, remove } = multiImageDiff(initialFilenames, photoItemsLight)
+      const { files: darkFiles, remove: darkRemove } = multiImageDiff(
+        initialDarkFilenames,
+        photoItemsDark,
+      )
 
       await updateProduct.mutateAsync({
         id: product.id,
@@ -334,7 +354,6 @@ export function ProductEditor({ product, onBack }: Props) {
           compositionByVariant: variants.length ? cleanedCompositionByVariant : undefined,
           badge,
           nutrition: fallbackNutrition,
-          tags,
           variants: normalizedVariants,
           sizes: cleanedSizes,
           active,
@@ -344,6 +363,10 @@ export function ProductEditor({ product, onBack }: Props) {
           rating: { ...product.rating, criteria },
           ...(files.length ? { image: files.length === 1 ? files[0] : files } : {}),
           ...(remove.length ? { imageRemove: remove } : {}),
+          ...(darkFiles.length
+            ? { imageDark: darkFiles.length === 1 ? darkFiles[0] : darkFiles }
+            : {}),
+          ...(darkRemove.length ? { imageDarkRemove: darkRemove } : {}),
         },
       })
       toast.success("Изменения сохранены")
@@ -440,14 +463,28 @@ export function ProductEditor({ product, onBack }: Props) {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-4">
           <AdminCard bodyClassName="grid gap-4 sm:grid-cols-[200px_minmax(0,1fr)]">
-            <Field label="Фото" hint={`до ${MAX_PHOTOS}`}>
-              <MultiImageField
-                items={photoItems}
-                onChange={setPhotoItems}
-                maxCount={MAX_PHOTOS}
-                maxBytes={IMAGE_MAX_BYTES.product}
-                disabled={busy}
-              />
+            <Field
+              label="Фото"
+              hint={
+                photoTheme === "dark"
+                  ? `до ${MAX_PHOTOS}, опционально — иначе на витрине светлые`
+                  : `до ${MAX_PHOTOS}`
+              }
+            >
+              <div className="flex flex-col gap-2">
+                <PhotoThemeToggle
+                  value={photoTheme}
+                  onChange={setPhotoTheme}
+                  disabled={busy}
+                />
+                <MultiImageField
+                  items={photoItems}
+                  onChange={setPhotoItems}
+                  maxCount={MAX_PHOTOS}
+                  maxBytes={IMAGE_MAX_BYTES.product}
+                  disabled={busy}
+                />
+              </div>
             </Field>
 
             <div className="flex flex-col gap-3">
@@ -480,7 +517,6 @@ export function ProductEditor({ product, onBack }: Props) {
                     value={categoryId}
                     onChange={(e) => {
                       setCategoryId(e.target.value)
-                      setTags([])
                     }}
                     disabled={busy}
                   >
@@ -517,36 +553,6 @@ export function ProductEditor({ product, onBack }: Props) {
                   </div>
                 </Field>
               </div>
-
-              <Field label="Теги фильтра">
-                {categoryTags.length ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {categoryTags.map((tag) => {
-                      const on = tags.includes(tag.slug)
-                      return (
-                        <Chip
-                          key={tag.id}
-                          active={on}
-                          onClick={() =>
-                            setTags((list) =>
-                              on ? list.filter((s) => s !== tag.slug) : [...list, tag.slug],
-                            )
-                          }
-                        >
-                          {tag.name}
-                          {tag.emoji ? <span>{tag.emoji}</span> : null}
-                        </Chip>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-[12.5px] text-fg-muted">
-                    {categoryTagsPending
-                      ? "Загрузка…"
-                      : "У категории нет тегов — добавьте во вкладке «Категории»"}
-                  </p>
-                )}
-              </Field>
 
               <Field label="Описание" hint={`${tagline.length}/500`}>
                 <Textarea

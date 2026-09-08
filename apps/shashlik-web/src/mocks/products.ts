@@ -4,7 +4,6 @@ import type {
   ProductBadge,
   ProductNutrition,
   ProductSize,
-  ProductTag,
   ProductVariant,
 } from "@/entities/product/model"
 
@@ -36,7 +35,6 @@ type Spec = {
   composition: string
   image: string
   badge?: ProductBadge
-  tags?: ProductTag[]
   nutrition?: ProductNutrition
   overall: number
   votes: number
@@ -96,10 +94,11 @@ function product(
     image: spec.image,
     images: [spec.image],
     imageFilenames: [],
+    imagesDark: [],
+    imageDarkFilenames: [],
     badge: spec.badge,
     nutrition:
       spec.nutrition ?? NUTRITION_BY_CATEGORY[spec.categoryId as KnownCategoryId],
-    tags: spec.tags ?? [],
     variants: spec.variants,
     sizes: spec.sizes,
     rating: {
@@ -135,7 +134,6 @@ export const products: Product[] = [
     name: "Арабская",
     emoji: "🔥",
     badge: "hit",
-    tags: ["classic"],
     image: "/products/shawarma-arabskaya.jpg",
     composition:
       "мясо, армянский лаваш, свежий огурец, помидор, лук маринованный, гранат, соус арабский",
@@ -148,7 +146,6 @@ export const products: Product[] = [
     slug: "syrnaya",
     name: "Сырная",
     emoji: "🧀",
-    tags: ["cheese"],
     image: "/products/shawarma-syrnaya.jpg",
     composition:
       "мясо, армянский лаваш, свежий огурец, помидор, лук маринованный, сыр моцарелла, соус сырный",
@@ -161,7 +158,6 @@ export const products: Product[] = [
     slug: "pikantnaya",
     name: "Пикантная",
     emoji: "🌶",
-    tags: ["spicy"],
     image: "/products/shawarma-pikantnaya.jpg",
     composition:
       "мясо, армянский лаваш, свежий огурец, помидор, лук маринованный, перец халапеньо, острый соус",
@@ -173,7 +169,6 @@ export const products: Product[] = [
   shawarma({
     slug: "klassicheskaya",
     name: "Классическая",
-    tags: ["classic"],
     image: "/products/shawarma-klassicheskaya.jpg",
     composition:
       "мясо, армянский лаваш, свежий огурец, свежий помидор, лук маринованный, соус классический, соус чесночный",
@@ -186,7 +181,6 @@ export const products: Product[] = [
     slug: "barbekyu",
     name: "Барбекю",
     emoji: "🍖",
-    tags: ["bbq"],
     image: "/products/shawarma-barbekyu.jpg",
     composition:
       "мясо, армянский лаваш, свежий огурец, помидор, лук маринованный, соус барбекю",
@@ -198,7 +192,6 @@ export const products: Product[] = [
   shawarma({
     slug: "kavkazskaya",
     name: "Кавказская",
-    tags: ["spicy", "classic"],
     image: "/products/shawarma-kavkazskaya.jpg",
     composition:
       "мясо, армянский лаваш, маринованный огурец, помидор, лук маринованный, соус кавказский",
@@ -211,7 +204,6 @@ export const products: Product[] = [
     slug: "gavayskaya",
     name: "Гавайская",
     emoji: "🍍",
-    tags: ["sweet"],
     image: "/products/shawarma-gavayskaya.jpg",
     composition: "мясо, армянский лаваш, ананасы, сыр моцарелла, соус классический",
     overall: 8.1,
@@ -222,7 +214,6 @@ export const products: Product[] = [
   shawarma({
     slug: "derevenskaya",
     name: "Деревенская",
-    tags: ["classic"],
     image: "/products/shawarma-derevenskaya.jpg",
     composition:
       "мясо, армянский лаваш, картофель по-деревенски, свежий огурец, помидор, соус классический",
@@ -234,7 +225,6 @@ export const products: Product[] = [
     slug: "italyanskaya",
     name: "Итальянская острая",
     emoji: "🌶",
-    tags: ["spicy", "cheese"],
     image: "/products/shawarma-italyanskaya.jpg",
     composition:
       "мясо, армянский лаваш, вяленые томаты, сыр моцарелла, свежий огурец, острый соус",
@@ -246,7 +236,6 @@ export const products: Product[] = [
     slug: "meganaggets",
     name: "Меганаггетс",
     badge: "new",
-    tags: ["classic"],
     image: "/products/shawarma-meganaggets.jpg",
     composition: "куриные наггетсы, армянский лаваш, свежий огурец, помидор, соус классический",
     overall: 8.7,
@@ -256,7 +245,6 @@ export const products: Product[] = [
   shawarma({
     slug: "frensis-bekon",
     name: "Френсис бекон",
-    tags: ["bbq"],
     image: "/products/shawarma-frensis-bekon.jpg",
     composition: "мясо, бекон, армянский лаваш, свежий огурец, помидор, соус барбекю",
     overall: 9.1,
@@ -266,7 +254,6 @@ export const products: Product[] = [
   shawarma({
     slug: "chesnochnaya",
     name: "Чесночная",
-    tags: ["classic"],
     image: "/products/shawarma-chesnochnaya.jpg",
     composition:
       "мясо, армянский лаваш, свежий огурец, помидор, лук маринованный, соус чесночный",
@@ -281,7 +268,6 @@ export const products: Product[] = [
     emoji: "🔥",
     badge: "hit",
     categoryId: "shashlik",
-    tags: ["bbq"],
     image: "/products/shashlik-lavash-kur.jpg",
     tagline: "Мясо с мангала, завёрнутое в тонкий лаваш с овощами и соусом",
     composition: "шашлык с мангала, лаваш, свежие овощи, соус классический",
@@ -298,7 +284,6 @@ export const products: Product[] = [
     slug: "shashlik-sheya",
     name: "Шашлык свиная шея",
     categoryId: "shashlik",
-    tags: ["bbq"],
     image: "/products/shashlik-lavash-sheya.jpg",
     tagline: "Классическая свиная шея на углях с маринованным луком",
     composition: "свиная шея, маринованный лук, лаваш, соус шашлыковский",
@@ -312,7 +297,6 @@ export const products: Product[] = [
     slug: "shashlik-kuritsa-bedro",
     name: "Шашлык куриное бедро",
     categoryId: "shashlik",
-    tags: ["bbq"],
     image: STOCK.shashlik,
     tagline: "Сочное куриное бедро на мангале",
     composition: "куриное бедро, специи, маринованный лук",
@@ -328,7 +312,6 @@ export const products: Product[] = [
     name: "Пепперони",
     emoji: "🍕",
     categoryId: "pizza",
-    tags: ["spicy", "cheese"],
     image: STOCK.pizza,
     tagline: "Острая пепперони, моцарелла и томатный соус на тонком тесте",
     composition: "тесто, томатный соус, моцарелла, пепперони, орегано",
@@ -346,7 +329,6 @@ export const products: Product[] = [
     name: "Четыре сыра",
     emoji: "🧀",
     categoryId: "pizza",
-    tags: ["cheese"],
     image: STOCK.pizzaAlt,
     tagline: "Моцарелла, дорблю, пармезан и чеддер на сливочной основе",
     composition: "тесто, сливочный соус, моцарелла, дорблю, пармезан, чеддер",
@@ -364,7 +346,6 @@ export const products: Product[] = [
     slug: "combo-kuritsa",
     name: "Комбо с курицей",
     categoryId: "combo",
-    tags: ["classic"],
     image: STOCK.combo,
     tagline: "Шашлык, гарнир, овощи, соус и напиток одним заказом",
     composition: "шашлык из курицы, гарнир на выбор, овощи, соус, напиток",
@@ -379,7 +360,6 @@ export const products: Product[] = [
     name: "Комбо со свининой",
     categoryId: "combo",
     badge: "hit",
-    tags: ["classic"],
     image: STOCK.combo,
     tagline: "Свиная мякоть с мангала, гарнир, овощи и напиток",
     composition: "шашлык из свинины, гарнир на выбор, овощи, соус, напиток",
@@ -394,7 +374,6 @@ export const products: Product[] = [
     slug: "plov",
     name: "Плов по-узбекски",
     categoryId: "sides",
-    tags: ["classic"],
     image: STOCK.sides,
     tagline: "Настоящий узбекский плов с бараниной и зирой",
     composition: "рис девзира, мясо, морковь, зира, барбарис",
@@ -408,7 +387,6 @@ export const products: Product[] = [
     slug: "morkov-po-koreyski",
     name: "Морковь по-корейски",
     categoryId: "sides",
-    tags: ["spicy"],
     image: STOCK.sides,
     tagline: "Пряная морковь по-корейски домашнего приготовления",
     composition: "морковь, чеснок, специи, масло",
@@ -423,7 +401,6 @@ export const products: Product[] = [
     slug: "cola-05",
     name: "Добрый Кола 0,5",
     categoryId: "drinks",
-    tags: [],
     image: STOCK.drinks,
     tagline: "Классическая кола, охлаждённая",
     composition: "",
@@ -437,7 +414,6 @@ export const products: Product[] = [
     slug: "chay-rich",
     name: "Чай Рич",
     categoryId: "drinks",
-    tags: [],
     image: STOCK.drinks,
     tagline: "Холодный чай в ассортименте",
     composition: "",
@@ -455,7 +431,6 @@ export const products: Product[] = [
     slug: "sous-chesnochnyy",
     name: "Соус чесночный",
     categoryId: "sauces",
-    tags: [],
     image: STOCK.sauce,
     tagline: "Фирменный чесночный соус на сметанной основе",
     composition: "сметана, чеснок, зелень, специи",
@@ -469,7 +444,6 @@ export const products: Product[] = [
     slug: "sous-barbekyu",
     name: "Соус барбекю",
     categoryId: "sauces",
-    tags: ["bbq"],
     image: STOCK.sauce,
     tagline: "Дымный соус барбекю",
     composition: "томаты, специи, дымный ароматизатор",

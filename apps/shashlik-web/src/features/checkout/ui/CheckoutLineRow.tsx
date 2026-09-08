@@ -6,6 +6,7 @@ import type { ResolvedLine } from "@/features/cart/model/selectors"
 import { BonusEarnHint } from "@/features/cart/ui/BonusEarnHint"
 import { CartLineTitle } from "@/features/cart/ui/CartLineTitle"
 import { formatPrice } from "@/shared/lib/format"
+import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
 /** Строка заказа в checkout — только просмотр, без редактирования. */
 export function CheckoutLineRow({
@@ -28,8 +29,9 @@ export function CheckoutLineRow({
 
   return (
     <li className="flex items-start gap-2.5 py-3">
-      <img
-        src={line.product.image}
+      <ThemeAwareImage
+        lightSrc={line.product.image}
+        darkSrc={line.product.imagesDark?.[0]}
         alt=""
         className="size-14 shrink-0 rounded-[var(--r-md)] object-cover"
       />

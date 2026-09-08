@@ -13,6 +13,7 @@ import {
   MultiImageField,
   type MultiImageItem,
 } from "@/shared/ui/multi-image-field"
+import { PhotoThemeToggle, type PhotoTheme } from "@/shared/ui/photo-theme-toggle"
 import { Select } from "@/shared/ui/select"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet"
 
@@ -24,6 +25,12 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultCategoryId?: string
+}
+
+function newFiles(items: MultiImageItem[]): File[] {
+  return items
+    .filter((p): p is Extract<MultiImageItem, { kind: "new" }> => p.kind === "new")
+    .map((p) => p.file)
 }
 
 export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Props) {
@@ -38,7 +45,12 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
   const [categoryId, setCategoryId] = useState("")
   const [tagline, setTagline] = useState("")
   const [composition, setComposition] = useState("")
-  const [photos, setPhotos] = useState<MultiImageItem[]>([])
+  const [photoTheme, setPhotoTheme] = useState<PhotoTheme>("light")
+  const [photosLight, setPhotosLight] = useState<MultiImageItem[]>([])
+  const [photosDark, setPhotosDark] = useState<MultiImageItem[]>([])
+
+  const photos = photoTheme === "light" ? photosLight : photosDark
+  const setPhotos = photoTheme === "light" ? setPhotosLight : setPhotosDark
 
   useEffect(() => {
     if (!open) return
@@ -47,7 +59,9 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
     setCategoryId(defaultCategoryId || categories[0]?.id || "")
     setTagline("")
     setComposition("")
-    setPhotos([])
+    setPhotoTheme("light")
+    setPhotosLight([])
+    setPhotosDark([])
   }, [open, defaultCategoryId, categories])
 
   async function submit() {
@@ -55,9 +69,8 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
     const trimmedSlug = (slug.trim() || slugFromName(trimmedName)).trim()
     const trimmedTagline = tagline.trim()
     const trimmedComposition = composition.trim()
-    const files = photos
-      .filter((p): p is Extract<MultiImageItem, { kind: "new" }> => p.kind === "new")
-      .map((p) => p.file)
+    const files = newFiles(photosLight)
+    const darkFiles = newFiles(photosDark)
 
     if (!trimmedName) {
       toast.error("Укажите название")
@@ -80,7 +93,7 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
       return
     }
     if (!files.length) {
-      toast.error("Добавьте фото")
+      toast.error("Добавьте фото (светлая тема)")
       return
     }
 
@@ -97,6 +110,9 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
         order: products.length ? Math.max(...products.map((p) => p.order)) + 1 : 1,
         active: false,
         image: files.length === 1 ? files[0] : files,
+        ...(darkFiles.length
+          ? { imageDark: darkFiles.length === 1 ? darkFiles[0] : darkFiles }
+          : {}),
       })
       toast.success("Товар создан")
       onOpenChange(false)
@@ -123,14 +139,24 @@ export function ProductCreateForm({ open, onOpenChange, defaultCategoryId }: Pro
             void submit()
           }}
         >
-          <Field label="Фото" hint={`до ${MAX_PHOTOS}`}>
-            <MultiImageField
-              items={photos}
-              onChange={setPhotos}
-              maxCount={MAX_PHOTOS}
-              maxBytes={IMAGE_MAX_BYTES.product}
-              disabled={busy}
-            />
+          <Field
+            label="Фото"
+            hint={
+              photoTheme === "dark"
+                ? `до ${MAX_PHOTOS}, опционально — иначе на витрине светлые`
+                : `до ${MAX_PHOTOS}`
+            }
+          >
+            <div className="flex flex-col gap-2">
+              <PhotoThemeToggle value={photoTheme} onChange={setPhotoTheme} disabled={busy} />
+              <MultiImageField
+                items={photos}
+                onChange={setPhotos}
+                maxCount={MAX_PHOTOS}
+                maxBytes={IMAGE_MAX_BYTES.product}
+                disabled={busy}
+              />
+            </div>
           </Field>
 
           <Field label="Название">

@@ -12,6 +12,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
+import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
 type ProductCardProps = {
   product: Product
@@ -43,8 +44,9 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
         className="relative block overflow-hidden bg-surface-3"
         style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
-        <img
-          src={product.image}
+        <ThemeAwareImage
+          lightSrc={product.image}
+          darkSrc={product.imagesDark[0]}
           alt={product.name}
           loading="lazy"
           className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-[1.04]"

@@ -9,7 +9,6 @@ import {
 } from "@/entities/category/api"
 import type { Category } from "@/entities/category/model"
 import { useAdminProducts } from "@/entities/product/api"
-import { CategoryTagsEditor } from "@/pages/admin/sections/CategoryTagsEditor"
 import { CategoryForm } from "@/pages/admin/sections/categories/CategoryForm"
 import { EmptyState } from "@/pages/admin/ui/EmptyState"
 import { SectionShell } from "@/pages/admin/ui/SectionShell"
@@ -173,7 +172,6 @@ export function CategoriesSection() {
                     </Button>
                   </div>
                 </div>
-                <CategoryTagsEditor categoryId={category.id} />
               </div>
             )
           }}

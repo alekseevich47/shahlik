@@ -11,7 +11,7 @@ type Props = {
   label: string
   onPeekEnter: () => void
   onPeekLeave: () => void
-  onPageScroll: () => void
+  onStepScroll: () => void
   className?: string
 }
 
@@ -27,7 +27,7 @@ export function ScrollEdgeButton({
   label,
   onPeekEnter,
   onPeekLeave,
-  onPageScroll,
+  onStepScroll,
   className,
 }: Props) {
   const Icon = side === "left" ? ChevronLeft : ChevronRight
@@ -45,7 +45,7 @@ export function ScrollEdgeButton({
       transition={FADE}
       onPointerEnter={onPeekEnter}
       onPointerLeave={onPeekLeave}
-      onClick={onPageScroll}
+      onClick={onStepScroll}
       className={cn(
         "group absolute top-1/2 z-10 grid size-7 -translate-y-1/2 place-items-center",
         "rounded-full border border-[var(--glass-btn-border)] bg-[var(--glass-btn)] text-white",

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import type { Product } from "@/entities/product/model"
-import type { TagFilterId } from "@/entities/tag/model"
 import { ProductCard } from "@/entities/product/ui/ProductCard"
 import { useCategories } from "@/entities/category/api"
 import { useAddProduct } from "@/features/cart/lib/useAddProduct"
@@ -14,7 +13,6 @@ import { FloatingActions } from "@/widgets/header/FloatingActions"
 import { STICKY_BAR, StickyBar } from "@/widgets/header/StickyBar"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
 import { Sidebar } from "@/widgets/sidebar/Sidebar"
-import { TagFilters } from "@/widgets/catalog/TagFilters"
 
 import { groupProductsByCategory } from "../lib/groupByCategory"
 import { useCatalogScrollSpy } from "../lib/useCatalogScrollSpy"
@@ -22,14 +20,12 @@ import { CatalogCategorySection } from "./CatalogCategorySection"
 
 /** Маяк действий пропал под верхом плашки → плашка выезжает. */
 const ACTIONS_MARGIN = `-${STICKY_BAR.top}px 0px 0px 0px`
-/** Строка тегов дошла до низа раскрытой плашки → плашка забирает навигацию. */
-const FILTERS_MARGIN = `-${STICKY_BAR.top + STICKY_BAR.expanded}px 0px 0px 0px`
+/** Низ баннера дошёл до низа раскрытой плашки → плашка забирает категории. */
+const BANNER_MARGIN = `-${STICKY_BAR.top + STICKY_BAR.expanded}px 0px 0px 0px`
 
 type Props = {
   category: string
   onCategoryChange: (id: string) => void
-  tag: TagFilterId
-  onTagChange: (tag: TagFilterId) => void
   items: Product[]
   onOpenSearch: () => void
   onOpenCart: () => void
@@ -38,8 +34,6 @@ type Props = {
 export function DesktopHome({
   category,
   onCategoryChange,
-  tag,
-  onTagChange,
   items,
   onOpenSearch,
   onOpenCart,
@@ -52,7 +46,7 @@ export function DesktopHome({
   const [ready, setReady] = useState(false)
 
   const [actionsRef, actionsInView] = useInView<HTMLDivElement>({ rootMargin: ACTIONS_MARGIN })
-  const [filtersRef, filtersInView] = useInView<HTMLDivElement>({ rootMargin: FILTERS_MARGIN })
+  const [bannerRef, bannerInView] = useInView<HTMLDivElement>({ rootMargin: BANNER_MARGIN })
 
   useEffect(() => {
     setReady(true)
@@ -62,7 +56,7 @@ export function DesktopHome({
   const onCart = wide ? togglePanel : onOpenCart
   const cartPressed = wide ? panelOpen : undefined
   const barVisible = ready && !actionsInView
-  const barExpanded = ready && !filtersInView
+  const barExpanded = ready && !bannerInView
   // Треки, выезд панелей и геометрия плашки едут одним переходом — метим их
   // одним флагом, чтобы дорогие эффекты выключались ровно на эти кадры.
   const animating = useSettling(`${barVisible}|${barExpanded}|${cartState}`)
@@ -112,8 +106,6 @@ export function DesktopHome({
             animating={animating}
             category={category}
             onCategoryChange={handleCategorySelect}
-            tag={tag}
-            onTagChange={onTagChange}
             onSearch={onOpenSearch}
             onCart={onCart}
             cartPressed={cartPressed}
@@ -127,10 +119,8 @@ export function DesktopHome({
           />
 
           <HeroBanner />
-
-          <div ref={filtersRef} className="mt-4">
-            <TagFilters categoryId={category} value={tag} onChange={onTagChange} />
-          </div>
+          {/* Sentinel: низ баннера ушёл → плашка раскрывает категории. */}
+          <div ref={bannerRef} aria-hidden className="h-px w-px" />
 
           <section className="mt-4">
             {items.length === 0 ? (

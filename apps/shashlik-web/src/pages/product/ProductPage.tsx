@@ -28,6 +28,7 @@ import { OptionCard } from "@/shared/ui/chip"
 import { ScoreValue, Stars } from "@/shared/ui/rating"
 import { Stepper } from "@/shared/ui/stepper"
 import { GroupLabel } from "@/shared/ui/surface"
+import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 import { HintMark } from "@/shared/ui/tooltip"
 
 import { AddonRow } from "./ui/AddonRow"
@@ -115,8 +116,9 @@ export function ProductView({ onClose, className }: ProductViewProps) {
             )}
             style={{ ["--product-ar" as string]: PRODUCT_ASPECT_RATIO }}
           >
-            <img
-              src={product.image}
+            <ThemeAwareImage
+              lightSrc={product.image}
+              darkSrc={product.imagesDark[0]}
               alt={product.name}
               className={cn(
                 "max-h-full max-w-full object-contain",

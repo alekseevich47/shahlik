@@ -9,6 +9,7 @@ import type { ResolvedLine } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { formatPrice } from "@/shared/lib/format"
 import { Stepper } from "@/shared/ui/stepper"
+import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
 import { BonusEarnHint } from "./BonusEarnHint"
 import { CartLineTitle } from "./CartLineTitle"
@@ -34,8 +35,9 @@ export function CartLineRow({ line }: { line: ResolvedLine }) {
   return (
     <li className="flex flex-col gap-1.5 py-2.5">
       <div className="flex items-center gap-2.5">
-        <img
-          src={line.product.image}
+        <ThemeAwareImage
+          lightSrc={line.product.image}
+          darkSrc={line.product.imagesDark?.[0]}
           alt=""
           className="size-10 shrink-0 rounded-[var(--r-sm)] object-cover"
         />

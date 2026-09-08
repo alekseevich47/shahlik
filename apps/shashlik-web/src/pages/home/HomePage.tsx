@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { useProducts } from "@/entities/product/api"
 import { useFrontpadStockRealtime } from "@/entities/product/lib/stock"
-import { ALL_TAG, type TagFilterId } from "@/entities/tag/model"
 import { CartPanel } from "@/features/cart/ui/CartPanel"
 import { useCheckoutDialogStore } from "@/features/checkout/model/dialog"
 import { CheckoutDialog } from "@/features/checkout/ui/CheckoutDialog"
@@ -44,7 +43,6 @@ export default function HomePage() {
   useFrontpadStockRealtime()
   const { data: products = [] } = useProducts()
   const [category, setCategory] = useState("shawarma")
-  const [tag, setTag] = useState<TagFilterId>(ALL_TAG)
   const [searchOpen, setSearchOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -57,17 +55,10 @@ export default function HomePage() {
     if (checkoutOpen) setCartOpen(false)
   }, [checkoutOpen])
 
-  const items = useMemo(() => {
-    return products.filter((p) => {
-      if (!p.active) return false
-      if (tag !== ALL_TAG && !p.tags.includes(tag)) return false
-      return true
-    })
-  }, [products, tag])
+  const items = useMemo(() => products.filter((p) => p.active), [products])
 
   const selectCategory = useCallback((id: string) => {
     setCategory(id)
-    setTag(ALL_TAG)
     setMenuOpen(false)
   }, [])
 
@@ -84,20 +75,12 @@ export default function HomePage() {
           <DesktopHome
             category={category}
             onCategoryChange={selectCategory}
-            tag={tag}
-            onTagChange={setTag}
             items={items}
             onOpenSearch={() => setSearchOpen(true)}
             onOpenCart={() => setCartOpen(true)}
           />
         ) : (
-          <MobileHome
-            category={category}
-            onCategoryChange={selectCategory}
-            tag={tag}
-            onTagChange={setTag}
-            items={items}
-          />
+          <MobileHome category={category} onCategoryChange={selectCategory} items={items} />
         )}
 
         {!isDesktop ? (

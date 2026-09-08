@@ -66,9 +66,6 @@ export type ProductNutrition = {
   carbs: number
 }
 
-/** Slug тега из `product_tags` (набор задаётся на категорию). */
-export type ProductTag = string
-
 export type Product = {
   id: string
   slug: string
@@ -83,13 +80,16 @@ export type Product = {
   compositionByVariant?: Record<string, string>
   /** Главное фото (= `images[0]`). */
   image: string
-  /** До 5 фото (PB multi-file `image`). */
+  /** До 5 фото (PB multi-file `image`) — светлая тема. */
   images: string[]
   /** Имена файлов в PB — для точечного удаления. */
   imageFilenames: string[]
+  /** Фото тёмной темы (PB multi-file `imageDark`); пусто → fallback на `images`. */
+  imagesDark: string[]
+  /** Имена файлов PB для `imageDark`. */
+  imageDarkFilenames: string[]
   badge?: ProductBadge
   nutrition: ProductNutrition
-  tags: ProductTag[]
   variants: ProductVariant[]
   sizes: ProductSize[]
   rating: ProductRating

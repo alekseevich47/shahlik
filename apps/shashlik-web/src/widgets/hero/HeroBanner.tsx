@@ -1,13 +1,16 @@
 import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
 
+import { useTheme } from "@/app/providers/theme"
 import { useBanners } from "@/entities/banner/api"
 import { BANNER_ASPECT_RATIO } from "@/entities/banner/format"
 import { cn } from "@/shared/lib/cn"
+import { oppositeThemeSrc, resolveThemeSrc } from "@/shared/lib/theme-image"
 
 const AUTOPLAY_MS = 6000
 
 export function HeroBanner({ className }: { className?: string }) {
+  const { theme } = useTheme()
   const { data: banners = [] } = useBanners()
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -19,6 +22,15 @@ export function HeroBanner({ className }: { className?: string }) {
     const timer = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS)
     return () => clearInterval(timer)
   }, [paused, count])
+
+  useEffect(() => {
+    for (const banner of banners) {
+      const opposite = oppositeThemeSrc(banner.image, banner.imageDark, theme)
+      if (!opposite) continue
+      const img = new Image()
+      img.src = opposite
+    }
+  }, [banners, theme])
 
   const go = (delta: number) => {
     if (!count) return
@@ -39,7 +51,7 @@ export function HeroBanner({ className }: { className?: string }) {
       {banners.map((banner, i) => (
         <img
           key={banner.id}
-          src={banner.image}
+          src={resolveThemeSrc(banner.image, banner.imageDark, theme)}
           alt=""
           aria-hidden
           className={cn(

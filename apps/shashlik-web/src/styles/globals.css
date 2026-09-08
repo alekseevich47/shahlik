@@ -287,7 +287,6 @@
   .sticky-bar-panel,
   .sticky-bar-row,
   .sticky-bar-nav,
-  .sticky-bar-tags,
   .sticky-bar-fade {
     transition: none !important;
   }
@@ -641,6 +640,10 @@
    * Плашка витрины. Высота обёртки 0 — плашка не занимает поток и едет
    * со скроллом от --bar-top. Ширина: fit-content ↔ 100% через min-width,
    * категории 0fr→1fr, строка тегов 0fr→1fr по высоте.
+   * Якорь справа: position:absolute + right:-overhang (не меняется).
+   * Рост min-width → morph влево из пилюли; вниз — tags 0fr→1fr.
+   * Не margin-inline на expand (snap auto→length) и не ml:auto при
+   * width>100% (auto→0, слева впритык, справа 2*overhang).
    * ---------------------------------------------------------------- */
   .sticky-bar {
     --bar-top: 20px;
@@ -652,10 +655,11 @@
     height: 0;
   }
   .sticky-bar-panel {
+    position: absolute;
+    top: 0;
+    right: calc(-1 * var(--sticky-overhang));
     width: max-content;
     min-width: 0%;
-    margin-left: auto;
-    margin-right: calc(-1 * var(--sticky-overhang));
     border-radius: var(--r-md);
     opacity: 0;
     translate: 0 -14px;
@@ -664,7 +668,6 @@
       opacity 0.34s var(--ease-out-soft),
       translate 0.46s var(--ease-out-soft),
       min-width 0.55s var(--ease-out-soft),
-      margin 0.55s var(--ease-out-soft),
       border-radius 0.55s var(--ease-out-soft),
       visibility 0s linear 0.46s;
   }
@@ -675,11 +678,11 @@
     transition-delay: 0s;
   }
   /* max-width = min-width: иначе width:max-content при узком main (корзина open)
-     раздувает плашку вправо сильнее left-overhang; категории скроллятся внутри. */
+     раздувает плашку вправо; категории скроллятся внутри. Правый край
+     зафиксирован right:-overhang → при полной ширине слева тоже -overhang. */
   .sticky-bar[data-expanded="1"] .sticky-bar-panel {
     min-width: calc(100% + 2 * var(--sticky-overhang));
     max-width: calc(100% + 2 * var(--sticky-overhang));
-    margin-inline: calc(-1 * var(--sticky-overhang));
     border-radius: var(--r-2xl);
   }
 
@@ -738,29 +741,6 @@
     filter: brightness(0) invert(1);
   }
 
-  .sticky-bar-tags {
-    display: grid;
-    grid-template-rows: 0fr;
-    width: 0;
-    min-width: 0;
-    overflow: hidden;
-    pointer-events: none;
-    transition: grid-template-rows 0.55s var(--ease-out-soft);
-  }
-  .sticky-bar-tags > * {
-    min-height: 0;
-    overflow: hidden;
-  }
-  .sticky-bar[data-expanded="1"] .sticky-bar-tags {
-    grid-template-rows: 1fr;
-    width: 100%;
-    pointer-events: auto;
-  }
-  .sticky-bar[data-expanded="1"] .sticky-bar-tags > * {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
   /* Контент раскрытия проявляется вдогонку, чтобы не мелькать в узкой щели */
   .sticky-bar-fade {
     opacity: 0;
@@ -774,7 +754,6 @@
   .home-desktop[data-ready="0"] .sticky-bar-panel,
   .home-desktop[data-ready="0"] .sticky-bar-row,
   .home-desktop[data-ready="0"] .sticky-bar-nav,
-  .home-desktop[data-ready="0"] .sticky-bar-tags,
   .home-desktop[data-ready="0"] .sticky-bar-fade {
     transition: none;
   }

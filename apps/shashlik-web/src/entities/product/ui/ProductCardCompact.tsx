@@ -12,6 +12,7 @@ import { Badge } from "@/shared/ui/badge"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
 import { scoreColor } from "@/shared/ui/rating"
+import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
 type Props = {
   product: Product
@@ -45,8 +46,9 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
         className="relative block bg-surface-3"
         style={{ aspectRatio: PRODUCT_ASPECT_RATIO }}
       >
-        <img
-          src={product.image}
+        <ThemeAwareImage
+          lightSrc={product.image}
+          darkSrc={product.imagesDark[0]}
           alt={product.name}
           loading="lazy"
           className="size-full object-cover"

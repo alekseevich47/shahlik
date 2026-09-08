@@ -37,7 +37,7 @@ export function toFormData(data: Record<string, unknown>): FormData {
         continue
       }
       // Только модификаторы файлов (`image-`, `image+`) — несколько append строк.
-      // JSON-поля (`tags`, `variants`, …) сериализуются ниже.
+      // JSON-поля (`variants`, `sizes`, …) сериализуются ниже.
       if (
         (key.endsWith("+") || key.endsWith("-")) &&
         value.every((item) => typeof item === "string")

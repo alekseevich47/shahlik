@@ -9,10 +9,8 @@ import type { Product } from "@/entities/product/model"
 import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
 import { useSettings } from "@/entities/settings/api"
 import { settingsFallback } from "@/entities/settings/model"
-import type { TagFilterId } from "@/entities/tag/model"
 import { useAddProduct } from "@/features/cart/lib/useAddProduct"
 import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
-import { TagFilters } from "@/widgets/catalog/TagFilters"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
 import { AddressBar } from "@/widgets/mobile/AddressBar"
 import { PromoBanner } from "@/widgets/promo/PromoBanner"
@@ -24,18 +22,10 @@ import { CatalogCategorySection } from "./CatalogCategorySection"
 type Props = {
   category: string
   onCategoryChange: (id: string) => void
-  tag: TagFilterId
-  onTagChange: (tag: TagFilterId) => void
   items: Product[]
 }
 
-export function MobileHome({
-  category,
-  onCategoryChange,
-  tag,
-  onTagChange,
-  items,
-}: Props) {
+export function MobileHome({ category, onCategoryChange, items }: Props) {
   const addProduct = useAddProduct()
   const navigate = useNavigate()
   const account = useAccount()
@@ -88,7 +78,6 @@ export function MobileHome({
       ) : null}
 
       <section>
-        <TagFilters categoryId={category} value={tag} onChange={onTagChange} className="mb-3" />
         {items.length === 0 ? (
           <p className="rounded-[var(--r-lg)] border border-dashed border-line-strong py-10 text-center text-[13px] font-semibold text-fg-muted">
             В меню пока пусто

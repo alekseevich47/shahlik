@@ -15,7 +15,6 @@ import {
   type ProductNutrition,
   type ProductRating,
   type ProductSize,
-  type ProductTag,
   type ProductVariant,
 } from "./model"
 
@@ -29,9 +28,9 @@ type ProductRecord = {
   composition: string
   compositionByVariant?: Record<string, string>
   image: string | string[]
+  imageDark?: string | string[]
   badge?: ProductBadge
   nutrition: ProductNutrition
-  tags?: unknown
   variants: ProductVariant[]
   sizes: ProductSize[]
   rating: ProductRating
@@ -41,11 +40,6 @@ type ProductRecord = {
   stats: Product["stats"]
   created: string
   updated: string
-}
-
-function mapTagSlugs(raw: unknown): ProductTag[] {
-  if (!Array.isArray(raw)) return []
-  return raw.filter((item): item is string => typeof item === "string" && item.length > 0)
 }
 
 function mapRating(rating: ProductRating): ProductRating {
@@ -81,9 +75,10 @@ function mapProduct(record: ProductRecord): Product {
     image: images[0] ?? imageUrl(record, "image"),
     images,
     imageFilenames: imageFilenames(record, "image"),
+    imagesDark: imageUrls(record, "imageDark"),
+    imageDarkFilenames: imageFilenames(record, "imageDark"),
     badge: record.badge || undefined,
     nutrition: record.nutrition,
-    tags: mapTagSlugs(record.tags),
     variants: record.variants ?? [],
     sizes: record.sizes ?? [],
     rating: mapRating(record.rating),
@@ -216,13 +211,14 @@ export type CreateProductInput = {
   emoji?: string
   badge?: ProductBadge | ""
   nutrition: ProductNutrition
-  tags?: ProductTag[]
   variants: ProductVariant[]
   sizes: ProductSize[]
   order: number
   active: boolean
-  /** Одно или несколько фото (1–5). */
+  /** Одно или несколько фото (1–5) — светлая тема. */
   image: File | File[]
+  /** Опциональные фото тёмной темы (PB `imageDark`). */
+  imageDark?: File | File[]
 }
 
 export type UpdateProductInput = {
@@ -235,7 +231,6 @@ export type UpdateProductInput = {
   emoji?: string
   badge?: ProductBadge | ""
   nutrition?: ProductNutrition
-  tags?: ProductTag[]
   variants?: ProductVariant[]
   sizes?: ProductSize[]
   rating?: ProductRating
@@ -246,6 +241,10 @@ export type UpdateProductInput = {
   image?: File | File[] | null
   /** Имена файлов PB для удаления (`image-`). */
   imageRemove?: string[]
+  /** Дозапись тёмных фото через `imageDark+`. */
+  imageDark?: File | File[] | null
+  /** Имена файлов PB для удаления (`imageDark-`). */
+  imageDarkRemove?: string[]
 }
 
 const EMPTY_STATS: Product["stats"] = {
@@ -281,6 +280,12 @@ const PRODUCT_MAX_BYTES = 5_242_880
 
 async function createBody(input: CreateProductInput): Promise<Record<string, unknown>> {
   const images = Array.isArray(input.image) ? input.image : [input.image]
+  const darkRaw = input.imageDark
+  const darkImages = darkRaw
+    ? Array.isArray(darkRaw)
+      ? darkRaw
+      : [darkRaw]
+    : []
   return (await toUploadFormData(
     {
       name: input.name,
@@ -292,7 +297,6 @@ async function createBody(input: CreateProductInput): Promise<Record<string, unk
       emoji: input.emoji,
       badge: input.badge || null,
       nutrition: input.nutrition,
-      tags: input.tags ?? [],
       variants: input.variants,
       sizes: input.sizes,
       rating: defaultRating(),
@@ -300,6 +304,9 @@ async function createBody(input: CreateProductInput): Promise<Record<string, unk
       active: input.active,
       stats: EMPTY_STATS,
       image: images.length === 1 ? images[0] : images,
+      ...(darkImages.length
+        ? { imageDark: darkImages.length === 1 ? darkImages[0] : darkImages }
+        : {}),
     },
     { maxBytes: PRODUCT_MAX_BYTES },
   )) as unknown as Record<string, unknown>
@@ -316,7 +323,6 @@ async function updateBody(input: UpdateProductInput): Promise<Record<string, unk
     emoji: input.emoji,
     badge: input.badge === "" ? null : input.badge,
     nutrition: input.nutrition,
-    tags: input.tags,
     variants: input.variants,
     sizes: input.sizes,
     rating: input.rating,
@@ -333,6 +339,12 @@ async function updateBody(input: UpdateProductInput): Promise<Record<string, unk
     payload.image = null
   }
   if (input.imageRemove?.length) payload["image-"] = input.imageRemove
+  if (input.imageDark !== undefined && input.imageDark !== null) {
+    payload["imageDark+"] = input.imageDark
+  } else if (input.imageDark === null) {
+    payload.imageDark = null
+  }
+  if (input.imageDarkRemove?.length) payload["imageDark-"] = input.imageDarkRemove
   return (await toUploadFormData(payload, {
     maxBytes: PRODUCT_MAX_BYTES,
   })) as unknown as Record<string, unknown>
@@ -350,9 +362,8 @@ export async function deleteProduct(id: string): Promise<void> {
   return productMutations.remove(id)
 }
 
-async function filesFromProductImages(product: Product): Promise<File[]> {
-  const urls = product.images.length ? product.images : product.image ? [product.image] : []
-  if (!urls.length) throw new Error("Не удалось скопировать фото")
+async function filesFromUrls(urls: string[], namePrefix: string): Promise<File[]> {
+  if (!urls.length) return []
   const files: File[] = []
   for (const [index, url] of urls.entries()) {
     const res = await fetch(url)
@@ -360,7 +371,7 @@ async function filesFromProductImages(product: Product): Promise<File[]> {
     const blob = await res.blob()
     const ext = blob.type.split("/")[1] || "jpg"
     files.push(
-      new File([blob], `${product.slug}-copy-${index + 1}.${ext}`, {
+      new File([blob], `${namePrefix}-${index + 1}.${ext}`, {
         type: blob.type || "image/jpeg",
       }),
     )
@@ -368,11 +379,20 @@ async function filesFromProductImages(product: Product): Promise<File[]> {
   return files
 }
 
+async function filesFromProductImages(product: Product): Promise<File[]> {
+  const urls = product.images.length ? product.images : product.image ? [product.image] : []
+  if (!urls.length) throw new Error("Не удалось скопировать фото")
+  return filesFromUrls(urls, `${product.slug}-copy`)
+}
+
 export async function duplicateProduct(id: string): Promise<Product> {
   const source = await fetchProductById(id)
   if (!source) throw new Error("Товар не найден")
 
   const image = await filesFromProductImages(source)
+  const imageDark = source.imagesDark.length
+    ? await filesFromUrls(source.imagesDark, `${source.slug}-copy-dark`)
+    : undefined
   const slugBase = `${source.slug}-copy`.slice(0, 190)
   let slug = slugBase
   let n = 2
@@ -391,12 +411,12 @@ export async function duplicateProduct(id: string): Promise<Product> {
     emoji: source.emoji,
     badge: source.badge,
     nutrition: source.nutrition,
-    tags: source.tags,
     variants: source.variants,
     sizes: source.sizes,
     order: source.order + 1,
     active: false,
     image,
+    ...(imageDark?.length ? { imageDark } : {}),
   })
 }
 

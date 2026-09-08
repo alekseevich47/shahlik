@@ -90,124 +90,6 @@
     ]
   },
   {
-    "id": "pbc_shahlik_product_tags",
-    "name": "product_tags",
-    "type": "base",
-    "system": false,
-    "listRule": "",
-    "viewRule": "",
-    "createRule": "@request.auth.role = \"admin\"",
-    "updateRule": "@request.auth.role = \"admin\"",
-    "deleteRule": "@request.auth.role = \"admin\"",
-    "indexes": [
-      "CREATE INDEX `idx_product_tags_category` ON `product_tags` (`categoryId`)",
-      "CREATE UNIQUE INDEX `idx_product_tags_cat_slug` ON `product_tags` (`categoryId`, `slug`)"
-    ],
-    "fields": [
-      {
-        "autogeneratePattern": "[a-z0-9]{15}",
-        "hidden": false,
-        "id": "text3208210256",
-        "max": 15,
-        "min": 15,
-        "name": "id",
-        "pattern": "^[a-z0-9]+$",
-        "presentable": false,
-        "primaryKey": true,
-        "required": true,
-        "system": true,
-        "type": "text"
-      },
-      {
-        "cascadeDelete": true,
-        "collectionId": "pbc_shahlik_categories",
-        "hidden": false,
-        "id": "rel_ptag_category",
-        "maxSelect": 1,
-        "minSelect": 0,
-        "name": "categoryId",
-        "presentable": true,
-        "required": true,
-        "system": false,
-        "type": "relation"
-      },
-      {
-        "autogeneratePattern": "",
-        "hidden": false,
-        "id": "text_ptag_slug",
-        "max": 40,
-        "min": 1,
-        "name": "slug",
-        "pattern": "^[a-z0-9-]+$",
-        "presentable": false,
-        "primaryKey": false,
-        "required": true,
-        "system": false,
-        "type": "text"
-      },
-      {
-        "autogeneratePattern": "",
-        "hidden": false,
-        "id": "text_ptag_name",
-        "max": 40,
-        "min": 1,
-        "name": "name",
-        "pattern": "",
-        "presentable": true,
-        "primaryKey": false,
-        "required": true,
-        "system": false,
-        "type": "text"
-      },
-      {
-        "autogeneratePattern": "",
-        "hidden": false,
-        "id": "text_ptag_emoji",
-        "max": 8,
-        "min": 0,
-        "name": "emoji",
-        "pattern": "",
-        "presentable": false,
-        "primaryKey": false,
-        "required": false,
-        "system": false,
-        "type": "text"
-      },
-      {
-        "hidden": false,
-        "id": "num_ptag_order",
-        "max": null,
-        "min": null,
-        "name": "order",
-        "onlyInt": true,
-        "presentable": false,
-        "required": false,
-        "system": false,
-        "type": "number"
-      },
-      {
-        "hidden": false,
-        "id": "autodate2990389176",
-        "name": "created",
-        "onCreate": true,
-        "onUpdate": false,
-        "presentable": false,
-        "system": false,
-        "type": "autodate"
-      },
-      {
-        "hidden": false,
-        "id": "autodate3332085495",
-        "name": "updated",
-        "onCreate": true,
-        "onUpdate": true,
-        "presentable": false,
-        "system": false,
-        "type": "autodate"
-      }
-    ]
-  },
-  {
     "id": "pbc_shahlik_product_badges",
     "name": "product_badges",
     "type": "base",
@@ -533,6 +415,27 @@
         "type": "file"
       },
       {
+        "hidden": false,
+        "id": "file_prod_image_dark",
+        "maxSelect": 5,
+        "maxSize": 5242880,
+        "mimeTypes": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "name": "imageDark",
+        "presentable": false,
+        "protected": false,
+        "required": false,
+        "system": false,
+        "thumbs": [
+          "100x100",
+          "600x400"
+        ],
+        "type": "file"
+      },
+      {
         "autogeneratePattern": "",
         "hidden": false,
         "id": "text_prod_badge",
@@ -553,16 +456,6 @@
         "name": "nutrition",
         "presentable": false,
         "required": true,
-        "system": false,
-        "type": "json"
-      },
-      {
-        "hidden": false,
-        "id": "json_prod_tags",
-        "maxSize": 0,
-        "name": "tags",
-        "presentable": false,
-        "required": false,
         "system": false,
         "type": "json"
       },
@@ -841,6 +734,26 @@
         "presentable": false,
         "protected": false,
         "required": true,
+        "system": false,
+        "thumbs": [
+          "100x100"
+        ],
+        "type": "file"
+      },
+      {
+        "hidden": false,
+        "id": "file_banner_image_dark",
+        "maxSelect": 1,
+        "maxSize": 5242880,
+        "mimeTypes": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "name": "imageDark",
+        "presentable": false,
+        "protected": false,
+        "required": false,
         "system": false,
         "thumbs": [
           "100x100"
@@ -1155,7 +1068,9 @@
     ],
     "passwordAuth": {
       "enabled": false,
-      "identityFields": ["email"]
+      "identityFields": [
+        "email"
+      ]
     },
     "oauth2": {
       "enabled": true,
@@ -3184,7 +3099,9 @@
         "required": false,
         "system": false,
         "type": "select",
-        "values": ["done"]
+        "values": [
+          "done"
+        ]
       },
       {
         "hidden": false,
@@ -3451,7 +3368,12 @@
         "required": true,
         "system": false,
         "type": "select",
-        "values": ["admin", "manager", "user", "guest"]
+        "values": [
+          "admin",
+          "manager",
+          "user",
+          "guest"
+        ]
       },
       {
         "autogeneratePattern": "",

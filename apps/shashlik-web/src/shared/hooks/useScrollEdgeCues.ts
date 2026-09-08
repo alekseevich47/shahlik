@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 
 const EDGE_EPS = 0.5
 const PEEK_PX = 28
-const PAGE_FRACTION = 0.55
-const ANIM_MS = 220
+const ANIM_MS = 280
 
 type EdgeSide = "left" | "right"
 
@@ -33,8 +32,35 @@ function readEdges(el: HTMLElement): Edges {
 }
 
 /**
+ * Целевой scrollLeft: ровно одна категория.
+ * Вправо — к началу следующей (сразу после конца текста текущей).
+ * Влево — к началу предыдущей / текущей, если лента стоит посередине чипа.
+ */
+function stepScrollLeft(el: HTMLElement, from: number, side: EdgeSide): number {
+  const children = Array.from(el.children) as HTMLElement[]
+  if (children.length === 0) return from
+
+  const currentIdx = children.findIndex(
+    (child) => child.offsetLeft + child.offsetWidth > from + EDGE_EPS,
+  )
+  const idx = currentIdx < 0 ? children.length - 1 : currentIdx
+
+  if (side === "right") {
+    if (idx >= children.length - 1) return el.scrollWidth - el.clientWidth
+    return children[idx + 1].offsetLeft
+  }
+
+  if (idx <= 0) return 0
+  // Посередине чипа — сначала к его началу; иначе на предыдущую категорию.
+  if (from > children[idx].offsetLeft + EDGE_EPS) {
+    return children[idx].offsetLeft
+  }
+  return children[idx - 1].offsetLeft
+}
+
+/**
  * Edge-стрелки для горизонтальной ленты: overflow-флаги + hover-peek с откатом
- * и page-scroll по клику. Анимация scrollLeft через rAF (без scroll-behavior на html).
+ * и шаг на 1 чип по клику. Анимация scrollLeft через rAF (без scroll-behavior на html).
  */
 export function useScrollEdgeCues(scrollRef: RefObject<HTMLElement | null>) {
   const [edges, setEdges] = useState<Edges>({
@@ -163,7 +189,7 @@ export function useScrollEdgeCues(scrollRef: RefObject<HTMLElement | null>) {
     animateTo(baselineRef.current)
   }, [animateTo])
 
-  const onPageScroll = useCallback(
+  const onStepScroll = useCallback(
     (side: EdgeSide) => {
       const el = scrollRef.current
       if (!el) return
@@ -172,9 +198,7 @@ export function useScrollEdgeCues(scrollRef: RefObject<HTMLElement | null>) {
       committedRef.current = true
       peekSideRef.current = null
 
-      const page = Math.max(80, el.clientWidth * PAGE_FRACTION)
-      const delta = side === "left" ? -page : page
-      animateTo(origin + delta)
+      animateTo(stepScrollLeft(el, origin, side))
     },
     [animateTo, scrollRef],
   )
@@ -184,6 +208,6 @@ export function useScrollEdgeCues(scrollRef: RefObject<HTMLElement | null>) {
     canScrollRight: edges.canScrollRight,
     onPeekEnter,
     onPeekLeave,
-    onPageScroll,
+    onStepScroll,
   }
 }

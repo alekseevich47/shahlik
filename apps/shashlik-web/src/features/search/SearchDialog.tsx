@@ -8,6 +8,7 @@ import { minPrice } from "@/entities/product/lib"
 import { useProducts } from "@/entities/product/api"
 import { withBackground } from "@/shared/lib/background-location"
 import { formatPrice } from "@/shared/lib/format"
+import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
 type SearchDialogProps = {
   open: boolean
@@ -72,8 +73,9 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                     onClick={() => openProduct(product.slug)}
                     className="flex w-full cursor-pointer items-center gap-3 rounded-[var(--r-md)] p-2 text-left transition-colors hover:bg-surface-3"
                   >
-                    <img
-                      src={product.image}
+                    <ThemeAwareImage
+                      lightSrc={product.image}
+                      darkSrc={product.imagesDark[0]}
                       alt=""
                       className="size-11 shrink-0 rounded-[var(--r-sm)] object-cover"
                     />
