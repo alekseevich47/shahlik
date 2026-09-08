@@ -27,7 +27,7 @@ export function BonusEarnHint({ amount, guest, className }: BonusEarnHintProps) 
       ) : (
         <>
           (+{amount}
-          <CoinIcon className="size-3 opacity-80" />)
+          <CoinIcon className="size-6 opacity-80" />)
         </>
       )}
     </span>
