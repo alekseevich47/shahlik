@@ -20,7 +20,8 @@ export function ThemeToggle({
       onClick={toggle}
       aria-label={isDark ? "Включить светлую тему" : "Включить тёмную тему"}
       className={cn(
-        "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border transition-colors",
+        "grid cursor-pointer place-items-center rounded-[var(--r-md)] border transition-colors",
+        tone === "glass" ? "size-10" : "size-11",
         tone === "glass"
           ? "text-white hover:border-[var(--glass-btn-border)] hover:text-white"
           : "border-line bg-surface text-fg-muted hover:border-brand-border hover:text-brand",

@@ -670,8 +670,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/header/StickyBar.tsx": {
-    "mtime": 1788832742.9861248,
-    "ast_hash": "8632854a52a1a00c4160ec05e45c1dcf",
+    "mtime": 1788828328.690486,
+    "ast_hash": "8f321f2a5133ac00e2e7434d84a856ce",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/sidebar/rail.ts": {
@@ -1505,8 +1505,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/shared/ui/coin-icon.tsx": {
-    "mtime": 1788831929.1777036,
-    "ast_hash": "f4cee855053f71626473600fb92a9300",
+    "mtime": 1788830973.9328775,
+    "ast_hash": "79e04f9db6d877d7bbf074c538bf261e",
     "semantic_hash": ""
   },
   "pb_hooks/audit.pb.js": {
@@ -1545,8 +1545,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/public/icons/coin.png": {
-    "mtime": 1788831853.0612884,
-    "ast_hash": "ee8218c5b751833cf75a55bb731d4119",
+    "mtime": 1788829635.5569894,
+    "ast_hash": "11c2a5d2d3304cebd27f58550e327e89",
     "semantic_hash": ""
   },
   "temp/\u043c\u043e\u043d\u0435\u0442\u0430.png": {
@@ -1557,16 +1557,6 @@
   "temp/\u043c\u043e\u043d\u0435\u0442\u0430_1.png": {
     "mtime": 1788831853.0612884,
     "ast_hash": "ee8218c5b751833cf75a55bb731d4119",
-    "semantic_hash": ""
-  },
-  "apps/shashlik-web/src/shared/hooks/useScrollEdgeCues.ts": {
-    "mtime": 1788832731.536326,
-    "ast_hash": "65ccb3bece68c6a4e98d374aa3b18be4",
-    "semantic_hash": ""
-  },
-  "apps/shashlik-web/src/shared/ui/scroll-edge-button.tsx": {
-    "mtime": 1788832717.6121416,
-    "ast_hash": "462b0b11bdeb56ea946b2cf81d167632",
     "semantic_hash": ""
   }
 }

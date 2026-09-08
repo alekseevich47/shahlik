@@ -3,10 +3,13 @@ import * as m from "motion/react-m"
 
 import { useCategoryTags } from "@/entities/tag/api"
 import { ALL_TAG, type TagFilterId } from "@/entities/tag/model"
+import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
 import { cn } from "@/shared/lib/cn"
 import { Chip } from "@/shared/ui/chip"
 
 const SPRING = { type: "spring", stiffness: 520, damping: 38, mass: 0.7 } as const
+
+type ScrollMode = "lenis-prevent" | "axis-lock"
 
 type Props = {
   categoryId: string
@@ -17,6 +20,11 @@ type Props = {
   chipClassName?: (active: boolean) => string
   /** На стекле плашки — без layout, иначе кадры раскрытия плашки дорожают. */
   animated?: boolean
+  /**
+   * `lenis-prevent` — глушит Lenis на всей ленте (витрина/мобилка).
+   * `axis-lock` — горизонталь без блокировки вертикали страницы (стеклянная плашка).
+   */
+  scrollMode?: ScrollMode
 }
 
 export function TagFilters({
@@ -27,8 +35,10 @@ export function TagFilters({
   layoutGroup = "catalog-tags",
   chipClassName,
   animated = true,
+  scrollMode = "lenis-prevent",
 }: Props) {
   const { data: tags } = useCategoryTags(categoryId)
+  const axisScrollRef = useAxisLockedHorizontalScroll<HTMLDivElement>()
 
   const items = [
     { slug: ALL_TAG, name: "Все", emoji: null as string | null },
@@ -50,13 +60,23 @@ export function TagFilters({
     )
   })
 
+  const stripClass = cn("scrollbar-none flex gap-2 overflow-x-auto", className)
+  const stripProps =
+    scrollMode === "axis-lock"
+      ? { ref: axisScrollRef }
+      : { "data-lenis-prevent": true as const }
+
   if (!animated) {
-    return <div className={cn("scrollbar-none flex gap-2 overflow-x-auto", className)} data-lenis-prevent>{chips}</div>
+    return (
+      <div className={stripClass} {...stripProps}>
+        {chips}
+      </div>
+    )
   }
 
   return (
     <LayoutGroup id={layoutGroup}>
-      <div className={cn("scrollbar-none flex gap-2 overflow-x-auto", className)} data-lenis-prevent>
+      <div className={stripClass} {...stripProps}>
         <AnimatePresence mode="popLayout" initial={false}>
           {items.map((item) => {
             const active = item.slug === value

@@ -15,19 +15,19 @@ export function BonusEarnHint({ amount, guest, className }: BonusEarnHintProps) 
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[11px] font-medium text-fg-muted tabular-nums",
+        "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[11px] leading-none font-medium text-fg-muted tabular-nums",
         className,
       )}
     >
       {guest ? (
         <>
           можно получить {amount}
-          <CoinIcon className="size-6 opacity-80" />
+          <CoinIcon />
         </>
       ) : (
         <>
           (+{amount}
-          <CoinIcon className="size-6 opacity-80" />)
+          <CoinIcon />)
         </>
       )}
     </span>

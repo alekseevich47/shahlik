@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 
-import { CATALOG_SCROLL_MARGIN, CATALOG_SCROLL_SPY_MARGIN, catalogSectionId } from "./catalogSection"
+import { CATALOG_SCROLL_SPY_MARGIN, catalogSectionId } from "./catalogSection"
 import { useVitrineScroll } from "./VitrineScroll"
 
 const SCROLL_LOCK_FALLBACK_MS = 1200
@@ -51,9 +51,12 @@ export function useCatalogScrollSpy({
         unlock()
       }
 
+      // Отступ только из CSS scroll-margin-top секции (CATALOG_SCROLL_MARGIN).
+      // Lenis сам читает scrollMarginTop — не дублировать offset, иначе якорь
+      // уезжает слишком высоко: первая категория возвращает теги во вьюпорт,
+      // плашка схлопывается, сайдбар снова выезжает.
       if (vitrineScroll) {
         vitrineScroll.scrollTo(node, {
-          offset: -CATALOG_SCROLL_MARGIN,
           duration: 1,
           onComplete: finish,
         })

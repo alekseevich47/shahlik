@@ -453,10 +453,10 @@
     grid-template-columns: 1fr;
   }
 
-  /* Карточка витрины: раскладка изолирована. Смена --nav-track / --cart-track
-     меняет ширину колонок сетки, и без containment каждый кадр перехода
-     пересчитывает раскладку всех карточек сразу. content-visibility снимает эту
-     работу с карточек за пределами вьюпорта; `auto` в contain-intrinsic-size
+  /* Карточка витрины: раскладка изолирована. Смена --cart-track меняет ширину
+     колонок сетки, и без containment каждый кадр перехода пересчитывает
+     раскладку всех карточек сразу. content-visibility снимает эту работу
+     с карточек за пределами вьюпорта; `auto` в contain-intrinsic-size
      запоминает реальную высоту, поэтому скроллбар не дёргается. */
   .product-card {
     contain: layout paint style;
@@ -501,7 +501,10 @@
 
   /* Витрина desktop: треки сайдбара/корзины и gap сетки — регистрированные длины,
      spring-ease. overflow-x: clip режет съезд колонок, но не создаёт scrollport,
-     поэтому sticky остаётся живым (у `hidden` этого свойства нет). */
+     поэтому sticky остаётся живым (у `hidden` этого свойства нет).
+     --nav-track не схлопывается при data-nav=hidden: сайдбар уезжает translate,
+     сетка/баннер слева не расширяются. При closed корзины правый трек = 184
+     (зеркало nav), колонки сетки на xl всегда 3. */
   .home-desktop {
     display: grid;
     grid-template-columns:
@@ -513,15 +516,11 @@
     --cart-track: 360px;
     --catalog-gap: 16px;
     transition:
-      --nav-track 0.55s var(--ease-out-soft),
       --cart-track 0.55s var(--ease-out-soft),
       --catalog-gap 0.55s var(--ease-out-soft);
   }
-  .home-desktop[data-nav="hidden"] {
-    --nav-track: 0px;
-  }
   .home-desktop[data-cart="closed"] {
-    --cart-track: 0px;
+    --cart-track: 184px;
     --catalog-gap: 28px;
   }
   .home-desktop[data-cart="sheet"] {
@@ -532,24 +531,17 @@
     transition: none;
   }
 
-  /* Сетка каталога: 2 колонки; при xl и закрытой корзине — 4, при открытой — 3.
-     Ширина колонок едет вместе с --cart-track; перестановка карточек — motion layout. */
+  /* Сетка каталога: 2 колонки; с xl при sticky-корзине — всегда 3.
+     Ширина колонок едет с --cart-track (main растёт/сжимается). */
   .product-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--catalog-gap);
-    transition: grid-template-columns 0.55s var(--ease-out-soft);
   }
   @media (min-width: 1280px) {
-    .home-desktop[data-cart="open"] .product-grid {
+    .home-desktop:not([data-cart="sheet"]) .product-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .home-desktop[data-cart="closed"] .product-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
-  .home-desktop[data-ready="0"] .product-grid {
-    transition: none;
   }
 
   /* Выезд панели: translate на sticky-боксе, поэтому открытие на любой глубине скролла
@@ -652,6 +644,8 @@
    * ---------------------------------------------------------------- */
   .sticky-bar {
     --bar-top: 20px;
+    /* Чуть шире колонки main / сетки (open и closed корзины). */
+    --sticky-overhang: 12px;
     position: sticky;
     top: var(--bar-top);
     z-index: 30;
@@ -661,6 +655,7 @@
     width: max-content;
     min-width: 0%;
     margin-left: auto;
+    margin-right: calc(-1 * var(--sticky-overhang));
     border-radius: var(--r-md);
     opacity: 0;
     translate: 0 -14px;
@@ -669,6 +664,7 @@
       opacity 0.34s var(--ease-out-soft),
       translate 0.46s var(--ease-out-soft),
       min-width 0.55s var(--ease-out-soft),
+      margin 0.55s var(--ease-out-soft),
       border-radius 0.55s var(--ease-out-soft),
       visibility 0s linear 0.46s;
   }
@@ -678,8 +674,12 @@
     visibility: visible;
     transition-delay: 0s;
   }
+  /* max-width = min-width: иначе width:max-content при узком main (корзина open)
+     раздувает плашку вправо сильнее left-overhang; категории скроллятся внутри. */
   .sticky-bar[data-expanded="1"] .sticky-bar-panel {
-    min-width: 100%;
+    min-width: calc(100% + 2 * var(--sticky-overhang));
+    max-width: calc(100% + 2 * var(--sticky-overhang));
+    margin-inline: calc(-1 * var(--sticky-overhang));
     border-radius: var(--r-2xl);
   }
 
@@ -690,14 +690,15 @@
     display: flex;
     align-items: center;
     gap: 0;
-    padding: 6px 10px;
+    /* Правый/верхний запас ≥ вылета бейджа корзины (-top/-right ~4px). */
+    padding: 6px 12px 6px 10px;
     transition:
       gap 0.55s var(--ease-out-soft),
       padding 0.55s var(--ease-out-soft);
   }
   .sticky-bar[data-expanded="1"] .sticky-bar-row {
     gap: 8px;
-    padding: 8px;
+    padding: 8px 12px 8px 8px;
   }
   .sticky-bar-actions {
     margin-left: auto;
@@ -723,6 +724,10 @@
     width: auto;
     pointer-events: auto;
     grid-template-columns: 1fr;
+  }
+  /* Клип обёртки, не scrollport: скролл только у nav, иначе edge-стрелки ломаются. */
+  .sticky-bar[data-expanded="1"] .sticky-bar-nav > * {
+    overflow: hidden;
   }
 
   /* PNG категорий на стекле: light — чёрный глиф, dark — белый. */
@@ -750,6 +755,10 @@
     grid-template-rows: 1fr;
     width: 100%;
     pointer-events: auto;
+  }
+  .sticky-bar[data-expanded="1"] .sticky-bar-tags > * {
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   /* Контент раскрытия проявляется вдогонку, чтобы не мелькать в узкой щели */

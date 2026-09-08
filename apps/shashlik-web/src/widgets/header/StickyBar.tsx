@@ -1,18 +1,21 @@
 import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
 import type { TagFilterId } from "@/entities/tag/model"
+import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
+import { useScrollEdgeCues } from "@/shared/hooks/useScrollEdgeCues"
 import { cn } from "@/shared/lib/cn"
 import { Chip } from "@/shared/ui/chip"
 import { Glass } from "@/shared/ui/glass"
+import { ScrollEdgeButton } from "@/shared/ui/scroll-edge-button"
 import { TagFilters } from "@/widgets/catalog/TagFilters"
 import { FloatingActions } from "@/widgets/header/FloatingActions"
 
 /**
  * Геометрия плашки. Должна совпадать с раскладкой ниже и с `.sticky-bar` в
  * globals.css: пороги наблюдателей считаются отсюда, иначе плашка мигает.
- * compact = p-1.5 + 44, expanded = p-2 + 44 + (36 + pb-2).
+ * compact = 6+40+6, expanded = 8+40+8+(36+pb).
  */
-export const STICKY_BAR = { top: 20, compact: 56, expanded: 104 } as const
+export const STICKY_BAR = { top: 20, compact: 52, expanded: 100 } as const
 
 /** Неактивный чип на стекле: без своей поверхности, иначе стекло не видно. */
 const GLASS_CHIP =
@@ -51,6 +54,8 @@ export function StickyBar({
   cartPressed,
 }: Props) {
   const { data: categories = [] } = useCategories()
+  const categoriesScrollRef = useAxisLockedHorizontalScroll<HTMLElement>()
+  const categoryEdges = useScrollEdgeCues(categoriesScrollRef)
 
   return (
     <div
@@ -62,11 +67,11 @@ export function StickyBar({
       <Glass className="sticky-bar-panel" contentClassName="flex flex-col" inert={!visible}>
         <div className="sticky-bar-row">
           <div className="sticky-bar-nav">
-            <div>
+            <div className="relative min-w-0">
               <nav
+                ref={categoriesScrollRef}
                 aria-label="Категории меню"
                 className="sticky-bar-fade scrollbar-none flex gap-1.5 overflow-x-auto"
-                data-lenis-prevent
               >
                 {categories.map((item) => {
                   const active = item.id === category
@@ -76,7 +81,7 @@ export function StickyBar({
                       active={active}
                       onClick={() => onCategoryChange(item.id)}
                       className={cn(
-                        "h-11 gap-2 rounded-[var(--r-md)] px-3",
+                        "h-10 gap-2 rounded-[var(--r-md)] px-3",
                         active ? GLASS_CHIP_ACTIVE : GLASS_CHIP,
                       )}
                     >
@@ -86,6 +91,22 @@ export function StickyBar({
                   )
                 })}
               </nav>
+              <ScrollEdgeButton
+                side="left"
+                visible={categoryEdges.canScrollLeft}
+                label="Прокрутить категории влево"
+                onPeekEnter={() => categoryEdges.onPeekEnter("left")}
+                onPeekLeave={categoryEdges.onPeekLeave}
+                onPageScroll={() => categoryEdges.onPageScroll("left")}
+              />
+              <ScrollEdgeButton
+                side="right"
+                visible={categoryEdges.canScrollRight}
+                label="Прокрутить категории вправо"
+                onPeekEnter={() => categoryEdges.onPeekEnter("right")}
+                onPeekLeave={categoryEdges.onPeekLeave}
+                onPageScroll={() => categoryEdges.onPageScroll("right")}
+              />
             </div>
           </div>
 
@@ -107,6 +128,7 @@ export function StickyBar({
               onChange={onTagChange}
               layoutGroup="glass-tags"
               animated={false}
+              scrollMode="axis-lock"
               className="sticky-bar-fade px-2 pb-2"
               chipClassName={(active) => (active ? GLASS_CHIP_ACTIVE : GLASS_CHIP)}
             />

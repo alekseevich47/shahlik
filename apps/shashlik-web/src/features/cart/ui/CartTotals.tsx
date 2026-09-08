@@ -58,9 +58,9 @@ export function CartTotals({
           <span className="text-[12px] text-fg-muted">
             {isGuest ? "Можно получить" : "Начислено бонусов"}
           </span>
-          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[12px] font-bold text-fg tabular-nums">
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[12px] font-bold leading-none text-fg tabular-nums">
             {isGuest ? earnedPreview : `+${earnedPreview}`}
-            <CoinIcon className="size-7 opacity-80" />
+            <CoinIcon />
           </span>
         </div>
       ) : null}

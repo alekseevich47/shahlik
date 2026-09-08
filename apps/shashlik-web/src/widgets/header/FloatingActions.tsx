@@ -26,8 +26,9 @@ const TONE = {
 const ICON_BTN_SOLID =
   "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border text-fg transition-colors hover:border-brand-border hover:text-brand"
 
+/** На стекле 40×40 — запас под бейдж корзины внутри overflow:hidden плашки. */
 const ICON_BTN_GLASS =
-  "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border text-white transition-colors hover:border-[var(--glass-btn-border)] hover:text-white"
+  "grid size-10 cursor-pointer place-items-center rounded-[var(--r-md)] border text-white transition-colors hover:border-[var(--glass-btn-border)] hover:text-white"
 
 /** Действия витрины: поиск, тема, корзина. Позиционирует вызывающий. */
 export function FloatingActions({
@@ -43,7 +44,7 @@ export function FloatingActions({
   const iconBtn = tone === "glass" ? ICON_BTN_GLASS : ICON_BTN_SOLID
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center", tone === "glass" ? "gap-1.5" : "gap-2", className)}>
       {showAccount ? (
         <NavLink to="/profile" aria-label="Профиль" className={cn(iconBtn, skin)}>
           <User size={18} strokeWidth={2.4} />

@@ -24,6 +24,9 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
   const open = pressed === true
   const showSum = total > 0
   const sum = formatOrderSum(total)
+  const glass = tone === "glass"
+  const btnH = glass ? "h-10" : "h-11"
+  const iconBox = glass ? "size-10" : "size-11"
 
   const aria = (() => {
     const qty = count > 0 ? `, позиций: ${count}` : ""
@@ -39,8 +42,9 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
       aria-pressed={isToggle ? open : undefined}
       aria-label={aria}
       className={cn(
-        "relative inline-flex h-11 cursor-pointer items-center rounded-[var(--r-md)] border transition-colors",
-        tone === "glass"
+        "relative inline-flex cursor-pointer items-center rounded-[var(--r-md)] border transition-colors",
+        btnH,
+        glass
           ? "text-brand shadow-none hover:border-[var(--glass-btn-border)]"
           : "border-line bg-surface text-brand shadow-[var(--shadow-card)] hover:border-brand-border",
         className,
@@ -48,11 +52,16 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
     >
       <span className="cart-toggle-sum" data-open={showSum ? "1" : "0"} aria-hidden={!showSum}>
         <span className="min-w-0 overflow-hidden">
-          <span className="flex h-11 items-center gap-0.5 pr-0.5 pl-3 whitespace-nowrap">
+          <span
+            className={cn(
+              "flex items-center gap-0.5 pr-0.5 pl-3 whitespace-nowrap",
+              btnH,
+            )}
+          >
             <span
               className={cn(
                 "text-[13px] leading-none font-extrabold tracking-tight tabular-nums",
-                tone === "glass" ? "text-white" : "text-fg",
+                glass ? "text-white" : "text-fg",
               )}
             >
               {sum.amount}
@@ -60,7 +69,7 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
             <span
               className={cn(
                 "text-[11px] leading-none font-bold",
-                tone === "glass" ? "text-white/75" : "text-fg-muted",
+                glass ? "text-white/75" : "text-fg-muted",
               )}
             >
               р.
@@ -69,7 +78,7 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
         </span>
       </span>
 
-      <span className="relative grid size-11 shrink-0 place-items-center">
+      <span className={cn("relative grid shrink-0 place-items-center", iconBox)}>
         {isToggle ? (
           <>
             <ShoppingCart
@@ -93,7 +102,12 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
           <ShoppingCart size={18} strokeWidth={2.4} />
         )}
         {count > 0 ? (
-          <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-brand text-[10px] font-extrabold text-on-brand tabular-nums">
+          <span
+            className={cn(
+              "absolute grid size-5 place-items-center rounded-full bg-brand text-[10px] font-extrabold text-on-brand tabular-nums",
+              glass ? "-top-1 -right-1" : "-top-1.5 -right-1.5",
+            )}
+          >
             {count}
           </span>
         ) : null}

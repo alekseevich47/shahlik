@@ -106,19 +106,7 @@
   "104": "sonner",
   "105": "invalidateProductRatings",
   "106": "zustand",
-  "107": "loginWithOAuth",
   "108": "@radix-ui/react-dialog",
   "109": "@radix-ui/react-popover",
-  "110": "StaffSection.tsx",
-  "111": "router.tsx",
-  "112": "CustomerDrawer.tsx",
-  "113": "crud.ts",
-  "114": "getAccount",
-  "115": "coupon/api.ts",
-  "116": "localOrders.ts",
-  "117": "useScrollEdgeCues.ts",
-  "118": "theme.tsx",
-  "119": "vk-sdk-cdn.ts",
-  "120": "tag/model.ts",
-  "121": "Sparkline.tsx"
+  "113": "crud.ts"
 }

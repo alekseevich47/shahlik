@@ -6,7 +6,12 @@ export function catalogSectionId(categoryId: string) {
   return `${CATALOG_SECTION_PREFIX}${categoryId}`
 }
 
-/** Отступ секции под sticky-плашку (top + expanded + зазор). */
+/**
+ * Отступ секции под sticky-плашку (top + expanded + зазор).
+ * Канон — CSS `scroll-margin-top` на `CatalogCategorySection`.
+ * Lenis `scrollTo(HTMLElement)` и нативный `scrollIntoView` читают его сами;
+ * в `scrollTo` **не** передавать тот же offset повторно.
+ */
 export const CATALOG_SCROLL_MARGIN = STICKY_BAR.top + STICKY_BAR.expanded + 8
 
 /** rootMargin для scroll-spy: активна секция в верхней части экрана под плашкой. */
