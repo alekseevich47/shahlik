@@ -16,7 +16,7 @@ pnpm dev
 - `apps/shashlik-web/src` — приложение (React 19 + Vite 8 + Tailwind v4)
 - `apps/shashlik-web/public` — фото, иконки, логотип
 - `temp/` — исходники медиа и выгрузки кассы, не бандл
-- Frontpad: [`.cursor/rules/API.mdc`](.cursor/rules/API.mdc) (пока не подключён)
+- Frontpad: [`.cursor/rules/API.mdc`](.cursor/rules/API.mdc); для владельца/админа без кода — [`docs/НАСТРОЙКА_КАССЫ.md`](docs/НАСТРОЙКА_КАССЫ.md)
 
 Страницы: `src/pages/home`, `src/pages/product`, `src/pages/admin`. Default export только у страниц.
 

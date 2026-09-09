@@ -40,22 +40,139 @@ function verifyHookToken(e, config) {
   return constantTimeEqual(readQueryToken(e), expected)
 }
 
-function readWebhookBody(e) {
+/** Достаёт поле из plain object / Go-map / DynamicModel. */
+function fieldOf(obj, key) {
+  if (!obj) {
+    return undefined
+  }
   try {
-    var info = e.requestInfo()
-    if (info && info.body && typeof info.body === "object") {
-      return info.body
+    if (typeof obj.get === "function") {
+      var viaGet = obj.get(key)
+      if (viaGet !== undefined && viaGet !== null && viaGet !== "") {
+        return viaGet
+      }
     }
   } catch (err) {
     // ignore
   }
-  return {}
+  try {
+    var viaDot = obj[key]
+    if (viaDot !== undefined && viaDot !== null && viaDot !== "") {
+      return viaDot
+    }
+  } catch (err2) {
+    // ignore
+  }
+  return undefined
+}
+
+function hasAnyField(obj) {
+  if (!obj) {
+    return false
+  }
+  if (fieldOf(obj, "action") !== undefined) {
+    return true
+  }
+  if (fieldOf(obj, "order_id") !== undefined) {
+    return true
+  }
+  if (fieldOf(obj, "status") !== undefined) {
+    return true
+  }
+  try {
+    for (var k in obj) {
+      if (obj.hasOwnProperty && obj.hasOwnProperty(k)) {
+        return true
+      }
+      // Go-map без hasOwnProperty
+      if (k) {
+        return true
+      }
+    }
+  } catch (err) {
+    // ignore
+  }
+  return false
+}
+
+/**
+ * Нормализованное тело webhook Frontpad.
+ * PB 0.29: bindBody + requestInfo().body + raw JSON (PowerShell/прокси иногда
+ * отдают body так, что один из путей пустой).
+ */
+function readWebhookBody(e) {
+  var out = {
+    action: "",
+    order_id: null,
+    status: null,
+    source: "empty",
+  }
+
+  // 1) bindBody — канон PB 0.23+
+  try {
+    var bound = new DynamicModel({
+      action: "",
+      order_id: -0,
+      status: -0,
+    })
+    e.bindBody(bound)
+    var boundAction = String(bound.action || "")
+    var boundOrderId = Number(bound.order_id)
+    // Не путать «поле не пришло» (0) с успешным bind: нужен action или реальный order_id.
+    if (boundAction || (!isNaN(boundOrderId) && boundOrderId > 0)) {
+      out.action = boundAction
+      out.order_id = bound.order_id
+      out.status = bound.status
+      out.source = "bindBody"
+      return out
+    }
+  } catch (err) {
+    // continue
+  }
+
+  // 2) requestInfo().body (json / form)
+  try {
+    var info = e.requestInfo()
+    var body = info ? info.body : null
+    if (body && typeof body === "object" && hasAnyField(body)) {
+      out.action = String(fieldOf(body, "action") || "")
+      out.order_id = fieldOf(body, "order_id")
+      out.status = fieldOf(body, "status")
+      out.source = "requestInfo"
+      return out
+    }
+  } catch (err2) {
+    // continue
+  }
+
+  // 3) raw body как JSON-строка
+  try {
+    var raw = ""
+    try {
+      raw = toString(e.request.body) || ""
+    } catch (err3) {
+      raw = ""
+    }
+    if (raw && raw.charAt(0) === "{") {
+      var parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === "object") {
+        out.action = String(parsed.action || "")
+        out.order_id = parsed.order_id
+        out.status = parsed.status
+        out.source = "rawJson"
+        return out
+      }
+    }
+  } catch (err4) {
+    // ignore
+  }
+
+  return out
 }
 
 /**
  * Код статуса кассы → наш OrderStatus.
- * Сначала statusMap из настроек, иначе DEFAULT_STATUS_MAP (чтобы пустая
- * кастомная карта не глушила стандартные 1/3/5/9).
+ * Сначала statusMap из настроек, иначе DEFAULT_STATUS_MAP.
  */
 function mapFrontpadStatus(fpStatus, fpSettings, config) {
   var statusKey = String(fpStatus)
@@ -72,7 +189,15 @@ function mapFrontpadStatus(fpStatus, fpSettings, config) {
 function applyStatusChange(body, fpSettings, config) {
   var logger = $app.logger()
 
-  if (!body || body.action !== "change_status") {
+  var action = body && body.action ? String(body.action) : ""
+  if (action !== "change_status") {
+    logger.warn(
+      "frontpad webhook: skip (no change_status)",
+      "source",
+      body && body.source ? body.source : "unknown",
+      "action",
+      action || "(empty)",
+    )
     return
   }
 
@@ -84,7 +209,9 @@ function applyStatusChange(body, fpSettings, config) {
 
   var fpStatusRaw = body.status
   var fpStatus =
-    fpStatusRaw !== undefined && fpStatusRaw !== null ? Number(fpStatusRaw) : null
+    fpStatusRaw !== undefined && fpStatusRaw !== null && fpStatusRaw !== ""
+      ? Number(fpStatusRaw)
+      : null
   if (fpStatus !== null && isNaN(fpStatus)) {
     fpStatus = null
   }
@@ -144,6 +271,20 @@ function applyStatusChange(body, fpSettings, config) {
   }
 
   $app.save(record)
+
+  logger.info(
+    "frontpad webhook: status applied",
+    "orderId",
+    record.id,
+    "frontpadOrderId",
+    fpOrderId,
+    "fpStatus",
+    fpStatus,
+    "status",
+    nextStatus,
+    "source",
+    body.source || "",
+  )
 
   if (nextStatus === "done" && currentStatus !== "done") {
     try {

@@ -111,7 +111,5 @@
   "109": "Sidebar.tsx",
   "110": "select.tsx",
   "111": "router.tsx",
-  "112": "ProductsSection",
-  "113": "@radix-ui/react-tooltip",
-  "114": "tailwind-merge"
+  "112": "ProductsSection"
 }

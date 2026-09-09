@@ -212,13 +212,15 @@ routerAdd("GET", "/api/frontpad/diag", function (e) {
 
   var fp = config.loadFrontpadSettings()
   var site = config.loadSettings()
+  // Не вызывать функции из замыкания файла — JSVM изолирует handler.
+  var cronEnabled = $os.getenv("FRONTPAD_CRON") !== "0"
 
   return e.json(200, {
     env: {
       secretSet: config.getSecret().length > 0,
       hookTokenSet: true,
       apiUrl: config.getApiUrl(),
-      cronEnabled: frontpadCronEnabled(),
+      cronEnabled: cronEnabled,
     },
     frontpadSettings: {
       found: fp.id === config.SETTINGS_ID,
