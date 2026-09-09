@@ -181,15 +181,30 @@ function readWebhookBody(e) {
 }
 
 function mapFrontpadStatus(fpStatus, fpSettings, config) {
+  var VALID = {
+    pending: true,
+    new: true,
+    cooking: true,
+    delivering: true,
+    done: true,
+    canceled: true,
+  }
   var statusKey = String(fpStatus)
-  var mapped = null
+  var candidates = []
+
   if (fpSettings && fpSettings.statusMap && fpSettings.statusMap[statusKey]) {
-    mapped = String(fpSettings.statusMap[statusKey])
+    candidates.push(String(fpSettings.statusMap[statusKey]))
   }
-  if (!mapped && config && config.DEFAULT_STATUS_MAP) {
-    mapped = config.DEFAULT_STATUS_MAP[statusKey] || null
+  if (config && config.DEFAULT_STATUS_MAP && config.DEFAULT_STATUS_MAP[statusKey]) {
+    candidates.push(String(config.DEFAULT_STATUS_MAP[statusKey]))
   }
-  return mapped || null
+
+  for (var i = 0; i < candidates.length; i++) {
+    if (VALID[candidates[i]]) {
+      return candidates[i]
+    }
+  }
+  return null
 }
 
 function findOrderByFrontpadId(fpOrderId) {
@@ -275,7 +290,18 @@ function applyStatusChange(body, fpSettings, config) {
     }
   }
 
-  $app.save(record)
+  try {
+    $app.save(record)
+  } catch (err) {
+    throw new Error(
+      "save failed mapped=" +
+        String(mapped) +
+        " fpStatus=" +
+        String(fpStatus) +
+        " err=" +
+        String(err),
+    )
+  }
 
   if (nextStatus === "done" && currentStatus !== "done") {
     try {

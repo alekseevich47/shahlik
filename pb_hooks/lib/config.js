@@ -157,6 +157,14 @@ function toNumberArray(raw) {
 }
 
 function toStatusMap(raw) {
+  var VALID = {
+    pending: true,
+    new: true,
+    cooking: true,
+    delivering: true,
+    done: true,
+    canceled: true,
+  }
   var parsed = parseJsonField(raw, null)
   if (!parsed || typeof parsed !== "object") {
     var copy = {}
@@ -169,9 +177,19 @@ function toStatusMap(raw) {
   }
   var map = {}
   for (var code in parsed) {
-    if (parsed.hasOwnProperty(code)) {
-      map[String(code)] = String(parsed[code])
+    if (!parsed.hasOwnProperty(code)) {
+      continue
     }
+    var codeStr = String(code)
+    if (!/^\d+$/.test(codeStr)) {
+      continue
+    }
+    var statusVal = String(parsed[code] || "")
+    // Только наши статусы заказа — иначе $app.save падает: status: Invalid value …
+    if (!VALID[statusVal]) {
+      continue
+    }
+    map[codeStr] = statusVal
   }
   return map
 }
