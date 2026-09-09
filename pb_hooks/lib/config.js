@@ -156,6 +156,80 @@ function toNumberArray(raw) {
   return out
 }
 
+function copyDefaultStatusMap() {
+  var copy = {}
+  for (var key in DEFAULT_STATUS_MAP) {
+    if (Object.prototype.hasOwnProperty.call(DEFAULT_STATUS_MAP, key)) {
+      copy[key] = DEFAULT_STATUS_MAP[key]
+    }
+  }
+  return copy
+}
+
+/**
+ * JSON-объект из JSVM: string / JSONRaw / срез байт ASCII / Go-map.
+ * Не использовать JSON.stringify и hasOwnProperty на Go-значении — теряются ключи.
+ */
+function coerceJsonObject(raw) {
+  if (raw === undefined || raw === null || raw === "") {
+    return null
+  }
+
+  var parsed = raw
+
+  if (typeof parsed === "string") {
+    var trimmed = String(parsed).replace(/^\s+|\s+$/g, "")
+    if (trimmed.charAt(0) !== "{") {
+      return null
+    }
+    parsed = parseJsonField(trimmed, null)
+  }
+
+  var fromBytes = decodeByteJson(parsed)
+  if (fromBytes !== undefined) {
+    if (fromBytes && typeof fromBytes === "object" && !isArrayLike(fromBytes)) {
+      parsed = fromBytes
+    } else {
+      return null
+    }
+  }
+
+  if (parsed && typeof parsed === "object") {
+    try {
+      var asText = String(parsed)
+      if (
+        asText &&
+        asText !== "[object Object]" &&
+        asText.charAt(0) === "{"
+      ) {
+        var fromRaw = parseJsonField(asText, null)
+        if (fromRaw && typeof fromRaw === "object" && !isArrayLike(fromRaw)) {
+          parsed = fromRaw
+        }
+      }
+    } catch (err) {
+      // Go-map: читаем ключи ниже
+    }
+  }
+
+  if (!parsed || typeof parsed !== "object" || isArrayLike(parsed)) {
+    return null
+  }
+
+  var out = {}
+  for (var key in parsed) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") {
+      continue
+    }
+    var val = parsed[key]
+    if (val === undefined || val === null) {
+      continue
+    }
+    out[String(key)] = val
+  }
+  return out
+}
+
 function toStatusMap(raw) {
   var VALID = {
     pending: true,
@@ -165,21 +239,12 @@ function toStatusMap(raw) {
     done: true,
     canceled: true,
   }
-  var parsed = parseJsonField(raw, null)
-  if (!parsed || typeof parsed !== "object") {
-    var copy = {}
-    for (var key in DEFAULT_STATUS_MAP) {
-      if (DEFAULT_STATUS_MAP.hasOwnProperty(key)) {
-        copy[key] = DEFAULT_STATUS_MAP[key]
-      }
-    }
-    return copy
+  var parsed = coerceJsonObject(raw)
+  if (!parsed) {
+    return copyDefaultStatusMap()
   }
   var map = {}
   for (var code in parsed) {
-    if (!parsed.hasOwnProperty(code)) {
-      continue
-    }
     var codeStr = String(code)
     if (!/^\d+$/.test(codeStr)) {
       continue
@@ -190,6 +255,9 @@ function toStatusMap(raw) {
       continue
     }
     map[codeStr] = statusVal
+  }
+  if (!Object.keys(map).length) {
+    return copyDefaultStatusMap()
   }
   return map
 }
@@ -392,6 +460,8 @@ module.exports = {
   loadFrontpadSettings: loadFrontpadSettings,
   buildHookUrl: buildHookUrl,
   parseJsonField: parseJsonField,
+  coerceJsonObject: coerceJsonObject,
+  toStatusMap: toStatusMap,
   toPbDateTime: toPbDateTime,
   readPbDateTime: readPbDateTime,
   parsePbDateTimeMs: parsePbDateTimeMs,

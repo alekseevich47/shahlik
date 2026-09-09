@@ -232,6 +232,7 @@ routerAdd("GET", "/api/frontpad/diag", function (e) {
       articlePack: fp.articlePack,
       articleDelivery: fp.articleDelivery,
       hookStatuses: fp.hookStatuses,
+      statusMap: fp.statusMap,
       hookUrlResolved: config.buildHookUrl(fp),
       retryLimit: fp.retryLimit,
       lastError: fp.lastError,

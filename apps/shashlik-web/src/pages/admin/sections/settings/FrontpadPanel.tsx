@@ -83,6 +83,39 @@ const STATUS_OPTIONS = (Object.keys(ORDER_STATUS_LABEL) as OrderStatus[]).map((v
   label: ORDER_STATUS_LABEL[value],
 }))
 
+/** Коды статусов этой кассы (Frontpad → Справочники → Статусы заказа). */
+const FRONTPAD_STATUS_CODES = [
+  { code: "1", label: "Новый" },
+  { code: "3", label: "В производстве" },
+  { code: "13", label: "Принят" },
+  { code: "14", label: "На паузе" },
+  { code: "12", label: "Произведен" },
+  { code: "4", label: "В пути" },
+  { code: "10", label: "Выполнен" },
+  { code: "11", label: "Отменен" },
+] as const
+
+const FRONTPAD_STATUS_LABEL: Record<string, string> = Object.fromEntries(
+  FRONTPAD_STATUS_CODES.map((item) => [item.code, item.label]),
+)
+
+/** Подсказка «код кассы → наш статус» при выборе из списка. */
+const SUGGESTED_SITE_STATUS: Record<string, OrderStatus> = {
+  "1": "new",
+  "3": "cooking",
+  "13": "cooking",
+  "14": "cooking",
+  "12": "cooking",
+  "4": "delivering",
+  "10": "done",
+  "11": "canceled",
+}
+
+function frontpadCodeLabel(code: string): string {
+  const name = FRONTPAD_STATUS_LABEL[code]
+  return name ? `${code} — ${name}` : code
+}
+
 type Props = {
   enabled: boolean
 }
@@ -517,7 +550,7 @@ export function FrontpadPanel({ enabled }: Props) {
             ) : (
               draft.hookStatuses.map((code) => (
                 <Badge key={code} className="gap-1 pr-1">
-                  {code}
+                  {frontpadCodeLabel(String(code))}
                   <button
                     type="button"
                     aria-label={`Удалить статус ${code}`}
@@ -566,19 +599,27 @@ export function FrontpadPanel({ enabled }: Props) {
       <div className="rounded-[var(--r-md)] border border-line p-4">
         <h3 className="mb-1 text-[13px] font-extrabold text-fg">Маппинг статусов кассы</h3>
         <p className="mb-3 text-[11px] leading-snug text-fg-muted">
-          Код статуса из webhook → наш статус заказа. Дефолт: 1→готовится, 3→в доставке, 5→выполнен,
-          9→отменён.
+          Код статуса из webhook → наш статус заказа. Коды вашей кассы: 1 новый, 3 в производстве,
+          13 принят, 14 на паузе, 12 произведен, 4 в пути, 10 выполнен, 11 отменён. Рекомендуется:{" "}
+          1→новый, 3/12/13/14→готовится, 4→в доставке, 10→выполнен, 11→отменён.
         </p>
         <ul className="mb-3 divide-y divide-line">
           {Object.entries(draft.statusMap).map(([code, status]) => (
             <li key={code} className="flex items-center gap-2 py-2">
-              <span
-                className={`w-12 text-[13px] font-extrabold tabular-nums ${
-                  DIGITS.test(code) ? "text-fg" : "text-red"
-                }`}
-              >
-                {code}
-              </span>
+              <div className="min-w-0 w-40 shrink-0">
+                <div
+                  className={`text-[13px] font-extrabold tabular-nums ${
+                    DIGITS.test(code) ? "text-fg" : "text-red"
+                  }`}
+                >
+                  {code}
+                </div>
+                {FRONTPAD_STATUS_LABEL[code] ? (
+                  <div className="truncate text-[11px] text-fg-muted">
+                    {FRONTPAD_STATUS_LABEL[code]}
+                  </div>
+                ) : null}
+              </div>
               <Select
                 value={status}
                 onChange={(e) =>
@@ -613,13 +654,42 @@ export function FrontpadPanel({ enabled }: Props) {
           ))}
         </ul>
         <div className="flex flex-wrap gap-1.5">
+          <Select
+            value={
+              FRONTPAD_STATUS_CODES.some((item) => item.code === mapKey) ? mapKey : ""
+            }
+            onChange={(e) => {
+              const code = e.target.value
+              setMapKey(code)
+              const suggested = SUGGESTED_SITE_STATUS[code]
+              if (suggested) setMapValue(suggested)
+            }}
+            disabled={busy}
+            className="h-9 min-w-48 flex-1"
+            aria-label="Код статуса кассы"
+          >
+            <option value="">Из списка кассы…</option>
+            {FRONTPAD_STATUS_CODES.map((item) => (
+              <option
+                key={item.code}
+                value={item.code}
+                disabled={item.code in draft.statusMap}
+              >
+                {frontpadCodeLabel(item.code)}
+                {item.code in draft.statusMap ? " (уже есть)" : ""}
+              </option>
+            ))}
+          </Select>
           <Input
-            value={mapKey}
+            value={
+              FRONTPAD_STATUS_CODES.some((item) => item.code === mapKey) ? "" : mapKey
+            }
             onChange={(e) => setMapKey(e.target.value)}
-            placeholder="Код кассы"
+            placeholder="Или свой код"
             inputMode="numeric"
             className="h-9 w-28"
             disabled={busy}
+            aria-label="Свой код статуса кассы"
           />
           <Select
             value={mapValue}
