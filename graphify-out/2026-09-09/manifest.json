@@ -1,7 +1,7 @@
 {
   "AGENTS.md": {
-    "mtime": 1787048948.18229,
-    "ast_hash": "f5b2ae73abf3a068303d3918f0d15b0b",
+    "mtime": 1788933585.7161171,
+    "ast_hash": "9381adf9ac95118d50099a5c4dd809a2",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -1060,8 +1060,8 @@
     "semantic_hash": ""
   },
   "pb_hooks/frontpad.pb.js": {
-    "mtime": 1788513733.1891725,
-    "ast_hash": "cd5b00f1ff8c63922096ab211e0ed150",
+    "mtime": 1788937444.1920836,
+    "ast_hash": "7f19a869ae298b73c670459d8d8388f7",
     "semantic_hash": ""
   },
   "pb_hooks/lib/config.js": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": ""
   },
   "pb_hooks/lib/webhook.js": {
-    "mtime": 1788870754.748739,
-    "ast_hash": "4480b7241929ab4997bf07a5d9a77eb3",
+    "mtime": 1788937474.8594856,
+    "ast_hash": "9fe84d238e35c28b5bfb913e0587b87a",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/lib/stock.ts": {
@@ -1567,6 +1567,11 @@
   "apps/shashlik-web/src/entities/bonus/lib/history.tsx": {
     "mtime": 1788869923.3942578,
     "ast_hash": "bcfb3ebc0ecee9fa0da25b1a6cee48ab",
+    "semantic_hash": ""
+  },
+  "docs/\u041d\u0410\u0421\u0422\u0420\u041e\u0419\u041a\u0410_\u041a\u0410\u0421\u0421\u042b.md": {
+    "mtime": 1788933574.7740288,
+    "ast_hash": "f515cd448431afe652d7cfbe96a19936",
     "semantic_hash": ""
   }
 }

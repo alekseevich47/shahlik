@@ -113,5 +113,11 @@
   "111": "router.tsx",
   "112": "ProductsSection",
   "113": "@radix-ui/react-tooltip",
-  "114": "tailwind-merge"
+  "114": "tailwind-merge",
+  "115": "counts.ts",
+  "116": "clsx",
+  "117": "lenis",
+  "118": "@radix-ui/react-dialog",
+  "119": "@radix-ui/react-popover",
+  "120": "react-easy-crop"
 }

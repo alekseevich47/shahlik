@@ -1100,8 +1100,8 @@
     "semantic_hash": ""
   },
   "pb_hooks/lib/webhook.js": {
-    "mtime": 1788937474.8594856,
-    "ast_hash": "9fe84d238e35c28b5bfb913e0587b87a",
+    "mtime": 1788937948.8498619,
+    "ast_hash": "5a196c156ddfc1b6cd8fe386899c60e3",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/lib/stock.ts": {
