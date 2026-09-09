@@ -55,9 +55,8 @@ function fieldOf(obj, key) {
     // ignore
   }
   try {
-    var viaDot = obj[key]
-    if (viaDot !== undefined && viaDot !== null && viaDot !== "") {
-      return viaDot
+    if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
+      return obj[key]
     }
   } catch (err2) {
     // ignore
@@ -65,45 +64,34 @@ function fieldOf(obj, key) {
   return undefined
 }
 
-function hasAnyField(obj) {
-  if (!obj) {
-    return false
-  }
-  if (fieldOf(obj, "action") !== undefined) {
-    return true
-  }
-  if (fieldOf(obj, "order_id") !== undefined) {
-    return true
-  }
-  if (fieldOf(obj, "status") !== undefined) {
-    return true
-  }
-  try {
-    for (var k in obj) {
-      if (k) {
-        return true
-      }
-    }
-  } catch (err) {
-    // ignore
-  }
-  return false
+function hasHookFields(obj) {
+  return (
+    fieldOf(obj, "action") !== undefined ||
+    fieldOf(obj, "order_id") !== undefined ||
+    fieldOf(obj, "status") !== undefined
+  )
 }
 
 function readRawBodyString(e) {
   try {
-    return toString(e.request.body) || ""
+    if (typeof readerToString === "function") {
+      return readerToString(e.request.body) || ""
+    }
   } catch (err) {
+    // ignore
+  }
+  try {
+    return toString(e.request.body) || ""
+  } catch (err2) {
     return ""
   }
 }
 
-/** Разбор application/x-www-form-urlencoded из сырой строки. */
 function parseFormBody(raw) {
-  var out = { action: "", order_id: null, status: null }
   if (!raw || raw.indexOf("=") < 0) {
     return null
   }
+  var out = { action: "", order_id: null, status: null }
   var parts = String(raw).split("&")
   for (var i = 0; i < parts.length; i++) {
     var pair = parts[i]
@@ -111,8 +99,14 @@ function parseFormBody(raw) {
     if (eq < 0) {
       continue
     }
-    var key = decodeURIComponent(pair.substring(0, eq).replace(/\+/g, " "))
-    var val = decodeURIComponent(pair.substring(eq + 1).replace(/\+/g, " "))
+    var key = pair.substring(0, eq)
+    var val = pair.substring(eq + 1)
+    try {
+      key = decodeURIComponent(key.replace(/\+/g, " "))
+      val = decodeURIComponent(val.replace(/\+/g, " "))
+    } catch (err) {
+      // keep raw
+    }
     if (key === "action") {
       out.action = val
     } else if (key === "order_id") {
@@ -127,9 +121,16 @@ function parseFormBody(raw) {
   return out
 }
 
+function fillFromObject(out, obj, source) {
+  out.action = String(fieldOf(obj, "action") || "")
+  out.order_id = fieldOf(obj, "order_id")
+  out.status = fieldOf(obj, "status")
+  out.source = source
+  return out
+}
+
 /**
- * Нормализованное тело webhook Frontpad (PB 0.29).
- * Порядок: requestInfo → bindBody → raw JSON → raw form.
+ * Без DynamicModel/bindBody — на PB 0.29 bindBody даёт exception/panic.
  */
 function readWebhookBody(e) {
   var out = {
@@ -143,59 +144,30 @@ function readWebhookBody(e) {
   var raw = readRawBodyString(e)
   out.rawLen = raw ? raw.length : 0
 
-  // 1) requestInfo — не потребляет body повторно после bind в некоторых версиях
+  // 1) уже распарсенный requestInfo.body
   try {
     var info = e.requestInfo()
     var body = info ? info.body : null
-    if (body && typeof body === "object" && hasAnyField(body)) {
-      out.action = String(fieldOf(body, "action") || "")
-      out.order_id = fieldOf(body, "order_id")
-      out.status = fieldOf(body, "status")
-      out.source = "requestInfo"
-      return out
+    if (body && typeof body === "object" && hasHookFields(body)) {
+      return fillFromObject(out, body, "requestInfo")
     }
   } catch (err) {
-    // continue
+    out.readInfoError = String(err)
   }
 
-  // 2) bindBody
-  try {
-    var bound = new DynamicModel({
-      action: "",
-      order_id: -0,
-      status: -0,
-    })
-    e.bindBody(bound)
-    var boundAction = String(bound.action || "")
-    var boundOrderId = Number(bound.order_id)
-    if (boundAction || (!isNaN(boundOrderId) && boundOrderId > 0)) {
-      out.action = boundAction
-      out.order_id = bound.order_id
-      out.status = bound.status
-      out.source = "bindBody"
-      return out
-    }
-  } catch (err2) {
-    // continue
-  }
-
-  // 3) raw JSON
+  // 2) raw JSON
   if (raw && raw.charAt(0) === "{") {
     try {
       var parsed = JSON.parse(raw)
       if (parsed && typeof parsed === "object") {
-        out.action = String(parsed.action || "")
-        out.order_id = parsed.order_id
-        out.status = parsed.status
-        out.source = "rawJson"
-        return out
+        return fillFromObject(out, parsed, "rawJson")
       }
-    } catch (err3) {
-      // continue
+    } catch (err2) {
+      out.readJsonError = String(err2)
     }
   }
 
-  // 4) raw form
+  // 3) raw form
   var form = parseFormBody(raw)
   if (form) {
     out.action = String(form.action || "")
@@ -232,7 +204,6 @@ function findOrderByFrontpadId(fpOrderId) {
   if (record) {
     return record
   }
-  // иногда число лежит как строка в сравнении фильтра
   try {
     record = $app.findFirstRecordByFilter("orders", "frontpadOrderId = {:id}", {
       id: String(fpOrderId),
@@ -243,22 +214,9 @@ function findOrderByFrontpadId(fpOrderId) {
   return record
 }
 
-/**
- * @returns {{ applied: boolean, reason: string, orderId?: string, status?: string, fpStatus?: number|null }}
- */
 function applyStatusChange(body, fpSettings, config) {
-  var logger = $app.logger()
   var action = body && body.action ? String(body.action) : ""
-
   if (action !== "change_status") {
-    var skipMsg =
-      "frontpad webhook: skip action=" +
-      (action || "(empty)") +
-      " source=" +
-      (body && body.source ? body.source : "?") +
-      " rawLen=" +
-      (body && body.rawLen ? body.rawLen : 0)
-    logger.warn(skipMsg)
     return {
       applied: false,
       reason: "no_change_status",
@@ -270,8 +228,13 @@ function applyStatusChange(body, fpSettings, config) {
 
   var fpOrderId = Number(body.order_id)
   if (isNaN(fpOrderId)) {
-    logger.warn("frontpad webhook: invalid order_id raw=" + String(body.order_id))
-    return { applied: false, reason: "invalid_order_id", order_id: body.order_id }
+    return {
+      applied: false,
+      reason: "invalid_order_id",
+      order_id: body.order_id,
+      rawLen: body.rawLen || 0,
+      source: body.source || "",
+    }
   }
 
   var fpStatusRaw = body.status
@@ -285,12 +248,13 @@ function applyStatusChange(body, fpSettings, config) {
 
   var record = findOrderByFrontpadId(fpOrderId)
   if (!record) {
-    logger.warn("frontpad webhook: order not found id=" + fpOrderId)
     return {
       applied: false,
       reason: "order_not_found",
       frontpadOrderId: fpOrderId,
       fpStatus: fpStatus,
+      rawLen: body.rawLen || 0,
+      source: body.source || "",
     }
   }
 
@@ -308,28 +272,10 @@ function applyStatusChange(body, fpSettings, config) {
     if (mapped && !TERMINAL_STATUSES[currentStatus]) {
       record.set("status", mapped)
       nextStatus = mapped
-    } else if (!mapped) {
-      logger.warn(
-        "frontpad webhook: unmapped status fpStatus=" +
-          fpStatus +
-          " orderId=" +
-          record.id,
-      )
     }
   }
 
   $app.save(record)
-
-  logger.warn(
-    "frontpad webhook: applied orderId=" +
-      record.id +
-      " fpId=" +
-      fpOrderId +
-      " fpStatus=" +
-      fpStatus +
-      " status=" +
-      nextStatus,
-  )
 
   if (nextStatus === "done" && currentStatus !== "done") {
     try {
@@ -337,7 +283,7 @@ function applyStatusChange(body, fpSettings, config) {
       var fresh = $app.findRecordById("orders", record.id)
       bonus.creditOrderEarn(fresh)
     } catch (err) {
-      logger.error("bonus earn webhook failed orderId=" + record.id + " err=" + String(err))
+      console.log("bonus earn webhook failed: " + String(err))
     }
   }
 
@@ -349,40 +295,119 @@ function applyStatusChange(body, fpSettings, config) {
     fpStatus: fpStatus,
     status: nextStatus,
     source: body.source || "",
+    rawLen: body.rawLen || 0,
   }
 }
 
+function jsonResult(extra) {
+  var base = {
+    ok: true,
+    applied: false,
+    reason: "",
+    source: "",
+    rawLen: 0,
+    action: "",
+    orderId: "",
+    frontpadOrderId: 0,
+    fpStatus: null,
+    status: "",
+    error: "",
+    step: "",
+  }
+  for (var k in extra) {
+    if (extra.hasOwnProperty(k)) {
+      base[k] = extra[k]
+    }
+  }
+  return base
+}
+
 function handleStatusWebhook(e) {
-  var config = require(__hooks + "/lib/config.js")
-  var logger = $app.logger()
-  var result = { applied: false, reason: "init" }
+  var config
+  var body
+  var fpSettings
+  var result
+
+  try {
+    config = require(__hooks + "/lib/config.js")
+  } catch (err) {
+    return e.json(200, jsonResult({ reason: "exception", step: "require_config", error: String(err) }))
+  }
 
   if (!verifyHookToken(e, config)) {
     throw new NotFoundError("")
   }
 
   try {
-    var body = readWebhookBody(e)
-    var fpSettings = config.loadFrontpadSettings()
-    result = applyStatusChange(body, fpSettings, config)
+    body = readWebhookBody(e)
   } catch (err) {
-    logger.error("frontpad status webhook failed err=" + String(err))
-    result = { applied: false, reason: "exception", error: String(err) }
+    console.log("frontpad webhook readBody error: " + String(err))
+    return e.json(
+      200,
+      jsonResult({ reason: "exception", step: "readBody", error: String(err) }),
+    )
   }
 
-  // Всегда 200 для кассы; applied/reason — чтобы руками видеть причину.
-  return e.json(200, {
-    ok: true,
-    applied: !!result.applied,
-    reason: result.reason || "",
-    source: result.source || "",
-    rawLen: result.rawLen || 0,
-    action: result.action || "",
-    orderId: result.orderId || "",
-    frontpadOrderId: result.frontpadOrderId || 0,
-    fpStatus: result.fpStatus != null ? result.fpStatus : null,
-    status: result.status || "",
-  })
+  try {
+    fpSettings = config.loadFrontpadSettings()
+  } catch (err) {
+    console.log("frontpad webhook settings error: " + String(err))
+    return e.json(
+      200,
+      jsonResult({
+        reason: "exception",
+        step: "settings",
+        error: String(err),
+        rawLen: body.rawLen || 0,
+        source: body.source || "",
+      }),
+    )
+  }
+
+  try {
+    result = applyStatusChange(body, fpSettings, config)
+  } catch (err) {
+    console.log("frontpad webhook apply error: " + String(err))
+    return e.json(
+      200,
+      jsonResult({
+        reason: "exception",
+        step: "apply",
+        error: String(err),
+        rawLen: body.rawLen || 0,
+        source: body.source || "",
+        action: body.action || "",
+      }),
+    )
+  }
+
+  console.log(
+    "frontpad webhook result applied=" +
+      result.applied +
+      " reason=" +
+      result.reason +
+      " source=" +
+      (result.source || "") +
+      " rawLen=" +
+      (result.rawLen || 0),
+  )
+
+  return e.json(
+    200,
+    jsonResult({
+      applied: !!result.applied,
+      reason: result.reason || "",
+      source: result.source || "",
+      rawLen: result.rawLen || 0,
+      action: result.action || body.action || "",
+      orderId: result.orderId || "",
+      frontpadOrderId: result.frontpadOrderId || 0,
+      fpStatus: result.fpStatus != null ? result.fpStatus : null,
+      status: result.status || "",
+      step: "done",
+      error: "",
+    }),
+  )
 }
 
 module.exports = {
