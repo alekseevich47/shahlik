@@ -77,10 +77,14 @@ export type FrontpadStockItem = {
 }
 
 export const DEFAULT_STATUS_MAP: Record<string, OrderStatus> = {
-  "1": "cooking",
-  "3": "delivering",
-  "5": "done",
-  "9": "canceled",
+  "1": "new",
+  "3": "cooking",
+  "13": "accepted",
+  "14": "paused",
+  "12": "produced",
+  "4": "delivering",
+  "10": "done",
+  "11": "canceled",
 }
 
 /** Fallback, если PB недоступен или запись ещё не создана. */

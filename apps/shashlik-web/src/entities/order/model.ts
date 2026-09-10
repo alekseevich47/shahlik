@@ -1,12 +1,19 @@
 export type DeliveryMode = "pickup" | "delivery"
 
-export type OrderStatus =
-  | "pending"
-  | "new"
-  | "cooking"
-  | "delivering"
-  | "done"
-  | "canceled"
+/** Статусы заказа: `pending` — только сайт; остальные зеркалят кассу. */
+export const ORDER_STATUSES = [
+  "pending",
+  "new",
+  "accepted",
+  "cooking",
+  "paused",
+  "produced",
+  "delivering",
+  "done",
+  "canceled",
+] as const
+
+export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
 export type OrderStatusSource = "client" | "hook" | "manual"
 
@@ -77,13 +84,17 @@ export function isFrontpadWarning(order: Pick<Order, "frontpadOrderId" | "frontp
   return Boolean(order.frontpadOrderId) && Boolean(order.frontpadError)
 }
 
+/** Подписи как в справочнике статусов кассы (кроме `pending`). */
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   pending: "Ожидает подтверждения",
   new: "Новый",
-  cooking: "Готовится",
-  delivering: "В доставке",
+  accepted: "Принят",
+  cooking: "В производстве",
+  paused: "На паузе",
+  produced: "Произведен",
+  delivering: "В пути",
   done: "Выполнен",
-  canceled: "Отменён",
+  canceled: "Отменен",
 }
 
 export const ORDER_STATUS_SOURCE_LABEL: Record<OrderStatusSource, string> = {
@@ -92,12 +103,15 @@ export const ORDER_STATUS_SOURCE_LABEL: Record<OrderStatusSource, string> = {
   manual: "вручную",
 }
 
-/** Допустимые переходы статуса из текущего. */
+/** Допустимые переходы статуса из текущего (админка). */
 export const ORDER_STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
   pending: ["new", "canceled"],
-  new: ["cooking", "canceled"],
-  cooking: ["delivering", "done", "canceled"],
-  delivering: ["done", "canceled"],
+  new: ["accepted", "cooking", "paused", "canceled"],
+  accepted: ["cooking", "paused", "produced", "canceled"],
+  cooking: ["accepted", "paused", "produced", "delivering", "done", "canceled"],
+  paused: ["accepted", "cooking", "produced", "delivering", "canceled"],
+  produced: ["cooking", "delivering", "done", "canceled"],
+  delivering: ["produced", "done", "canceled"],
   done: [],
   canceled: [],
 }

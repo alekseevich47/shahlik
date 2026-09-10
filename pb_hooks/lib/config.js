@@ -37,10 +37,14 @@ var DEFAULT_API_URL = "https://app.frontpad.ru/api/index.php"
 
 /** @type {Object.<string, string>} */
 var DEFAULT_STATUS_MAP = {
-  "1": "cooking",
-  "3": "delivering",
-  "5": "done",
-  "9": "canceled",
+  "1": "new",
+  "3": "cooking",
+  "13": "accepted",
+  "14": "paused",
+  "12": "produced",
+  "4": "delivering",
+  "10": "done",
+  "11": "canceled",
 }
 
 var SITE_DEFAULTS = {
@@ -234,7 +238,10 @@ function toStatusMap(raw) {
   var VALID = {
     pending: true,
     new: true,
+    accepted: true,
     cooking: true,
+    paused: true,
+    produced: true,
     delivering: true,
     done: true,
     canceled: true,

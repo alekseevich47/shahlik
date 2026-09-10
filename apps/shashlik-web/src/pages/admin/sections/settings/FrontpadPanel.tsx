@@ -78,10 +78,12 @@ function formatRemaining(ms: number): string {
   return rest ? `${hours} ч ${rest} мин` : `${hours} ч`
 }
 
-const STATUS_OPTIONS = (Object.keys(ORDER_STATUS_LABEL) as OrderStatus[]).map((value) => ({
-  value,
-  label: ORDER_STATUS_LABEL[value],
-}))
+const STATUS_OPTIONS = (Object.keys(ORDER_STATUS_LABEL) as OrderStatus[])
+  .filter((value) => value !== "pending")
+  .map((value) => ({
+    value,
+    label: ORDER_STATUS_LABEL[value],
+  }))
 
 /** Коды статусов этой кассы (Frontpad → Справочники → Статусы заказа). */
 const FRONTPAD_STATUS_CODES = [
@@ -99,13 +101,13 @@ const FRONTPAD_STATUS_LABEL: Record<string, string> = Object.fromEntries(
   FRONTPAD_STATUS_CODES.map((item) => [item.code, item.label]),
 )
 
-/** Подсказка «код кассы → наш статус» при выборе из списка. */
+/** Подсказка «код кассы → наш статус» при выборе из списка (1:1 с кассой). */
 const SUGGESTED_SITE_STATUS: Record<string, OrderStatus> = {
   "1": "new",
   "3": "cooking",
-  "13": "cooking",
-  "14": "cooking",
-  "12": "cooking",
+  "13": "accepted",
+  "14": "paused",
+  "12": "produced",
   "4": "delivering",
   "10": "done",
   "11": "canceled",
@@ -599,9 +601,8 @@ export function FrontpadPanel({ enabled }: Props) {
       <div className="rounded-[var(--r-md)] border border-line p-4">
         <h3 className="mb-1 text-[13px] font-extrabold text-fg">Маппинг статусов кассы</h3>
         <p className="mb-3 text-[11px] leading-snug text-fg-muted">
-          Код статуса из webhook → наш статус заказа. Коды вашей кассы: 1 новый, 3 в производстве,
-          13 принят, 14 на паузе, 12 произведен, 4 в пути, 10 выполнен, 11 отменён. Рекомендуется:{" "}
-          1→новый, 3/12/13/14→готовится, 4→в доставке, 10→выполнен, 11→отменён.
+          Код статуса из webhook → наш статус заказа (1:1 с кассой): 1→новый, 13→принят,
+          3→в производстве, 14→на паузе, 12→произведен, 4→в пути, 10→выполнен, 11→отменен.
         </p>
         <ul className="mb-3 divide-y divide-line">
           {Object.entries(draft.statusMap).map(([code, status]) => (

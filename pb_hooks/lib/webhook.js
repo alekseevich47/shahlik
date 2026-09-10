@@ -184,7 +184,10 @@ function mapFrontpadStatus(fpStatus, fpSettings, config) {
   var VALID = {
     pending: true,
     new: true,
+    accepted: true,
     cooking: true,
+    paused: true,
+    produced: true,
     delivering: true,
     done: true,
     canceled: true,

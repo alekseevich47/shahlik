@@ -113,7 +113,7 @@ async function fetchDashboard(): Promise<DashboardData> {
     }),
     countByFilter(
       "orders",
-      'status = "new" || status = "cooking" || status = "delivering"',
+      'status = "new" || status = "accepted" || status = "cooking" || status = "paused" || status = "produced" || status = "delivering"',
     ),
     countByFilter("orders", 'frontpadError != "" && frontpadOrderId = 0'),
     countByFilter("frontpad_stock", "stopped = true"),

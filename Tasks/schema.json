@@ -1454,7 +1454,10 @@
         "values": [
           "pending",
           "new",
+          "accepted",
           "cooking",
+          "paused",
+          "produced",
           "delivering",
           "done",
           "canceled"

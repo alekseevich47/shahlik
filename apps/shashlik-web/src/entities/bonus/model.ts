@@ -47,8 +47,8 @@ export const BONUS_SETTINGS_ID = "main"
 export const BONUS_REASON_LABEL: Record<string, string> = {
   manual: "Вручную",
   adjust: "Корректировка",
-  order_earn: "За заказ",
-  order_spend: "Списание",
+  order_earn: "Пополнение за заказ",
+  order_spend: "Списание за заказ",
   promo: "Промокод",
   referral: "Реферал",
   birthday: "День рождения",

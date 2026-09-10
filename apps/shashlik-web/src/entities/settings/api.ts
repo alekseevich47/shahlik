@@ -2,11 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 
 import { ClientResponseError } from "pocketbase"
 
-import type {
-  FrontpadJob,
-  FrontpadJobKind,
-  FrontpadJobStatus,
-  OrderStatus,
+import {
+  ORDER_STATUSES,
+  type FrontpadJob,
+  type FrontpadJobKind,
+  type FrontpadJobStatus,
+  type OrderStatus,
 } from "@/entities/order/model"
 import { pbErrorMessage } from "@/shared/api/crud"
 import { pb } from "@/shared/api/pb"
@@ -114,13 +115,7 @@ export const applyPricesJobKeys = {
   all: ["frontpad_jobs", "apply_prices"] as const,
 }
 
-const ORDER_STATUSES = new Set<OrderStatus>([
-  "new",
-  "cooking",
-  "delivering",
-  "done",
-  "canceled",
-])
+const ORDER_STATUS_SET = new Set<OrderStatus>(ORDER_STATUSES)
 
 function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return []
@@ -145,7 +140,7 @@ function asStatusMap(value: unknown): Record<string, OrderStatus> {
   }
   const out: Record<string, OrderStatus> = {}
   for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
-    if (typeof raw === "string" && ORDER_STATUSES.has(raw as OrderStatus)) {
+    if (typeof raw === "string" && ORDER_STATUS_SET.has(raw as OrderStatus)) {
       out[key] = raw as OrderStatus
     }
   }

@@ -93,7 +93,7 @@
   "91": "CartLineRow.tsx",
   "92": "lib/format.ts",
   "93": "VitrineScroll.tsx",
-  "94": "clsx",
+  "94": "crud.ts",
   "95": "NutritionHint.tsx",
   "96": "lenis",
   "97": "react",
@@ -102,9 +102,11 @@
   "100": "inspect-vk-sdk.mjs",
   "101": "deploy.sh",
   "102": "zustand",
-  "103": "AuthButtons.tsx",
+  "103": "getAccount",
   "104": "Order",
-  "105": "react-easy-crop",
+  "105": "settings/model.ts",
+  "106": "addon/model.ts",
+  "107": "vk-sdk-cdn.ts",
   "112": "ProductsSection",
   "119": "@radix-ui/react-popover"
 }

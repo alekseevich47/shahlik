@@ -9,6 +9,7 @@ import {
 } from "@/entities/order/api"
 import {
   ORDER_STATUS_LABEL,
+  ORDER_STATUSES,
   isFrontpadWarning,
   type Order,
   type OrderStatus,
@@ -30,22 +31,15 @@ const PER_PAGE = 20
 
 const STATUS_FILTERS: ToolbarFilter[] = [
   { id: "all", label: "Все" },
-  { id: "new", label: "Новые" },
-  { id: "cooking", label: "Готовятся" },
-  { id: "delivering", label: "В доставке" },
-  { id: "done", label: "Выполнены" },
-  { id: "canceled", label: "Отменены" },
+  ...ORDER_STATUSES.filter((s) => s !== "pending").map((id) => ({
+    id,
+    label: ORDER_STATUS_LABEL[id],
+  })),
 ]
 
 function statusFromSearch(value: string | null): OrderStatus | "all" {
-  if (
-    value === "new" ||
-    value === "cooking" ||
-    value === "delivering" ||
-    value === "done" ||
-    value === "canceled"
-  ) {
-    return value
+  if (value && (ORDER_STATUSES as readonly string[]).includes(value) && value !== "pending") {
+    return value as OrderStatus
   }
   return "all"
 }
