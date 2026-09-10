@@ -8,8 +8,17 @@ type Props = {
   onChange: (next: number) => void
 }
 
-/** Строка добавки/соуса: thumb + имя/вес + серая цена + кнопка цены / stepper. */
+function formatWeight(weight?: string): string | null {
+  if (!weight?.trim()) return null
+  const raw = weight.trim()
+  if (/гр\.?$/i.test(raw) || /г$/i.test(raw) || /мл/i.test(raw) || /л$/i.test(raw)) return raw
+  return `${raw} гр.`
+}
+
+/** Строка добавки/соуса: thumb + имя + «N гр., +цена» + кнопка «+» / stepper. */
 export function AddonRow({ addon, quantity, onChange }: Props) {
+  const weightLabel = formatWeight(addon.weight)
+
   return (
     <li className="flex items-center gap-2.5 py-1.5">
       <img
@@ -20,12 +29,20 @@ export function AddonRow({ addon, quantity, onChange }: Props) {
       />
       <span className="min-w-0 flex-1 truncate text-[12.5px] leading-tight font-bold text-fg">
         {addon.name}
-        {addon.weight ? (
-          <span className="font-semibold text-fg-muted">, {addon.weight}</span>
+        {weightLabel || addon.price > 0 ? (
+          <span className="font-semibold text-fg-muted">
+            {weightLabel ? (
+              <>
+                {" "}
+                {weightLabel}
+                {addon.price > 0 ? ", " : ""}
+              </>
+            ) : null}
+            {addon.price > 0 ? (
+              <span className="tabular-nums">+{formatPrice(addon.price)}</span>
+            ) : null}
+          </span>
         ) : null}
-        <span className="ml-1.5 font-bold text-fg-muted tabular-nums">
-          +{formatPrice(addon.price)}
-        </span>
       </span>
       {quantity > 0 ? (
         <Stepper size="sm" value={quantity} onChange={onChange} tone="solid" />
@@ -34,9 +51,9 @@ export function AddonRow({ addon, quantity, onChange }: Props) {
           type="button"
           onClick={() => onChange(1)}
           aria-label={`Добавить ${addon.name}`}
-          className="h-8 shrink-0 cursor-pointer rounded-[var(--r-xs)] bg-surface-3 px-2.5 text-[11px] font-extrabold text-fg-soft tabular-nums transition-colors hover:bg-fg hover:text-on-brand"
+          className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-surface-3 text-[16px] font-extrabold leading-none text-fg-soft transition-colors hover:bg-fg hover:text-on-brand"
         >
-          +{formatPrice(addon.price)}
+          +
         </button>
       )}
     </li>

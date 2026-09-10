@@ -107,19 +107,6 @@
   "105": "settings/model.ts",
   "106": "addon/model.ts",
   "107": "vk-sdk-cdn.ts",
-  "108": "formatPrice",
-  "109": "localOrders.ts",
-  "110": "useCatalogScrollSpy.ts",
-  "111": "Toolbar.tsx",
   "112": "ProductsSection",
-  "113": "AddonRow.tsx",
-  "114": "mapFrontpadSettings",
-  "115": "select.tsx",
-  "116": "acceptAuthToken",
-  "117": "clsx",
-  "118": "lenis",
-  "119": "@radix-ui/react-popover",
-  "120": "@radix-ui/react-dialog",
-  "121": "react-easy-crop",
-  "122": "ratings.pb.js"
+  "119": "@radix-ui/react-popover"
 }

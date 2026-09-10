@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react"
+import { Star } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 
 import { useBadges } from "@/entities/badge/api"
@@ -11,27 +11,23 @@ import { withBackground } from "@/shared/lib/background-location"
 import { Badge } from "@/shared/ui/badge"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice } from "@/shared/lib/format"
-import { scoreColor } from "@/shared/ui/rating"
 import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
 type Props = {
   product: Product
-  onAdd: (product: Product) => void
   className?: string
+  /** Скрыть рейтинг (напр. в «Популярное»). */
+  hideRating?: boolean
 }
 
-/** Компактная карточка для мобильных горизонтальных подборок. */
-export function ProductCardCompact({ product, onAdd, className }: Props) {
+/** Компактная карточка для мобильных горизонтальных подборок и сетки. */
+export function ProductCardCompact({ product, className, hideRating }: Props) {
   const location = useLocation()
   const productState = withBackground(location)
   const { data: badges = [] } = useBadges()
   const { data: stopped = new Set<string>() } = useStoppedArticles()
   const label = badgeLabel(product.badge, badges)
   const outOfStock = isProductStopped(product, stopped)
-  const meta = [
-    ...product.variants.map((v) => v.label),
-    ...product.sizes.map((s) => s.label),
-  ].join(" • ")
   const href = `/product/${product.slug}`
 
   return (
@@ -67,37 +63,28 @@ export function ProductCardCompact({ product, onAdd, className }: Props) {
       </div>
 
       <div className="pointer-events-none relative flex flex-1 flex-col gap-1 p-2.5">
-        <h3 className="text-[13.5px] leading-tight font-extrabold text-fg">
-          {product.name}
-          {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
-        </h3>
-        {meta ? <p className="text-[10.5px] text-fg-muted">{meta}</p> : null}
-        <span
-          className="text-[11px] font-extrabold tabular-nums"
-          style={{ color: scoreColor(product.rating.overall, 10) }}
-        >
-          {product.rating.overall}/10
-        </span>
+        <div className="flex items-start justify-between gap-1.5">
+          <h3 className="min-w-0 flex-1 text-[13.5px] leading-tight font-extrabold text-fg">
+            {product.name}
+            {product.emoji ? <span className="ml-1">{product.emoji}</span> : null}
+          </h3>
+          {!hideRating ? (
+            <span className="inline-flex shrink-0 items-center gap-0.5 pt-0.5 text-[11px] font-extrabold text-brand tabular-nums dark:text-fg">
+              <Star size={12} className="text-brand dark:text-fg" strokeWidth={2.4} />
+              {product.rating.overall}
+            </span>
+          ) : null}
+        </div>
+        {product.tagline ? (
+          <p className="line-clamp-2 text-[10.5px] leading-[1.4] text-fg-muted">{product.tagline}</p>
+        ) : null}
         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-          <span className="text-[15px] leading-none font-extrabold text-fg tabular-nums">
+          <span className="text-[17px] leading-none font-extrabold text-fg tabular-nums">
             {formatPrice(minPrice(product))}
           </span>
           {outOfStock ? (
             <span className="text-[10px] leading-tight font-bold text-fg-muted">Нет в наличии</span>
-          ) : (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onAdd(product)
-              }}
-              aria-label={`Добавить «${product.name}»`}
-              className="pointer-events-auto relative z-10 grid size-7 cursor-pointer place-items-center rounded-[var(--r-xs)] bg-brand text-on-brand shadow-brand transition-colors hover:bg-brand-hover"
-            >
-              <Plus size={15} strokeWidth={3} />
-            </button>
-          )}
+          ) : null}
         </div>
       </div>
     </article>

@@ -91,7 +91,7 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
         <div className="mt-auto flex items-center gap-1.5 pt-0.5">
           <Star size={15} className="text-brand dark:text-fg" strokeWidth={2.4} />
           <span className="text-[14px] font-extrabold text-brand tabular-nums dark:text-fg">
-            {product.rating.overall}/10
+            {product.rating.overall}/5
           </span>
         </div>
 

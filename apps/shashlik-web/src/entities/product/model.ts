@@ -33,23 +33,38 @@ export type RatingCriterion = {
   id: string
   label: string
   hint: string
-  /** Оценка 0–10, шаг 1 в админке; на витрине — 5 звёзд с половинками (value / 2). */
+  /** Средняя оценка 0–5, шаг 0.1 (критерии ввода — целые 0–5). */
   value: number
+  /** Счётчики голосов по звёздам 0…5 (длина 6). */
+  distribution?: number[]
 }
 
-/** Нормализует value критерия к шкале 0–10 (legacy 0–5 ×2). */
+const RATING_MAX = 5
+
+/** Нормализует значение к шкале 0–5 (legacy 0–10 → /2). */
 export function criterionScore(value: number): number {
-  if (Number.isInteger(value) && value > 5) return Math.min(10, Math.max(0, value))
-  return Math.min(10, Math.max(0, Math.round(value * 2)))
+  if (!Number.isFinite(value)) return 0
+  const raw = value > RATING_MAX ? value / 2 : value
+  return Math.min(RATING_MAX, Math.max(0, Math.round(raw * 10) / 10))
 }
 
-/** Звёзды 0–5 (½) для критерия со шкалой 0–10. */
+/** Звёзды 0–5 (шаг 0.1) — то же, что criterionScore. */
 export function criterionStars(value: number): number {
-  return criterionScore(value) / 2
+  return criterionScore(value)
+}
+
+/** Нормализует гистограмму 0…5 звёзд. */
+export function normalizeDistribution(raw: unknown): number[] {
+  const empty = [0, 0, 0, 0, 0, 0]
+  if (!Array.isArray(raw) || raw.length === 0) return empty
+  return empty.map((_, i) => {
+    const n = Number(raw[i])
+    return Number.isFinite(n) && n > 0 ? Math.round(n) : 0
+  })
 }
 
 export type ProductRating = {
-  /** Общая оценка 0–10. */
+  /** Общая оценка 0–5, шаг 0.1. */
   overall: number
   votes: number
   criteria: RatingCriterion[]

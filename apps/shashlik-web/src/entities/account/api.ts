@@ -82,6 +82,7 @@ export function mapAppUser(record: RecordModel): AppUser {
     referredBy: asId(record.referredBy),
     pwaInstallClaimed: Boolean(record.pwaInstallClaimed),
     registrationClaimed: Boolean(record.registrationClaimed),
+    avatarUrl: asString(record.avatarUrl) || null,
   }
 }
 
@@ -235,6 +236,18 @@ function namesFromYandexMeta(meta: unknown): { firstName: string; lastName: stri
   return splitClientFullName(full)
 }
 
+function avatarFromYandexMeta(meta: unknown): string {
+  if (!meta || typeof meta !== "object") return ""
+  const row = meta as Record<string, unknown>
+  const raw = (row.rawUser ?? row) as Record<string, unknown>
+  const id = asString(raw.default_avatar_id ?? raw.avatar_id)
+  if (id && !/^https?:/i.test(id)) {
+    return `https://avatars.yandex.net/get-yapic/${id}/islands-200`
+  }
+  const url = asString(raw.avatar ?? raw.picture ?? raw.default_avatar_url)
+  return /^https?:\/\//i.test(url) ? url.slice(0, 500) : ""
+}
+
 function needsYandexNameFix(
   record: RecordModel,
   names: { firstName: string; lastName: string },
@@ -249,8 +262,10 @@ function needsYandexNameFix(
 async function syncYandexProfileFromMeta(record: RecordModel, meta: unknown): Promise<AppUser> {
   const names = namesFromYandexMeta(meta)
   const phone = phoneFromYandexMeta(meta)
+  const avatarUrl = avatarFromYandexMeta(meta)
   const nameFix = needsYandexNameFix(record, names)
   const needsPhone = !asString(record.phone) && Boolean(phone)
+  const needsAvatar = !asString(record.avatarUrl) && Boolean(avatarUrl)
 
   if (nameFix && names.firstName) {
     await updateAccount({
@@ -261,7 +276,11 @@ async function syncYandexProfileFromMeta(record: RecordModel, meta: unknown): Pr
   if (needsPhone && phone) {
     await linkPhone(phone)
   }
-  if (!nameFix && !needsPhone) return mapAppUser(record)
+  if (needsAvatar && avatarUrl) {
+    const updated = await pbClient.collection(COLLECTION).update(record.id, { avatarUrl })
+    pbClient.authStore.save(pbClient.authStore.token, updated)
+  }
+  if (!nameFix && !needsPhone && !needsAvatar) return mapAppUser(record)
 
   const refreshed = await pbClient.collection(COLLECTION).authRefresh()
   if (!isAppUserRecord(refreshed.record)) {
@@ -285,7 +304,11 @@ export async function loginWithOAuth(provider: OAuthProvider): Promise<AppUser> 
     throw new Error("Нет доступа к профилю")
   }
   const meta = (auth as { meta?: unknown }).meta
-  if (!asString(auth.record.phone) || needsYandexNameFix(auth.record, namesFromYandexMeta(meta))) {
+  if (
+    !asString(auth.record.phone) ||
+    needsYandexNameFix(auth.record, namesFromYandexMeta(meta)) ||
+    (!asString(auth.record.avatarUrl) && avatarFromYandexMeta(meta))
+  ) {
     return syncYandexProfileFromMeta(auth.record, meta)
   }
   const refreshed = await pbClient.collection(COLLECTION).authRefresh()

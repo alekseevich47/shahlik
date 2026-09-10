@@ -878,7 +878,7 @@ export function ProductEditor({ product, onBack }: Props) {
                         }
                       />
                     </Field>
-                    <Field label="Оценка /10">
+                    <Field label="Оценка /5">
                       <Input
                         value={String(criterion.value)}
                         inputMode="numeric"
@@ -886,7 +886,7 @@ export function ProductEditor({ product, onBack }: Props) {
                         onChange={(e) => {
                           const n = Number(e.target.value.replace(",", "."))
                           const clamped = Number.isFinite(n)
-                            ? Math.min(10, Math.max(0, Math.round(n)))
+                            ? Math.min(5, Math.max(0, Math.round(n)))
                             : 0
                           setCriteria((list) =>
                             list.map((c, i) => (i === index ? { ...c, value: clamped } : c)),
@@ -897,9 +897,9 @@ export function ProductEditor({ product, onBack }: Props) {
                   </div>
                   <span
                     className="mt-7 shrink-0 text-[12.5px] font-extrabold tabular-nums"
-                    style={{ color: scoreColor(criterionScore(criterion.value), 10) }}
+                    style={{ color: scoreColor(criterionScore(criterion.value), 5) }}
                   >
-                    {criterionScore(criterion.value)}/10
+                    {criterionScore(criterion.value)}/5
                   </span>
                   <button
                     type="button"
@@ -1041,7 +1041,7 @@ export function ProductEditor({ product, onBack }: Props) {
                   {tagline || composition}
                 </p>
                 <p className="text-[11px] font-extrabold text-brand tabular-nums">
-                  ★ {product.rating.overall}/10 ({product.rating.votes})
+                  ★ {product.rating.overall}/5 ({product.rating.votes})
                 </p>
                 <p className="text-[13px] font-extrabold text-fg tabular-nums">
                   от {formatPrice(sizes.length ? minPrice(draftProduct) : 0)}

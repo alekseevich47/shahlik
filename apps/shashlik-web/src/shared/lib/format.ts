@@ -3,12 +3,12 @@ export function formatPrice(value: number): string {
   return `${Math.round(value).toLocaleString("ru-RU")}₽`
 }
 
-/** Оценка по 10-балльной шкале: 8 → «8/10», 8.5 → «8.5/10». */
+/** @deprecated Используйте formatScore5. */
 export function formatScore10(value: number): string {
-  return `${trimZero(value)}/10`
+  return formatScore5(value > 5 ? value / 2 : value)
 }
 
-/** Оценка по 5-балльной шкале с шагом 0.5. */
+/** Оценка по 5-балльной шкале: 4 → «4/5», 4.2 → «4.2/5». */
 export function formatScore5(value: number): string {
   return `${trimZero(value)}/5`
 }

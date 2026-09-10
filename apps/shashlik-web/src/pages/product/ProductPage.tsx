@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { useBadges } from "@/entities/badge/api"
 import { badgeLabel } from "@/entities/badge/model"
 import { useExtras, useSauces } from "@/entities/addon/api"
-import { criterionScore, criterionStars, type MeatIcon } from "@/entities/product/model"
+import { criterionScore, type MeatIcon, type RatingCriterion } from "@/entities/product/model"
 import { findSize, findVariant, compositionOf, nutritionForPortion, priceOf } from "@/entities/product/lib"
 import {
   isAddonStopped,
@@ -20,19 +20,20 @@ import {
 import { useProductBySlug } from "@/entities/product/api"
 import { PRODUCT_ASPECT_RATIO } from "@/entities/product/format"
 import { useCartStore } from "@/features/cart/model/store"
+import { useFavoritesStore, useIsFavorite } from "@/features/favorites/model/store"
 import { productEditOf } from "@/shared/lib/background-location"
 import { cn } from "@/shared/lib/cn"
 import { formatPrice, pluralize } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { OptionCard } from "@/shared/ui/chip"
-import { ScoreValue, Stars } from "@/shared/ui/rating"
+import { ScoreValue } from "@/shared/ui/rating"
 import { Stepper } from "@/shared/ui/stepper"
 import { GroupLabel } from "@/shared/ui/surface"
 import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
-import { HintMark } from "@/shared/ui/tooltip"
 
 import { AddonRow } from "./ui/AddonRow"
+import { CriterionHint } from "./ui/CriterionHint"
 import { FreshStamp } from "./ui/FreshStamp"
 import { NutritionHint } from "./ui/NutritionHint"
 
@@ -57,7 +58,8 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   const [sizeId, setSizeId] = useState<string>()
   const [quantity, setQuantity] = useState(1)
   const [picked, setPicked] = useState<Record<string, number>>({})
-  const [liked, setLiked] = useState(false)
+  const liked = useIsFavorite(product?.id ?? "")
+  const toggleFavorite = useFavoritesStore((s) => s.toggle)
   const add = useCartStore((s) => s.add)
   const replaceLine = useCartStore((s) => s.replaceLine)
   const isEditing = Boolean(editLineId)
@@ -158,7 +160,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
 
             <button
               type="button"
-              onClick={() => setLiked((v) => !v)}
+              onClick={() => toggleFavorite(product.id)}
               aria-label={liked ? "Убрать из избранного" : "В избранное"}
               aria-pressed={liked}
               className={cn(
@@ -171,21 +173,12 @@ export function ProductView({ onClose, className }: ProductViewProps) {
               <Heart size={22} strokeWidth={2.1} fill={liked ? "currentColor" : "none"} />
             </button>
 
-            <div className="absolute bottom-4 left-4 z-10 flex max-w-[min(100%-2rem,420px)] flex-col gap-2.5">
+            <div className="absolute bottom-3 left-3 z-10 max-w-[min(100%-1.5rem,420px)]">
               <RatingOverlay
                 overall={product.rating.overall}
                 votes={product.rating.votes}
                 criteria={product.rating.criteria}
               />
-              {composition ? (
-                <div className="rounded-[var(--r-lg)] border border-line bg-surface/94 p-3.5 shadow-[var(--shadow-card)] backdrop-blur-md">
-                  <div className="mb-1.5 flex items-center gap-1.5">
-                    <span className="text-[14px] font-extrabold text-fg">Состав</span>
-                    <Leaf size={14} className="text-success" strokeWidth={2.3} />
-                  </div>
-                  <p className="text-[11.5px] leading-[1.55] text-fg-muted">{composition}</p>
-                </div>
-              ) : null}
             </div>
           </div>
         </section>
@@ -222,22 +215,15 @@ export function ProductView({ onClose, className }: ProductViewProps) {
             </button>
           </header>
 
-          <ul className="flex max-w-[340px] flex-col gap-2">
-            {product.rating.criteria.map((criterion) => (
-              <li key={criterion.id} className="flex items-center gap-3">
-                <span className="flex w-22 shrink-0 items-center gap-1.5 text-[12.5px] font-semibold text-fg-soft">
-                  {criterion.label}
-                  <HintMark hint={criterion.hint} />
-                </span>
-                <Stars value={criterionStars(criterion.value)} />
-                <ScoreValue
-                  value={criterionScore(criterion.value)}
-                  max={10}
-                  className="ml-auto w-12 text-right text-[13px]"
-                />
-              </li>
-            ))}
-          </ul>
+          {composition ? (
+            <div className="max-w-[440px] rounded-[var(--r-lg)] border border-line bg-surface-2/80 p-3.5">
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <span className="text-[14px] font-extrabold text-fg">Состав</span>
+                <Leaf size={14} className="text-success" strokeWidth={2.3} />
+              </div>
+              <p className="text-[12px] leading-[1.55] text-fg-muted">{composition}</p>
+            </div>
+          ) : null}
 
           {product.variants.length > 1 ? (
             <div>
@@ -352,13 +338,17 @@ export default function ProductPage() {
   )
 }
 
-/** PDP поверх витрины: Portal в body, закрытие — history.back. */
+/** PDP поверх витрины: Portal в body, закрытие — плавный exit, затем history.back. */
 export function ProductModal() {
   const { slug = "" } = useParams()
   const navigate = useNavigate()
   const { data: product, isPending } = useProductBySlug(slug)
+  const [open, setOpen] = useState(true)
 
-  const close = () => navigate(-1)
+  const close = () => {
+    setOpen(false)
+    window.setTimeout(() => navigate(-1), 280)
+  }
 
   if (!slug || (!isPending && !product)) {
     return <Navigate to="/" replace />
@@ -366,29 +356,31 @@ export function ProductModal() {
 
   return (
     <DialogPrimitive.Root
-      open
+      open={open}
       onOpenChange={(next) => {
         if (!next) close()
       }}
     >
-      <DialogPrimitive.Portal>
+      <DialogPrimitive.Portal forceMount>
         <DialogPrimitive.Overlay
           data-lenis-prevent
+          forceMount
           className={cn(
             "fixed inset-0 z-300 bg-black/45",
-            "data-[state=open]:animate-in data-[state=open]:fade-in-0",
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+            "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-300",
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-300",
           )}
         />
         <DialogPrimitive.Content
           data-lenis-prevent
+          forceMount
           aria-describedby={undefined}
           className={cn(
             "fixed top-1/2 left-1/2 z-301 flex w-[min(1200px,calc(100vw-1rem))] max-h-[94vh] -translate-x-1/2 -translate-y-1/2 flex-col",
             "overflow-y-auto overscroll-contain rounded-[var(--r-2xl)] border border-line bg-canvas shadow-[var(--shadow-panel)] outline-none",
-            "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-            "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:duration-300",
+            "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-300",
             "p-0 sm:p-4 lg:p-5",
           )}
         >
@@ -415,14 +407,14 @@ function RatingOverlay({
 }: {
   overall: number
   votes: number
-  criteria: { id: string; label: string; value: number }[]
+  criteria: RatingCriterion[]
 }) {
   return (
     <div className="flex w-fit max-w-full flex-wrap items-center gap-4 rounded-[var(--r-lg)] border border-line bg-surface/94 px-4 py-2.5 shadow-[var(--shadow-card)] backdrop-blur-md">
       <div className="flex items-center gap-2">
-        <Star size={22} className="text-success" strokeWidth={2} />
+        <Star size={22} className="text-success" strokeWidth={2} fill="currentColor" />
         <span className="flex flex-col leading-tight">
-          <span className="text-[15px] font-extrabold text-fg tabular-nums">{overall}/10</span>
+          <span className="text-[15px] font-extrabold text-fg tabular-nums">{overall}/5</span>
           <span className="text-[10px] text-fg-muted">
             {votes} {pluralize(votes, ["оценка", "оценки", "оценок"])}
           </span>
@@ -431,8 +423,11 @@ function RatingOverlay({
       <div className="flex gap-4 border-l border-line pl-4">
         {criteria.map((criterion) => (
           <span key={criterion.id} className="flex flex-col gap-0.5 leading-tight">
-            <span className="text-[10px] text-fg-muted">{criterion.label}</span>
-            <ScoreValue value={criterionScore(criterion.value)} max={10} className="text-[12.5px]" />
+            <span className="inline-flex items-center gap-1 text-[10px] text-fg-muted">
+              {criterion.label}
+              <CriterionHint criterion={criterion} />
+            </span>
+            <ScoreValue value={criterionScore(criterion.value)} max={5} className="text-[12.5px]" />
           </span>
         ))}
       </div>

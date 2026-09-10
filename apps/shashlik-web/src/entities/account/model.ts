@@ -44,6 +44,8 @@ export type AppUser = {
   referredBy?: string | null
   pwaInstallClaimed?: boolean
   registrationClaimed?: boolean
+  /** URL аватара из VK / Яндекс. */
+  avatarUrl?: string | null
 }
 
 export type UpdateAccountInput = {

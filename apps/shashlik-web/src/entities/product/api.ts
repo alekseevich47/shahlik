@@ -10,6 +10,7 @@ import { queryClient } from "@/shared/api/query-client"
 import {
   criterionScore,
   DEFAULT_CRITERIA,
+  normalizeDistribution,
   type Product,
   type ProductBadge,
   type ProductNutrition,
@@ -43,12 +44,17 @@ type ProductRecord = {
 }
 
 function mapRating(rating: ProductRating): ProductRating {
-  return {
-    ...rating,
-    criteria: rating.criteria.map((c) => ({
+  const criteria = (rating?.criteria?.length ? rating.criteria : DEFAULT_CRITERIA.map((c) => ({ ...c, value: 0 }))).map(
+    (c) => ({
       ...c,
       value: criterionScore(c.value),
-    })),
+      distribution: normalizeDistribution(c.distribution),
+    }),
+  )
+  return {
+    overall: criterionScore(rating?.overall ?? 0),
+    votes: Math.max(0, Math.round(Number(rating?.votes) || 0)),
+    criteria,
   }
 }
 
@@ -258,7 +264,11 @@ function defaultRating(): ProductRating {
   return {
     overall: 0,
     votes: 0,
-    criteria: DEFAULT_CRITERIA.map((c) => ({ ...c, value: 0 })),
+    criteria: DEFAULT_CRITERIA.map((c) => ({
+      ...c,
+      value: 0,
+      distribution: [0, 0, 0, 0, 0, 0],
+    })),
   }
 }
 

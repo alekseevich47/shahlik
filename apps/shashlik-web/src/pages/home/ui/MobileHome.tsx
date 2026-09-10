@@ -1,4 +1,3 @@
-import { ChevronRight } from "lucide-react"
 import { useCallback, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -9,10 +8,9 @@ import type { Product } from "@/entities/product/model"
 import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
 import { useSettings } from "@/entities/settings/api"
 import { settingsFallback } from "@/entities/settings/model"
-import { useAddProduct } from "@/features/cart/lib/useAddProduct"
-import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
+import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
+import { MobileCategoryBar, MOBILE_CATEGORY_STICKY_H } from "@/widgets/mobile/MobileCategoryBar"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
-import { AddressBar } from "@/widgets/mobile/AddressBar"
 import { PromoBanner } from "@/widgets/promo/PromoBanner"
 
 import { groupProductsByCategory } from "../lib/groupByCategory"
@@ -26,7 +24,6 @@ type Props = {
 }
 
 export function MobileHome({ category, onCategoryChange, items }: Props) {
-  const addProduct = useAddProduct()
   const navigate = useNavigate()
   const account = useAccount()
   const { data: settings = settingsFallback() } = useSettings()
@@ -38,11 +35,14 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
   const combo = catalog.filter((p) => p.categoryId === "combo")
   const sections = useMemo(() => groupProductsByCategory(items, categories), [items, categories])
   const sectionIds = useMemo(() => sections.map(({ category: section }) => section.id), [sections])
+  const firstCategoryId = sectionIds[0]
 
   const { scrollToCategory } = useCatalogScrollSpy({
     sectionIds,
     activeCategory: category,
     onCategoryChange,
+    scrollMargin: MOBILE_CATEGORY_STICKY_H + 8,
+    firstCategoryId,
   })
 
   const handleCategorySelect = useCallback(
@@ -54,12 +54,15 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
   )
 
   return (
-    <div className="flex flex-col gap-4 px-4 pt-3 pb-24">
-      <AddressBar />
+    <div className="flex flex-col gap-4 px-4 pt-3 pb-[calc(68px+env(safe-area-inset-bottom))]">
       <HeroBanner />
-      <CategoryTiles value={category} onChange={handleCategorySelect} />
+      <MobileCategoryBar
+        value={category}
+        onChange={handleCategorySelect}
+        firstCategoryId={firstCategoryId}
+      />
 
-      <ScrollSection title="Популярное" items={popular} onAdd={addProduct} />
+      <ScrollSection title="Популярное" items={popular} hideRating />
 
       <PromoBanner
         title={settings.promoTitle}
@@ -75,9 +78,7 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
         />
       ) : null}
 
-      {combo.length ? (
-        <ScrollSection title="Комбо" items={combo} onAdd={addProduct} />
-      ) : null}
+      {combo.length ? <ScrollSection title="Комбо" items={combo} /> : null}
 
       <section>
         {items.length === 0 ? (
@@ -92,10 +93,11 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
                 categoryId={section.id}
                 title={section.name}
                 headingClassName="mb-2.5 text-[18px] leading-none font-extrabold text-fg"
+                scrollMarginTop={MOBILE_CATEGORY_STICKY_H + 8}
               >
                 <div className="grid grid-cols-2 gap-3">
                   {sectionItems.map((product) => (
-                    <ProductCardCompact key={product.id} product={product} onAdd={addProduct} />
+                    <ProductCardCompact key={product.id} product={product} />
                   ))}
                 </div>
               </CatalogCategorySection>
@@ -110,30 +112,25 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
 function ScrollSection({
   title,
   items,
-  onAdd,
+  hideRating,
 }: {
   title: string
   items: Product[]
-  onAdd: (product: Product) => void
+  hideRating?: boolean
 }) {
+  const scrollRef = useAxisLockedHorizontalScroll<HTMLDivElement>()
+  if (!items.length) return null
   return (
     <section>
       <div className="mb-2.5 flex items-center justify-between gap-3">
         <h2 className="text-[18px] leading-none font-extrabold text-fg">{title}</h2>
-        <button
-          type="button"
-          className="flex cursor-pointer items-center gap-0.5 text-[12px] font-bold text-fg-muted"
-        >
-          Смотреть все
-          <ChevronRight size={14} strokeWidth={2.6} />
-        </button>
       </div>
-      <div className="scrollbar-none -mx-4 flex gap-3 overflow-x-auto px-4" data-lenis-prevent>
+      <div ref={scrollRef} className="scrollbar-none -mx-4 flex gap-3 overflow-x-auto px-4">
         {items.map((product) => (
           <ProductCardCompact
             key={product.id}
             product={product}
-            onAdd={onAdd}
+            hideRating={hideRating}
             className="w-[142px] shrink-0"
           />
         ))}

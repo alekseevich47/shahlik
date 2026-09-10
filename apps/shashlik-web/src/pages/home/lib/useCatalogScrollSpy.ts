@@ -10,6 +10,10 @@ type Options = {
   activeCategory: string
   onCategoryChange: (id: string) => void
   enabled?: boolean
+  /** Mobile sticky высота для spy rootMargin. */
+  scrollMargin?: number
+  /** Первая категория: скролл до появления sticky-шапки. */
+  firstCategoryId?: string
 }
 
 /**
@@ -22,6 +26,8 @@ export function useCatalogScrollSpy({
   activeCategory,
   onCategoryChange,
   enabled = true,
+  scrollMargin,
+  firstCategoryId,
 }: Options) {
   const vitrineScroll = useVitrineScroll()
   const activeRef = useRef(activeCategory)
@@ -34,9 +40,6 @@ export function useCatalogScrollSpy({
 
   const scrollToCategory = useCallback(
     (id: string) => {
-      const node = document.getElementById(catalogSectionId(id))
-      if (!node) return
-
       lockRef.current = true
       window.clearTimeout(lockTimerRef.current)
 
@@ -51,10 +54,29 @@ export function useCatalogScrollSpy({
         unlock()
       }
 
-      // Отступ только из CSS scroll-margin-top секции (CATALOG_SCROLL_MARGIN).
-      // Lenis сам читает scrollMarginTop — не дублировать offset, иначе якорь
-      // уезжает слишком высоко: первая категория возвращает теги во вьюпорт,
-      // плашка схлопывается, сайдбар снова выезжает.
+      // Первая категория: доскролл до появления sticky (inline-лента уходит из вида).
+      if (firstCategoryId && id === firstCategoryId) {
+        const inline = document.querySelector<HTMLElement>("[data-mobile-category-inline]")
+        if (inline && vitrineScroll) {
+          const top = inline.getBoundingClientRect().bottom + window.scrollY + 4
+          vitrineScroll.scrollTo(top, { duration: 1, onComplete: finish })
+          return
+        }
+        if (inline) {
+          const top = inline.getBoundingClientRect().bottom + window.scrollY + 4
+          window.scrollTo({ top, behavior: "smooth" })
+          finish()
+          return
+        }
+      }
+
+      const node = document.getElementById(catalogSectionId(id))
+      if (!node) {
+        finish()
+        return
+      }
+
+      // Отступ только из CSS scroll-margin-top секции.
       if (vitrineScroll) {
         vitrineScroll.scrollTo(node, {
           duration: 1,
@@ -64,14 +86,19 @@ export function useCatalogScrollSpy({
       }
 
       node.scrollIntoView({ behavior: "smooth", block: "start" })
+      finish()
     },
-    [vitrineScroll],
+    [vitrineScroll, firstCategoryId],
   )
 
   useEffect(() => {
     if (!enabled || sectionIds.length === 0) return
 
     const visible = new Map<string, number>()
+    const rootMargin =
+      scrollMargin !== undefined
+        ? `-${scrollMargin}px 0px -55% 0px`
+        : CATALOG_SCROLL_SPY_MARGIN
 
     const pickActive = () => {
       if (lockRef.current || visible.size === 0) return
@@ -92,7 +119,7 @@ export function useCatalogScrollSpy({
         }
         pickActive()
       },
-      { rootMargin: CATALOG_SCROLL_SPY_MARGIN, threshold: [0, 0.25, 0.5, 0.75, 1] },
+      { rootMargin, threshold: [0, 0.25, 0.5, 0.75, 1] },
     )
 
     for (const id of sectionIds) {
@@ -104,7 +131,7 @@ export function useCatalogScrollSpy({
       observer.disconnect()
       window.clearTimeout(lockTimerRef.current)
     }
-  }, [sectionIds, onCategoryChange, enabled])
+  }, [sectionIds, onCategoryChange, enabled, scrollMargin])
 
   return { scrollToCategory }
 }

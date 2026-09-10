@@ -45,8 +45,8 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
         "relative inline-flex cursor-pointer items-center rounded-[var(--r-md)] border transition-colors",
         btnH,
         glass
-          ? "text-brand shadow-none hover:border-[var(--glass-btn-border)]"
-          : "border-line bg-surface text-brand shadow-[var(--shadow-card)] hover:border-brand-border",
+          ? "border-transparent bg-surface text-brand shadow-[var(--shadow-card)] hover:text-brand"
+          : "border-transparent bg-surface text-brand shadow-[var(--shadow-card)] hover:text-brand",
         className,
       )}
     >
@@ -61,7 +61,7 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
             <span
               className={cn(
                 "text-[13px] leading-none font-extrabold tracking-tight tabular-nums",
-                glass ? "text-white" : "text-fg",
+                "text-fg",
               )}
             >
               {sum.amount}
@@ -69,7 +69,7 @@ export function CartToggle({ onClick, count, total, pressed, tone = "solid", cla
             <span
               className={cn(
                 "text-[11px] leading-none font-bold",
-                glass ? "text-white/75" : "text-fg-muted",
+                "text-fg-muted",
               )}
             >
               р.

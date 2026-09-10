@@ -1,6 +1,7 @@
 import { Search, User } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
+import { useAccount } from "@/app/providers/account"
 import { CartToggle } from "@/features/cart/ui/CartToggle"
 import { useCartTotals } from "@/features/cart/model/selectors"
 import { ThemeToggle } from "@/features/theme-toggle/ThemeToggle"
@@ -9,28 +10,24 @@ import { cn } from "@/shared/lib/cn"
 type Props = {
   onSearch: () => void
   onCart: () => void
-  /** Колонка корзины на широком столе — кнопка работает как ThemeToggle. */
   cartPressed?: boolean
-  /** `glass` — кнопки лежат на стеклянной плашке: полупрозрачный фон без тени. */
   tone?: "solid" | "glass"
-  /** Кнопка «Войти» слева от лупы — только на раскрытой плашке. */
   showAccount?: boolean
   className?: string
 }
 
+/** Белый фон, тень, чёрные иконки — и для solid, и для glass (маленькое/большое меню). */
 const TONE = {
-  solid: "border-line bg-surface shadow-[var(--shadow-card)]",
-  glass: "border-[var(--glass-btn-border)] bg-[var(--glass-btn)] shadow-none",
+  solid: "border-transparent bg-surface shadow-[var(--shadow-card)]",
+  glass: "border-transparent bg-surface shadow-[var(--shadow-card)]",
 } as const
 
 const ICON_BTN_SOLID =
-  "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border text-fg transition-colors hover:border-brand-border hover:text-brand"
+  "grid size-11 cursor-pointer place-items-center rounded-[var(--r-md)] border text-fg transition-colors hover:text-brand"
 
-/** На стекле 40×40 — запас под бейдж корзины внутри overflow:hidden плашки. */
 const ICON_BTN_GLASS =
-  "grid size-10 cursor-pointer place-items-center rounded-[var(--r-md)] border text-white transition-colors hover:border-[var(--glass-btn-border)] hover:text-white"
+  "grid size-10 cursor-pointer place-items-center rounded-[var(--r-md)] border text-fg transition-colors hover:text-brand"
 
-/** Действия витрины: поиск, тема, корзина. Позиционирует вызывающий. */
 export function FloatingActions({
   onSearch,
   onCart,
@@ -40,6 +37,7 @@ export function FloatingActions({
   className,
 }: Props) {
   const { count, total } = useCartTotals()
+  const { user } = useAccount()
   const skin = TONE[tone]
   const iconBtn = tone === "glass" ? ICON_BTN_GLASS : ICON_BTN_SOLID
 
@@ -47,7 +45,11 @@ export function FloatingActions({
     <div className={cn("flex items-center", tone === "glass" ? "gap-1.5" : "gap-2", className)}>
       {showAccount ? (
         <NavLink to="/profile" aria-label="Профиль" className={cn(iconBtn, skin)}>
-          <User size={18} strokeWidth={2.4} />
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="" className="size-6 rounded-full object-cover" />
+          ) : (
+            <User size={18} strokeWidth={2.4} />
+          )}
         </NavLink>
       ) : null}
 

@@ -22,9 +22,7 @@ export function ThemeToggle({
       className={cn(
         "grid cursor-pointer place-items-center rounded-[var(--r-md)] border transition-colors",
         tone === "glass" ? "size-10" : "size-11",
-        tone === "glass"
-          ? "text-white hover:border-[var(--glass-btn-border)] hover:text-white"
-          : "border-line bg-surface text-fg-muted hover:border-brand-border hover:text-brand",
+        "border-transparent bg-surface text-fg shadow-[var(--shadow-card)] hover:text-brand",
         className,
       )}
     >

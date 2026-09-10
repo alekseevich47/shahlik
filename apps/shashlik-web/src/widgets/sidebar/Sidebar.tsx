@@ -142,7 +142,17 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
             to="/profile"
             className="flex items-center gap-2.5 rounded-[var(--r-md)] px-2.5 py-2 text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
           >
-            {account ? <User size={17} strokeWidth={2.2} /> : <LogIn size={17} strokeWidth={2.2} />}
+            {account?.avatarUrl ? (
+              <img
+                src={account.avatarUrl}
+                alt=""
+                className="size-[22px] shrink-0 rounded-full object-cover ring-1 ring-line"
+              />
+            ) : account ? (
+              <User size={17} strokeWidth={2.2} />
+            ) : (
+              <LogIn size={17} strokeWidth={2.2} />
+            )}
             <span className="flex min-w-0 flex-col leading-tight">
               {account ? (
                 <>

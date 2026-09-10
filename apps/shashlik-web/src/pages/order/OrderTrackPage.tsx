@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { repeatOrderIntoCart } from "@/features/order-tracking/lib/repeatOrder"
 import { useLiveOrder } from "@/features/order-tracking/model/useLiveOrder"
 import { OrderDetails } from "@/features/order-tracking/ui/OrderDetails"
+import { RateOrderButton } from "@/features/rating/ui/RateOrderButton"
 import { SITE } from "@/shared/config/site"
 import { Button } from "@/shared/ui/button"
 
@@ -50,18 +51,21 @@ export default function OrderTrackPage() {
           <OrderDetails
             order={order}
             actions={
-              <Button
-                type="button"
-                variant="brand"
-                block
-                onClick={() => {
-                  repeatOrderIntoCart(order)
-                  toast.success("Состав добавлен в корзину")
-                  navigate("/")
-                }}
-              >
-                Повторить заказ
-              </Button>
+              <div className="flex flex-col gap-2">
+                <RateOrderButton order={order} />
+                <Button
+                  type="button"
+                  variant="brand"
+                  block
+                  onClick={() => {
+                    repeatOrderIntoCart(order)
+                    toast.success("Состав добавлен в корзину")
+                    navigate("/")
+                  }}
+                >
+                  Повторить заказ
+                </Button>
+              </div>
             }
           />
         )}

@@ -22,6 +22,7 @@ import { getLatestLocalOrderId, listLocalOrderIds } from "@/features/order-track
 import { useLiveOrder } from "@/features/order-tracking/model/useLiveOrder"
 import { repeatOrderIntoCart } from "@/features/order-tracking/lib/repeatOrder"
 import { OrderDetails } from "@/features/order-tracking/ui/OrderDetails"
+import { RateOrderButton } from "@/features/rating/ui/RateOrderButton"
 import { SITE } from "@/shared/config/site"
 import { formatDateTime, formatPrice } from "@/shared/lib/format"
 import { cn } from "@/shared/lib/cn"
@@ -150,10 +151,15 @@ function CurrentOrderTab() {
     () => orders.find((order) => isActiveOrderStatus(order.status)) ?? null,
     [orders],
   )
+  const latestDone = useMemo(
+    () => orders.find((order) => order.status === "done") ?? null,
+    [orders],
+  )
   const localId = getLatestLocalOrderId()
 
   if (isLoading) return <LoadingBlock />
   if (active) return <LiveOrderBlock id={active.id} />
+  if (latestDone) return <LiveOrderBlock id={latestDone.id} />
   if (localId) return <LiveOrderBlock id={localId} onlyIfActive />
   return <EmptyBlock>Сейчас нет активного заказа</EmptyBlock>
 }
@@ -174,7 +180,8 @@ function LiveOrderBlock({ id, onlyIfActive }: { id: string; onlyIfActive?: boole
     <OrderDetails
       order={order}
       actions={
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <RateOrderButton order={order} />
           <Button type="button" variant="outline" block onClick={() => navigate(`/order/${order.id}`)}>
             Открыть трекинг
           </Button>
@@ -197,11 +204,11 @@ function HistoryTab({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <ul className="flex flex-col gap-2">
       {orders.map((order) => (
-        <li key={order.id}>
+        <li key={order.id} className="flex flex-col gap-2 rounded-[var(--r-lg)] border border-line bg-surface px-4 py-3">
           <button
             type="button"
             onClick={() => onOpen(order.id)}
-            className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-[var(--r-lg)] border border-line bg-surface px-4 py-3 text-left transition-colors hover:border-brand-border"
+            className="flex w-full cursor-pointer items-center justify-between gap-3 text-left transition-colors hover:opacity-90"
           >
             <span className="min-w-0">
               <span className="block text-[14px] font-bold text-fg">
@@ -218,6 +225,9 @@ function HistoryTab({ onOpen }: { onOpen: (id: string) => void }) {
               </span>
             </span>
           </button>
+          {order.status === "done" ? (
+            <RateOrderButton order={order} compact className="self-end" />
+          ) : null}
         </li>
       ))}
     </ul>

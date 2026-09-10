@@ -9,6 +9,7 @@ import {
   useAccount as useAccountRecord,
 } from "@/entities/account/api"
 import type { AppUser, OAuthProvider } from "@/entities/account/model"
+import { rebindFavoritesForAccount } from "@/features/favorites/model/store"
 import { pbClient } from "@/shared/api/pb-client"
 
 export type AccountAuth = {
@@ -83,13 +84,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  useEffect(() => {
+    rebindFavoritesForAccount()
+  }, [user?.id])
+
   async function loginWithOAuth(provider: OAuthProvider) {
     await loginWithOAuthApi(provider)
+    rebindFavoritesForAccount()
   }
 
   function logout() {
     refreshInflight = null
     logoutApi()
+    rebindFavoritesForAccount()
   }
 
   const value: AccountAuth = {

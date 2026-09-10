@@ -1,7 +1,7 @@
-import { LayoutGrid } from "lucide-react"
-
 import { useCategories } from "@/entities/category/api"
+import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
 import { cn } from "@/shared/lib/cn"
+import { LayoutGrid } from "lucide-react"
 
 type Props = {
   value: string
@@ -12,9 +12,13 @@ type Props = {
 /** Мобильная лента категорий: квадратные плитки с иконкой и подписью. */
 export function CategoryTiles({ value, onChange, className }: Props) {
   const { data: categories = [] } = useCategories()
+  const scrollRef = useAxisLockedHorizontalScroll<HTMLDivElement>()
 
   return (
-    <div className={cn("scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4", className)} data-lenis-prevent>
+    <div
+      ref={scrollRef}
+      className={cn("scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4", className)}
+    >
       {categories.map((category) => {
         const active = category.id === value
         return (

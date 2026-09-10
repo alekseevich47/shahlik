@@ -10,31 +10,27 @@ import { SearchDialog } from "@/features/search/SearchDialog"
 import { backgroundOf } from "@/shared/lib/background-location"
 import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
-import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
-import { MobileHeader } from "@/widgets/mobile/MobileHeader"
 import { MobileTabBar, type MobileTab } from "@/widgets/mobile/MobileTabBar"
 
 import { VitrineScrollProvider, useVitrineScroll } from "./lib/VitrineScroll"
 import { DesktopHome } from "./ui/DesktopHome"
+import { MobileFavorites } from "./ui/MobileFavorites"
 import { MobileHome } from "./ui/MobileHome"
 
 function HomeMobileTabBar({
   value,
   onTab,
   onOpenCart,
-  onOpenMenu,
 }: {
   value: MobileTab
   onTab: (tab: MobileTab) => void
   onOpenCart: () => void
-  onOpenMenu: () => void
 }) {
   const vitrineScroll = useVitrineScroll()
 
   const handleTab = (next: MobileTab) => {
     onTab(next)
     if (next === "cart") onOpenCart()
-    if (next === "menu") onOpenMenu()
     if (next === "home") vitrineScroll?.scrollToTop()
   }
 
@@ -48,7 +44,6 @@ export default function HomePage() {
   const [category, setCategory] = useState("shawarma")
   const [searchOpen, setSearchOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [tab, setTab] = useState<MobileTab>("home")
   const isDesktop = useIsDesktop()
   const checkoutOpen = useCheckoutDialogStore((s) => s.open)
@@ -63,18 +58,12 @@ export default function HomePage() {
 
   const selectCategory = useCallback((id: string) => {
     setCategory(id)
-    setMenuOpen(false)
   }, [])
 
-  const scrollPaused =
-    cartOpen || menuOpen || checkoutOpen || searchOpen || productModalOpen
+  const scrollPaused = cartOpen || checkoutOpen || searchOpen || productModalOpen
 
   return (
     <div className="min-h-dvh bg-canvas">
-      {!isDesktop ? (
-        <MobileHeader onOpenMenu={() => setMenuOpen(true)} onOpenCart={() => setCartOpen(true)} />
-      ) : null}
-
       <VitrineScrollProvider paused={scrollPaused}>
         {isDesktop ? (
           <DesktopHome
@@ -84,6 +73,8 @@ export default function HomePage() {
             onOpenSearch={() => setSearchOpen(true)}
             onOpenCart={() => setCartOpen(true)}
           />
+        ) : tab === "favorites" ? (
+          <MobileFavorites />
         ) : (
           <MobileHome category={category} onCategoryChange={selectCategory} items={items} />
         )}
@@ -93,7 +84,6 @@ export default function HomePage() {
             value={tab}
             onTab={setTab}
             onOpenCart={() => setCartOpen(true)}
-            onOpenMenu={() => setMenuOpen(true)}
           />
         ) : null}
       </VitrineScrollProvider>
@@ -105,13 +95,6 @@ export default function HomePage() {
         <SheetContent side="right" className="p-0">
           <SheetTitle className="sr-only">Мой заказ</SheetTitle>
           <CartPanel className="rounded-none border-0 shadow-none" />
-        </SheetContent>
-      </Sheet>
-
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="bottom" className="gap-4 p-5">
-          <SheetTitle className="text-[18px] font-extrabold text-fg">Категории</SheetTitle>
-          <CategoryTiles value={category} onChange={selectCategory} className="-mx-5 px-5" />
         </SheetContent>
       </Sheet>
     </div>

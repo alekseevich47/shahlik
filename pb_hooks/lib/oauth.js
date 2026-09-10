@@ -424,7 +424,7 @@ function oauthAccessToken(source) {
 
 function extractYandexProfile(oauth2User) {
   if (!oauth2User) {
-    return { phone: "", names: { firstName: "", lastName: "" }, emails: [] }
+    return { phone: "", names: { firstName: "", lastName: "" }, emails: [], avatarUrl: "" }
   }
 
   var plain = asObject(oauth2User) || oauth2User
@@ -441,11 +441,38 @@ function extractYandexProfile(oauth2User) {
     phone: phone,
     names: namesFromYandexData(raw, plain),
     emails: emailsFromYandexOAuth(plain),
+    avatarUrl: avatarFromYandexData(raw, plain),
   }
 }
 
 function extractYandexProfileFromMeta(meta) {
   return extractYandexProfile(asObject(meta) || meta)
+}
+
+function avatarFromYandexData(raw, oauth2User) {
+  var source = raw && typeof raw === "object" ? raw : null
+  if (!source && oauth2User) source = asObject(oauth2User.rawUser || oauth2User.RawUser) || oauth2User
+  if (!source) return ""
+  var direct = String(source.default_avatar_id || source.avatar_id || "").trim()
+  if (direct && !/^https?:/i.test(direct)) {
+    return "https://avatars.yandex.net/get-yapic/" + direct + "/islands-200"
+  }
+  var url = String(source.avatar || source.picture || source.default_avatar_url || "").trim()
+  if (/^https?:\/\//i.test(url)) return url.slice(0, 500)
+  return ""
+}
+
+function avatarFromVkUser(vkUser) {
+  if (!vkUser) return ""
+  var url = String(
+    vkUser.photo_200 ||
+      vkUser.photo_100 ||
+      vkUser.photo_50 ||
+      vkUser.avatar ||
+      vkUser.photo ||
+      "",
+  ).trim()
+  return /^https?:\/\//i.test(url) ? url.slice(0, 500) : ""
 }
 
 function namesFromYandexData(raw, oauth2User) {
@@ -502,6 +529,7 @@ function extractVkProfile(vkUser, accessEmail) {
     phone: phoneFromVkUser(vkUser),
     names: namesFromVkUser(vkUser),
     emails: emails,
+    avatarUrl: avatarFromVkUser(vkUser),
   }
 }
 
@@ -512,6 +540,9 @@ function applyOAuthProfileBeforeSave(record, payload) {
   if (!record || !payload) return
   applyOAuthNames(record, payload.names)
   addEmailsToRecord(record, payload.emails || [])
+  if (payload.avatarUrl && !record.getString("avatarUrl")) {
+    record.set("avatarUrl", String(payload.avatarUrl).slice(0, 500))
+  }
 }
 
 function ensureCreateDataField(e, key, value) {
@@ -532,6 +563,7 @@ function ensureCreateDataPhone(e, phone) {
 function ensureCreateDataProfile(e, payload) {
   if (!payload) return
   ensureCreateDataPhone(e, payload.phone)
+  if (payload.avatarUrl) ensureCreateDataField(e, "avatarUrl", String(payload.avatarUrl).slice(0, 500))
   if (!payload.names) return
   var bag = getCreateDataBag(e)
   if (!bag) return
@@ -551,6 +583,9 @@ function finalizeOAuthLogin(app, record, payload) {
 
   addEmailsToRecord(fresh, payload.emails || [])
   applyOAuthNames(fresh, payload.names)
+  if (payload.avatarUrl && !fresh.getString("avatarUrl")) {
+    fresh.set("avatarUrl", String(payload.avatarUrl).slice(0, 500))
+  }
   app.save(fresh)
 
   var phone = normalizePhone(payload.phone)
