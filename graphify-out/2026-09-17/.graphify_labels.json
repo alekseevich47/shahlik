@@ -105,10 +105,10 @@
   "103": "useScrollEdgeCues.ts",
   "104": "Order",
   "105": "addons.ts",
+  "106": "zustand",
   "107": "vk-sdk-cdn.ts",
   "108": "formatPrice",
   "109": "localOrders.ts",
-  "110": "useCatalogScrollSpy.ts",
   "112": "ProductsSection",
   "122": "ratings.pb.js"
 }

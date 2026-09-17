@@ -365,6 +365,27 @@
     isolation: isolate;
   }
 
+  /* «Обычное» качество: без blur витрины / стекла / chrome (анимации остаются). */
+  html[data-graphics="normal"] [data-modal-open="1"] {
+    filter: none;
+  }
+
+  html[data-graphics="normal"] .fx-blur {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html[data-graphics="normal"] .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  @supports (background: paint(id)) {
+    html[data-graphics="normal"] .glass-refract {
+      filter: none;
+    }
+  }
+
   /* Не крутить CSS-анимации на размытой витрине — меньше invalidation под filter. */
   [data-modal-open="1"] .animate-pulse,
   [data-modal-open="1"] [class*="animate-"] {

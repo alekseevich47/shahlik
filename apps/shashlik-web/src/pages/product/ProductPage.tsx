@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { ArrowLeft, Drumstick, Ham, Heart, Leaf, ShoppingCart, Star, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -22,7 +22,7 @@ import { useCartStore } from "@/features/cart/model/store"
 import { useFavoritesStore, useIsFavorite } from "@/features/favorites/model/store"
 import { productEditOf } from "@/shared/lib/background-location"
 import { cn } from "@/shared/lib/cn"
-import { formatPrice, pluralize } from "@/shared/lib/format"
+import { formatPrice } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { OptionCard } from "@/shared/ui/chip"
@@ -31,7 +31,6 @@ import { Stepper } from "@/shared/ui/stepper"
 import { GroupLabel } from "@/shared/ui/surface"
 import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
-import { usePdpChromeStore } from "./model/chrome"
 import { AddonRow } from "./ui/AddonRow"
 import { CriterionHint } from "./ui/CriterionHint"
 import { FreshStamp } from "./ui/FreshStamp"
@@ -154,7 +153,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 left-4 z-10 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
+              className="fx-blur absolute top-4 left-4 z-10 inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] border border-line bg-surface/92 px-3.5 text-[13px] font-bold text-fg shadow-[var(--shadow-card)] backdrop-blur-md transition-colors hover:border-brand-border hover:text-brand"
             >
               <ArrowLeft size={16} strokeWidth={2.6} />
               Назад
@@ -175,7 +174,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
               <Heart size={22} strokeWidth={2.1} fill={liked ? "currentColor" : "none"} />
             </button>
 
-            <div className="absolute bottom-3 left-3 z-10 max-w-[min(100%-1.5rem,420px)]">
+            <div className="absolute right-3 bottom-3 left-3 z-10">
               <RatingOverlay
                 overall={product.rating.overall}
                 votes={product.rating.votes}
@@ -350,18 +349,18 @@ export default function ProductPage() {
   )
 }
 
-/** PDP поверх витрины: Portal в body. Chrome витрины снимается сразу при close. */
+/** PDP поверх витрины: Portal в body. Blur/inert держим до navigate (без mid-exit вспышки). */
 export function ProductModal() {
   const { slug = "" } = useParams()
   const navigate = useNavigate()
   const { data: product, isPending } = useProductBySlug(slug)
   const [open, setOpen] = useState(true)
-  const releaseChrome = usePdpChromeStore((s) => s.release)
+  const closingRef = useRef(false)
 
   const close = () => {
+    if (closingRef.current) return
+    closingRef.current = true
     setOpen(false)
-    /* Сразу: blur/inert/Lenis/StickyBar — не ждать exit и history.back */
-    releaseChrome()
     window.setTimeout(() => navigate(-1), 200)
   }
 
@@ -376,10 +375,9 @@ export function ProductModal() {
         if (!next) close()
       }}
     >
-      <DialogPrimitive.Portal forceMount>
+      <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           data-lenis-prevent
-          forceMount
           className={cn(
             "fixed inset-0 z-300 bg-black/45",
             "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-200",
@@ -388,7 +386,6 @@ export function ProductModal() {
         />
         <DialogPrimitive.Content
           data-lenis-prevent
-          forceMount
           aria-describedby={undefined}
           className={cn(
             "fixed top-1/2 left-1/2 z-301 flex w-[min(1200px,calc(100vw-1rem))] max-h-[94vh] -translate-x-1/2 -translate-y-1/2 flex-col",
@@ -425,27 +422,38 @@ function RatingOverlay({
   criteria: RatingCriterion[]
 }) {
   return (
-    <div className="flex w-fit max-w-full flex-wrap items-center gap-4 rounded-[var(--r-lg)] border border-line bg-surface/94 px-4 py-2.5 shadow-[var(--shadow-card)] backdrop-blur-md">
-      <div className="flex items-center gap-2">
-        <Star size={22} className="text-success" strokeWidth={2} fill="currentColor" />
-        <span className="flex flex-col leading-tight">
-          <span className="text-[15px] font-extrabold text-fg tabular-nums">{overall}/5</span>
-          <span className="text-[10px] text-fg-muted">
-            {votes} {pluralize(votes, ["оценка", "оценки", "оценок"])}
-          </span>
+    <div
+      className={cn(
+        "fx-blur flex w-full max-w-full flex-nowrap items-center gap-1.5 overflow-hidden rounded-[var(--r-md)]",
+        "border border-line bg-surface/94 px-2 py-1.5 shadow-[var(--shadow-card)] backdrop-blur-md",
+        "sm:gap-2 sm:px-3 sm:py-2",
+      )}
+    >
+      <span className="inline-flex shrink-0 items-center gap-1">
+        <Star size={14} className="text-success sm:size-4" strokeWidth={2} fill="currentColor" />
+        <span className="text-[11px] font-extrabold text-fg tabular-nums sm:text-[12px]">
+          {overall}/5
         </span>
-      </div>
-      <div className="flex gap-4 border-l border-line pl-4">
-        {criteria.map((criterion) => (
-          <span key={criterion.id} className="flex flex-col gap-0.5 leading-tight">
-            <span className="inline-flex items-center gap-1 text-[10px] text-fg-muted">
-              {criterion.label}
-              <CriterionHint criterion={criterion} />
-            </span>
-            <ScoreValue value={criterionScore(criterion.value)} max={5} className="text-[12.5px]" />
+        <span className="text-[9px] whitespace-nowrap text-fg-muted sm:text-[10px]">
+          ({votes})
+        </span>
+      </span>
+      {criteria.map((criterion) => (
+        <span
+          key={criterion.id}
+          className="inline-flex min-w-0 shrink items-center gap-0.5 border-l border-line pl-1.5 sm:gap-1 sm:pl-2"
+        >
+          <span className="inline-flex min-w-0 items-center gap-0.5 truncate text-[9px] text-fg-muted sm:text-[10px]">
+            <span className="truncate">{criterion.label}</span>
+            <CriterionHint criterion={criterion} />
           </span>
-        ))}
-      </div>
+          <ScoreValue
+            value={criterionScore(criterion.value)}
+            max={5}
+            className="shrink-0 text-[10px] sm:text-[11px]"
+          />
+        </span>
+      ))}
     </div>
   )
 }

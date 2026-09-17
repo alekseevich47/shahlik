@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/router.tsx": {
-    "mtime": 1787572394.8353264,
-    "ast_hash": "ca78319550689f7a73c2a3be98159bfd",
+    "mtime": 1789634236.8967268,
+    "ast_hash": "087eb473c45102a4806e4dabef8b7e3e",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/addon/model.ts": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/HomePage.tsx": {
-    "mtime": 1789633489.829686,
-    "ast_hash": "f59c1d6ec17259d4c667181e6b9a8545",
+    "mtime": 1789634265.84111,
+    "ast_hash": "2bf4d5872be193c914178ee53e6ff198",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/DesktopHome.tsx": {
@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ProductPage.tsx": {
-    "mtime": 1789633451.42879,
-    "ast_hash": "e459404cbbd3caf8a491588746485d56",
+    "mtime": 1789634268.7769895,
+    "ast_hash": "6155ec93811bc35473120bf3462f4adc",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/AddonRow.tsx": {
@@ -1700,8 +1700,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/ProductSkeleton.tsx": {
-    "mtime": 1789633419.9466927,
-    "ast_hash": "c73534e8376dd10f33a145694f06d346",
+    "mtime": 1789634193.7695825,
+    "ast_hash": "9c292972231377f06c294bbe0b981ad5",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/src/pages/product/model/chrome.ts": {
+    "mtime": 1789634233.450466,
+    "ast_hash": "96ebf41d859b1d27a358d6be4f8a8693",
     "semantic_hash": ""
   }
 }

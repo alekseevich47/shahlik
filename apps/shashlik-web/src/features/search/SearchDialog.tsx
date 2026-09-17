@@ -47,7 +47,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           data-lenis-prevent
-          className="fixed inset-0 z-200 bg-black/45 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+          className="fx-blur fixed inset-0 z-200 bg-black/45 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
         />
         <DialogPrimitive.Content
           data-lenis-prevent

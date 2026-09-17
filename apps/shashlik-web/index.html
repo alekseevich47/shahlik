@@ -14,7 +14,7 @@
     />
     <title>Шашлыковский — шаурма и шашлык</title>
     <script>
-      // Тема применяется до первой отрисовки, чтобы не было вспышки светлой темы.
+      // Тема и графика до первой отрисовки (anti-FOUC).
       try {
         const stored = localStorage.getItem("shashlik:theme");
         const theme =
@@ -23,6 +23,15 @@
         document.documentElement.classList.toggle("dark", theme === "dark");
         document.documentElement.classList.toggle("light", theme !== "dark");
       } catch {}
+      try {
+        const g = localStorage.getItem("shashlik:graphics:v1");
+        document.documentElement.setAttribute(
+          "data-graphics",
+          g === "normal" || g === "ultra" ? g : "ultra",
+        );
+      } catch {
+        document.documentElement.setAttribute("data-graphics", "ultra");
+      }
     </script>
   </head>
   <body>
