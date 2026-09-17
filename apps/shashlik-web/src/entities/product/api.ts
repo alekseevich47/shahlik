@@ -185,6 +185,9 @@ export function useProductBySlug(slug: string) {
     queryKey: productKeys.slug(slug),
     queryFn: () => fetchProductBySlug(slug),
     enabled: Boolean(slug),
+    initialData: () =>
+      queryClient.getQueryData<Product[]>(productKeys.all)?.find((p) => p.slug === slug),
+    initialDataUpdatedAt: () => queryClient.getQueryState(productKeys.all)?.dataUpdatedAt,
   })
 }
 

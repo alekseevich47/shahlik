@@ -343,7 +343,9 @@
   }
 
   /* PDP-модалка: стоп скролла и размытие самой витрины (не backdrop-filter
-     на оверлее — иначе композитор пересобирает подложку каждый кадр). */
+     на оверлее — иначе композитор пересобирает подложку каждый кадр).
+     contain + isolation: blur в отдельный слой, меньше пересчётов при
+     invalidation под модалкой (вид blur(10px) тот же). */
   body:has([data-modal-open="1"]) {
     overflow: hidden;
   }
@@ -359,6 +361,14 @@
   [data-modal-open="1"] {
     pointer-events: none;
     filter: blur(10px);
+    contain: paint;
+    isolation: isolate;
+  }
+
+  /* Не крутить CSS-анимации на размытой витрине — меньше invalidation под filter. */
+  [data-modal-open="1"] .animate-pulse,
+  [data-modal-open="1"] [class*="animate-"] {
+    animation-play-state: paused !important;
   }
 
   ::selection {

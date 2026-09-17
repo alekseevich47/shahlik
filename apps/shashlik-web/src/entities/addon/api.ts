@@ -75,17 +75,19 @@ export function useAddon(id: string) {
 }
 
 export function useExtras() {
-  return useQuery({
-    queryKey: addonKeys.kind("extra"),
-    queryFn: fetchExtras,
-  })
+  const query = useAddons()
+  return {
+    ...query,
+    data: query.data?.filter((addon) => addon.kind === "extra"),
+  }
 }
 
 export function useSauces() {
-  return useQuery({
-    queryKey: addonKeys.kind("sauce"),
-    queryFn: fetchSauces,
-  })
+  const query = useAddons()
+  return {
+    ...query,
+    data: query.data?.filter((addon) => addon.kind === "sauce"),
+  }
 }
 
 export type CreateAddonInput = {

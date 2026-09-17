@@ -1,10 +1,11 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import { AnimatePresence, LazyMotion } from "motion/react"
 import * as m from "motion/react-m"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 
 import HomePage from "@/pages/home/HomePage"
 import ProductPage, { ProductModal } from "@/pages/product/ProductPage"
+import { usePdpChromeStore } from "@/pages/product/model/chrome"
 import { useAdminAuth } from "@/shared/api/auth"
 import { backgroundOf } from "@/shared/lib/background-location"
 
@@ -29,19 +30,27 @@ const EXIT_ABS = {
 export function AppRoutes() {
   const location = useLocation()
   const background = backgroundOf(location)
+  const chromeReleased = usePdpChromeStore((s) => s.released)
+  const resetChrome = usePdpChromeStore((s) => s.reset)
   const displayLocation = background ?? location
   const isProduct = !background && displayLocation.pathname.startsWith("/product/")
   const routeKey = displayLocation.pathname.startsWith("/admin")
     ? "/admin"
     : displayLocation.pathname
+  /** Sync с URL при открытии; `released` — мгновенный unlock при close. */
+  const chromeLocked = Boolean(background) && !chromeReleased
+
+  useEffect(() => {
+    if (!background) resetChrome()
+  }, [background, resetChrome])
 
   return (
     <LazyMotion features={loadMotionFeatures} strict>
       <div className="relative min-h-dvh">
         <div
           className="relative min-h-dvh"
-          data-modal-open={background ? "1" : "0"}
-          {...(background ? { inert: true as const } : {})}
+          data-modal-open={chromeLocked ? "1" : "0"}
+          {...(chromeLocked ? { inert: true as const } : {})}
         >
           <AnimatePresence initial={false}>
             <m.div

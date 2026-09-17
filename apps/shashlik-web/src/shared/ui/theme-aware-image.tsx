@@ -26,9 +26,13 @@ function scheduleIdle(fn: () => void): () => void {
   return () => window.clearTimeout(id)
 }
 
+function isProductModalOpen() {
+  return Boolean(document.querySelector('[data-modal-open="1"]'))
+}
+
 /**
  * Фото под тему: light / optional dark.
- * Prefetch opposite на idle; смена темы — короткий fade без page-loader.
+ * Prefetch opposite на idle (не во время PDP-модалки); смена темы — короткий fade без page-loader.
  */
 export function ThemeAwareImage({
   lightSrc,
@@ -50,8 +54,10 @@ export function ThemeAwareImage({
 
   useEffect(() => {
     const opposite = oppositeThemeSrc(lightSrc, darkSrc, theme)
-    if (!opposite) return
-    return scheduleIdle(() => prefetch(opposite))
+    if (!opposite || isProductModalOpen()) return
+    return scheduleIdle(() => {
+      if (!isProductModalOpen()) prefetch(opposite)
+    })
   }, [lightSrc, darkSrc, theme])
 
   useEffect(() => {

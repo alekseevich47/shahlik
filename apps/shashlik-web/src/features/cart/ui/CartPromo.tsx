@@ -4,14 +4,18 @@ import { toast } from "sonner"
 
 import { checkPromo } from "@/entities/coupon/api"
 import { formatCouponValue } from "@/entities/coupon/model"
-import { useCartTotals } from "@/features/cart/model/selectors"
+import type { ResolvedLine } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { cn } from "@/shared/lib/cn"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
-export function CartPromo() {
-  const { lines, goods } = useCartTotals()
+type CartPromoProps = {
+  lines: ResolvedLine[]
+  goods: number
+}
+
+export function CartPromo({ lines, goods }: CartPromoProps) {
   const appliedCoupon = useCartStore((s) => s.appliedCoupon)
   const applyCoupon = useCartStore((s) => s.applyCoupon)
   const [open, setOpen] = useState(Boolean(appliedCoupon))

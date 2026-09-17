@@ -14,7 +14,6 @@ import {
   isSizeStopped,
   isSkuStopped,
   isVariantStopped,
-  useFrontpadStockRealtime,
   useStoppedArticles,
 } from "@/entities/product/lib/stock"
 import { useProductBySlug } from "@/entities/product/api"
@@ -32,6 +31,7 @@ import { Stepper } from "@/shared/ui/stepper"
 import { GroupLabel } from "@/shared/ui/surface"
 import { ThemeAwareImage } from "@/shared/ui/theme-aware-image"
 
+import { usePdpChromeStore } from "./model/chrome"
 import { AddonRow } from "./ui/AddonRow"
 import { CriterionHint } from "./ui/CriterionHint"
 import { FreshStamp } from "./ui/FreshStamp"
@@ -48,7 +48,6 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   const { slug = "" } = useParams()
   const location = useLocation()
   const { editLineId, draft } = productEditOf(location)
-  useFrontpadStockRealtime()
   const { data: product, isPending } = useProductBySlug(slug)
   const { data: stopped = new Set<string>() } = useStoppedArticles()
   const { data: sauces = [] } = useSauces()
@@ -126,9 +125,9 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   }
 
   return (
-    <div className={cn("bg-canvas", className)}>
-      <div className="mx-auto grid w-full max-w-[1680px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px]">
-        <section className="relative overflow-hidden bg-surface lg:rounded-[var(--r-2xl)] dark:bg-surface-3">
+    <div className={cn("bg-canvas max-lg:bg-surface", className)}>
+      <div className="mx-auto grid w-full max-w-[1680px] gap-4 max-lg:gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px]">
+        <section className="relative overflow-hidden bg-surface max-lg:rounded-t-[var(--r-2xl)] lg:rounded-[var(--r-2xl)] dark:bg-surface-3">
           <div
             className={cn(
               "relative flex w-full items-center justify-center",
@@ -142,6 +141,8 @@ export function ProductView({ onClose, className }: ProductViewProps) {
               lightSrc={product.image}
               darkSrc={product.imagesDark[0]}
               alt={product.name}
+              loading="eager"
+              fetchPriority="high"
               className={cn(
                 "max-h-full max-w-full object-contain",
                 "dark:size-full dark:object-cover",
@@ -184,7 +185,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
           </div>
         </section>
 
-        <section className="relative flex min-w-0 flex-col overflow-x-clip border border-line bg-surface p-4 shadow-[var(--shadow-card)] sm:p-6 lg:overflow-hidden lg:rounded-[var(--r-2xl)]">
+        <section className="relative flex min-w-0 flex-col overflow-x-clip border border-line bg-surface p-4 shadow-[var(--shadow-card)] max-lg:rounded-b-[var(--r-2xl)] max-lg:border-0 max-lg:shadow-none sm:p-6 lg:overflow-hidden lg:rounded-[var(--r-2xl)]">
           <FreshStamp className="pointer-events-none absolute top-3 right-3 z-0 hidden opacity-30 sm:block" size={96} />
 
           <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col gap-5">
@@ -349,16 +350,19 @@ export default function ProductPage() {
   )
 }
 
-/** PDP поверх витрины: Portal в body, закрытие — плавный exit, затем history.back. */
+/** PDP поверх витрины: Portal в body. Chrome витрины снимается сразу при close. */
 export function ProductModal() {
   const { slug = "" } = useParams()
   const navigate = useNavigate()
   const { data: product, isPending } = useProductBySlug(slug)
   const [open, setOpen] = useState(true)
+  const releaseChrome = usePdpChromeStore((s) => s.release)
 
   const close = () => {
     setOpen(false)
-    window.setTimeout(() => navigate(-1), 280)
+    /* Сразу: blur/inert/Lenis/StickyBar — не ждать exit и history.back */
+    releaseChrome()
+    window.setTimeout(() => navigate(-1), 200)
   }
 
   if (!slug || (!isPending && !product)) {
@@ -378,8 +382,8 @@ export function ProductModal() {
           forceMount
           className={cn(
             "fixed inset-0 z-300 bg-black/45",
-            "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-300",
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-300",
+            "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-200",
+            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-200",
           )}
         />
         <DialogPrimitive.Content
@@ -388,11 +392,11 @@ export function ProductModal() {
           aria-describedby={undefined}
           className={cn(
             "fixed top-1/2 left-1/2 z-301 flex w-[min(1200px,calc(100vw-1rem))] max-h-[94vh] -translate-x-1/2 -translate-y-1/2 flex-col",
-            "overflow-y-auto overscroll-contain rounded-[var(--r-2xl)] border border-line bg-canvas shadow-[var(--shadow-panel)] outline-none",
+            "min-h-0 overflow-y-auto overscroll-contain rounded-[var(--r-2xl)] border border-line bg-canvas shadow-[var(--shadow-panel)] outline-none",
+            "p-0 max-lg:bg-surface lg:bg-canvas lg:p-5",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:duration-300",
-            "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-300",
-            "p-3 sm:p-4 lg:p-5",
+            "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:duration-200",
+            "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-200",
           )}
         >
           <DialogPrimitive.Title className="sr-only">

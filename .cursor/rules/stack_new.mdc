@@ -32,7 +32,7 @@ alwaysApply: false
 | Анимации маршрутов | `motion` v13 через `LazyMotion` + `m` из `motion/react-m`. Движок фич — асинхронный чанк (`app/motion-features.ts`). Режим `strict`: компонент `motion.*` использовать **нельзя**, только `m.*` |
 | Скролл витрины | `lenis` — только на `/` (`VitrineScrollProvider`). Wheel: lerp + инерция; touch — нативный. `prefers-reduced-motion` и Sheet / Search / PDP-модалка / checkout — `stop()` |
 | Состояние | Zustand + persist **только корзина** (`shashlik:cart:v2`). Тема — React context + `localStorage` (`shashlik:theme`) |
-| Данные | PocketBase JS SDK (`shared/api/pb.ts`) + `@tanstack/react-query` (`shared/api/query-client.ts`). Прод — same-origin (`/api/` через Nginx), dev — `VITE_PB_URL` |
+| Данные | PocketBase JS SDK (`shared/api/pb.ts`) + `@tanstack/react-query` (`shared/api/query-client.ts`: default `staleTime` 60s, `refetchOnWindowFocus: false`). Прод — same-origin (`/api/` через Nginx), dev — `VITE_PB_URL` |
 | Тосты | `sonner` |
 | Шрифт | Self-hosted **Nunito** 400–800 (`src/assets/fonts/nunito` + `src/styles/fonts.css`). Google Fonts / CDN **запрещены** |
 
@@ -175,7 +175,7 @@ apps/shashlik-web/
 
 ### Addon
 
-`kind: 'extra' | 'sauce'`. Соусы и добавки на PDP — две колонки из `mocks/addons.ts` (`sauces` / `extras`). В корзине апселл-ленты нет.
+`kind: 'extra' | 'sauce'`. Соусы и добавки на PDP — `useSauces`/`useExtras` поверх общего `["addons"]` (не отдельные FullList). В корзине апселл-ленты нет.
 
 ### Cart
 
@@ -229,7 +229,7 @@ Zustand `useCartStore` (`features/cart/model/store.ts`):
 
 ## Витрина (home)
 
-Состояние экрана в `HomePage`: `category` (дефолт **`shawarma`**). Каталог — **все активные товары** секциями по категориям (`groupProductsByCategory`). **Scroll-spy** (`useCatalogScrollSpy`, `IntersectionObserver`): при скролле активная категория синхронизируется с секцией под sticky-плашкой (сайдбар + `StickyBar`); клик по категории — `VitrineScroll` → `#catalog-<id>`. Якорный отступ — только CSS `scroll-margin-top: CATALOG_SCROLL_MARGIN` на `CatalogCategorySection` (`catalogSection.ts`, ≈ высота раскрытой плашки). Lenis `scrollTo(HTMLElement)` и `scrollIntoView` читают `scroll-margin` сами — **не** дублировать тот же `offset` в `scrollTo`: иначе якорь уезжает слишком высоко, sentinel баннера снова входит в `bannerInView`, раскрытая плашка схлопывается и сайдбар выезжает (особенно заметно на первой категории). Плавный скролл с инерцией — `VitrineScrollProvider` (`pages/home/lib/VitrineScroll.tsx`, Lenis, `lerp: 0.088`); только витрина, не PDP/админка. `scrollPaused` в `HomePage`: Sheet корзины/меню, checkout, **Search**, **PDP-модалка** (`backgroundOf(location)`). Дополнительно Lenis стопится по `MutationObserver` на `[data-modal-open="1"]`; витрина под модалкой — `pointer-events: none` + blur; overlay/content PDP и Search — `data-lenis-prevent`. Горизонтальные ленты вне плашки — `data-lenis-prevent`; на `StickyBar` — axis-lock (`shared/hooks/useAxisLockedHorizontalScroll.ts`). Список корзины и mid checkout — тоже `data-lenis-prevent`. Search/Dialog: `scrollbar-gutter: stable` + сброс `padding-right` у `body[data-scroll-locked]`, чтобы витрина не сжималась.
+Состояние экрана в `HomePage`: `category` (дефолт **`shawarma`**). Каталог — **все активные товары** секциями по категориям (`groupProductsByCategory`). **Scroll-spy** (`useCatalogScrollSpy`, `IntersectionObserver`): при скролле активная категория синхронизируется с секцией под sticky-плашкой (сайдбар + `StickyBar`); клик по категории — `VitrineScroll` → `#catalog-<id>`. Якорный отступ — только CSS `scroll-margin-top: CATALOG_SCROLL_MARGIN` на `CatalogCategorySection` (`catalogSection.ts`, ≈ высота раскрытой плашки). Lenis `scrollTo(HTMLElement)` и `scrollIntoView` читают `scroll-margin` сами — **не** дублировать тот же `offset` в `scrollTo`: иначе якорь уезжает слишком высоко, sentinel баннера снова входит в `bannerInView`, раскрытая плашка схлопывается и сайдбар выезжает (особенно заметно на первой категории). Плавный скролл с инерцией — `VitrineScrollProvider` (`pages/home/lib/VitrineScroll.tsx`, Lenis, `lerp: 0.088`); только витрина, не PDP/админка. `scrollPaused` в `HomePage`: Sheet корзины/меню, checkout, **Search**, **PDP chrome** (`backgroundOf && !usePdpChromeStore.released` — при close Lenis сразу). Дополнительно Lenis стопится по `MutationObserver` на `[data-modal-open="1"]`; витрина под модалкой — `pointer-events: none` + blur; overlay/content PDP и Search — `data-lenis-prevent`. Горизонтальные ленты вне плашки — `data-lenis-prevent`; на `StickyBar` — axis-lock (`shared/hooks/useAxisLockedHorizontalScroll.ts`). Список корзины и mid checkout — тоже `data-lenis-prevent`. Search/Dialog: `scrollbar-gutter: stable` + сброс `padding-right` у `body[data-scroll-locked]`, чтобы витрина не сжималась.
 
 Desktop (`DesktopHome`, ≥1024):
 
@@ -247,7 +247,8 @@ Mobile (`MobileHome`, <1024): без `MobileHeader` / `AddressBar`. Баннер
 `pages/product/ProductPage.tsx` — две колонки: фото слева, конфигуратор справа (ширина −⅓ от прежнего: `lg` 413px / `xl` 467px). Сетка `lg:items-stretch`: высота блока фото на desktop = правая колонка (light и dark одинаково). Mobile — aspect-ratio канона.
 
 - Light desktop: левый блок `bg-surface` (белый), фото `object-contain` по центру; **оценка** — левый нижний угол фото (без «Состав» на фото). Dark / mobile: cover + канон `aspect-ratio` 1536×1024
-- Модалка PDP: сразу полный каркас + `ProductSkeleton` при pending; закрытие с `forceMount` + fade/zoom ~300 ms, затем `navigate(-1)`
+- **Mobile / модалка `<lg`:** единый sheet — `ProductModal` `p-0` + `bg-surface`, внутри `ProductView` без `gap` и без canvas-gutter между фото и инфо; фото `rounded-t`, инфо `rounded-b`, без отдельной «карточки» (border/shadow только `lg+`). Desktop `lg+` — две колонки с `gap-4` и скруглениями секций как раньше
+- Модалка PDP: поверх текущего экрана (скролл/StickyBar не сбрасывать). Каркас + `ProductSkeleton` при pending. Close: сразу `usePdpChromeStore.release()` (снимает blur/inert/Lenis), exit fade/zoom ~200 ms, затем `navigate(-1)`. Скролл контента — `overflow-y-auto` на Dialog.Content (`min-h-0`), без `overflow-hidden` на `ProductView`. Hero: `loading="eager"` + `fetchPriority="high"`
 - Под описанием справа — блок **«Состав»** (`compositionOf`); критерии на фото — `CriterionHint` (hint + distribution 0…5★)
 - Открытие/закрытие маршрута — `motion` + `AnimatePresence` в `app/router.tsx` (Home/Product грузятся сразу, не lazy). `viewTransition` у RR здесь не работает: нужен data-router, а стоит `BrowserRouter`. Уход маршрута — `position: absolute; inset: 0; overflow: hidden`, без scale (иначе рывок). Скроллбар: `scrollbar-gutter: stable` на `html`, чтобы исчезающая полоса Home не дёргала PDP вправо
 - Сердце избранного — **без рамки**, правый верхний угол фото; wired на `useFavoritesStore` (гость + аккаунт)
@@ -255,11 +256,12 @@ Mobile (`MobileHome`, <1024): без `MobileHeader` / `AddressBar`. Баннер
 - Справа от названия — иконка `/icons/kcal.png` (`NutritionHint` / Popover): размер `0.92lh` заголовка, mask + `bg-fg-muted` → open/hover `bg-brand`. ПК: hover open / leave close; мобилки: click toggle; тач/клик/свайп вне окна — close. **КБЖУ на порцию** (граммовка выбранного размера), пересчитывается при смене размера/варианта
 - Штамп `FreshStamp`: абсолют правый верх панели, `opacity-30`, `z` под текстом. Глифы равномерно по окружности (поворот каждого символа, не `textPath`). Текст «СДЕЛАНО С ЛЮБОВЬ • 100% СВЕЖИЕ ПРОДУКТЫ •». Колпак — `chef-hat-spin`
 - Вариант/размер — `OptionCard` тумблеры **без обводки**, компактные (`min-h-10`); active — `product-accent-soft`
-- Соусы | Добавки — `AddonRow`: thumb → имя + `N гр., +цена` → кнопка **«+»** / `Stepper tone="solid"`
+- Соусы | Добавки — `AddonRow`: thumb → имя + `N гр., +цена` → кнопка **«+»** / `Stepper tone="solid"`. Данные — `useSauces`/`useExtras` = фильтр одного `useAddons()` (`["addons"]`), не отдельные FullList по kind
 - Низ: `Stepper` количества + кнопка `variant="product"`: desktop `«В корзину • сумма»` / mobile `ShoppingCart` + `formatPrice` (без `•`); при edit — «Сохранить • …» / `Сохранить` + цена. Mobile: `overflow-x-clip`, padding контента, `min-w-0` на CTA
-- Pending — `ProductSkeleton` (`min-h ≈ 94vh`, полный каркас), не пустой/`компактный` placeholder
+- Pending — `ProductSkeleton` (`min-h ≈ 94vh`, полный каркас, тот же flush-layout на mobile), не пустой/`компактный` placeholder
 - После добавления / сохранения — `navigate(-1)` из модалки (или `/` с полной страницы)
 - Edit из корзины: `location.state.editLineId` + `draft` (`productEditOf`); гидратация variant/size/qty/addons в `ProductView`
+- Realtime стоп-листа — только на `HomePage` (`useFrontpadStockRealtime`); PDP читает кэш `useStoppedArticles`
 
 ## Админка
 
@@ -399,7 +401,7 @@ Env процесса `pocketbase`:
 | ProductCard | `entities/product/ui/ProductCard.tsx` — клик по всей карточке → PDP (`pointer-events-none` на контент); фото `product/format`, бейджи только вариантов, **описание (`tagline`)**, общий рейтинг без критериев, цена «от min». «Добавить» по hover (`.product-card-add`) + stopPropagation. Dark: рейтинг/звезда/«Добавить» — `text-fg` |
 | product/format | `entities/product/format.ts` — `PRODUCT_WIDTH` / `PRODUCT_HEIGHT` (1536×1024, 3∶2) |
 | CartPanel | `features/cart/ui/CartPanel.tsx` — витрина: строки (`data-lenis-prevent`), `CartPromo`, суммы; у «Итого» при `discount > 0` справа маленькая серая `line-through` сумма до промо (`total + discount`); кнопка → checkout |
-| CartLineRow | `features/cart/ui/CartLineRow.tsx` — клик → edit PDP; stepper + удаление; extras на полную ширину без qty-stepper; цена `line.total` + бонус nowrap |
+| CartLineRow | `features/cart/ui/CartLineRow.tsx` — клик → edit PDP; stepper + удаление; stock/bonus props с панели (не per-row fetch); extras на полную ширину без qty-stepper; цена `line.total` + бонус nowrap |
 | CartLineTitle | `features/cart/ui/CartLineTitle.tsx` — название; ниже `size, meat` через запятую |
 | CartPromo | `features/cart/ui/CartPromo.tsx` — промокод в панели корзины (раскрывающийся) |
 | CartTotals | `features/cart/ui/CartTotals.tsx` — заголовок `title` (дефолт «Доставка и оплата», в checkout — «Чек»); `compact` для плотных строк; «Начислено бонусов» / гость «можно получить»; «Скидка»; prop `bonusDiscount` / `bonusEarned` |
@@ -551,6 +553,14 @@ Env процесса `pocketbase`:
 - Число ориентира — карточка без критериев и без фикс. высоты названия/описания; если высота заметно съедет — поправить, иначе первый проход скролла прыгает.
 - Внутри карточки не заводить `position: sticky` и не рассчитывать на то, что её содержимое видно скриптам всегда: под `content-visibility` оно может быть не отрисовано.
 - На витрине только общий рейтинг; критерии — на PDP. Фикс. `min-h-[2lh]` / `h-[3lh]` у названия/описания **не** использовать (давали пустой зазор при коротком тексте).
+
+### PDP-модалка и кэш каталога
+
+- Размытие витрины под модалкой: `[data-modal-open="1"] { filter: blur(10px) }` — **не отключать**. Ускорение: `contain: paint` + `isolation: isolate`, пауза CSS-анимаций под модалкой, Lenis `stop`, refraction StickyBar гасится. Chrome lock = `background && !usePdpChromeStore.released` (`pages/product/model/chrome.ts`): при **закрытии** `release()` сразу — витрина и StickyBar снова живые под уходящей анимацией модалки; `reset()` после ухода с background-URL. **Не** вешать `backdrop-filter` на полноэкранный оверлей.
+- `ThemeAwareImage`: idle-prefetch opposite theme **не** запускать, пока открыта PDP-модалка (`data-modal-open="1"`).
+- RQ: `useProductBySlug` гидрирует из `["products"]` (`initialData`); addons — один ключ `["addons"]` (`useSauces`/`useExtras` — filter); Home prefetch `addonKeys.all` после mount.
+- `perPage=1000` в Network — batch `getFullList` SDK, не баг фильтров.
+- Корзина: один `useCartTotals` в `CartPanel` → props в `CartPromo`/`CartTotals`/`CartLineRow` (stock + bonus settings не N× на строку).
 
 ### Скролл
 

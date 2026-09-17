@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
 
+import { addonKeys, fetchAddons } from "@/entities/addon/api"
 import { useProducts } from "@/entities/product/api"
 import { useFrontpadStockRealtime } from "@/entities/product/lib/stock"
 import { CartPanel } from "@/features/cart/ui/CartPanel"
@@ -8,6 +9,8 @@ import { useCheckoutDialogStore } from "@/features/checkout/model/dialog"
 import { CheckoutDialog } from "@/features/checkout/ui/CheckoutDialog"
 import { SearchDialog } from "@/features/search/SearchDialog"
 import { ThemePeekButton } from "@/features/theme-toggle/ThemePeekButton"
+import { usePdpChromeStore } from "@/pages/product/model/chrome"
+import { queryClient } from "@/shared/api/query-client"
 import { backgroundOf } from "@/shared/lib/background-location"
 import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
@@ -49,11 +52,16 @@ export default function HomePage() {
   const isDesktop = useIsDesktop()
   const checkoutOpen = useCheckoutDialogStore((s) => s.open)
   const setCheckoutOpen = useCheckoutDialogStore((s) => s.setOpen)
-  const productModalOpen = Boolean(backgroundOf(location))
+  const chromeReleased = usePdpChromeStore((s) => s.released)
+  const pdpChromeLocked = Boolean(backgroundOf(location)) && !chromeReleased
 
   useEffect(() => {
     if (checkoutOpen) setCartOpen(false)
   }, [checkoutOpen])
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({ queryKey: addonKeys.all, queryFn: fetchAddons })
+  }, [])
 
   const items = useMemo(() => products.filter((p) => p.active), [products])
 
@@ -61,7 +69,7 @@ export default function HomePage() {
     setCategory(id)
   }, [])
 
-  const scrollPaused = cartOpen || checkoutOpen || searchOpen || productModalOpen
+  const scrollPaused = cartOpen || checkoutOpen || searchOpen || pdpChromeLocked
 
   return (
     <div className="min-h-dvh bg-canvas">

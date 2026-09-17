@@ -1,11 +1,9 @@
 import { X } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 
-import { useAccount } from "@/entities/account/api"
-import { usePublicBonusSettings } from "@/entities/bonus/api"
+import type { PublicBonusSettings } from "@/entities/bonus/model"
 import { calcLineEarn } from "@/entities/bonus/lib/earn"
-import { publicBonusSettingsFallback } from "@/entities/bonus/model"
-import { isAddonStopped, isSkuStopped, useStoppedArticles } from "@/entities/product/lib/stock"
+import { isAddonStopped, isSkuStopped } from "@/entities/product/lib/stock"
 import type { ResolvedLine } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { withBackground } from "@/shared/lib/background-location"
@@ -19,15 +17,19 @@ import { CartLineTitle } from "./CartLineTitle"
 /** Отступ под фото size-10 + gap-2.5 — старт колонки текста. */
 const TEXT_INSET = "ml-12.5"
 
-export function CartLineRow({ line }: { line: ResolvedLine }) {
+type CartLineRowProps = {
+  line: ResolvedLine
+  stopped: Set<string>
+  bonusSettings: PublicBonusSettings
+  guest: boolean
+}
+
+export function CartLineRow({ line, stopped, bonusSettings, guest }: CartLineRowProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const setQuantity = useCartStore((s) => s.setQuantity)
   const remove = useCartStore((s) => s.remove)
   const bumpAddon = useCartStore((s) => s.bumpAddon)
-  const user = useAccount()
-  const { data: bonusSettings = publicBonusSettingsFallback() } = usePublicBonusSettings()
-  const { data: stopped = new Set<string>() } = useStoppedArticles()
 
   const lineStopped =
     isSkuStopped(line.product, line.line.sizeId, line.line.variantId, stopped) ||
@@ -143,7 +145,7 @@ export function CartLineRow({ line }: { line: ResolvedLine }) {
           className={`${TEXT_INSET} flex flex-nowrap items-center gap-x-1.5 pr-1 text-[13px] font-extrabold text-fg tabular-nums`}
         >
           {formatPrice(line.total)}
-          <BonusEarnHint amount={earnAmount} guest={!user} />
+          <BonusEarnHint amount={earnAmount} guest={guest} />
         </p>
       </div>
     </li>

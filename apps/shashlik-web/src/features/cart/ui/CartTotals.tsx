@@ -1,8 +1,9 @@
-import { useAccount } from "@/entities/account/api"
-import { usePublicBonusSettings } from "@/entities/bonus/api"
+import type { PublicBonusSettings } from "@/entities/bonus/model"
 import { calcCartEarn } from "@/entities/bonus/lib/earn"
 import { publicBonusSettingsFallback } from "@/entities/bonus/model"
-import { useCartTotals } from "@/features/cart/model/selectors"
+import { useAccount } from "@/entities/account/api"
+import { usePublicBonusSettings } from "@/entities/bonus/api"
+import type { CartTotals as CartTotalsData } from "@/features/cart/model/selectors"
 import { useCartStore } from "@/features/cart/model/store"
 import { formatPrice } from "@/shared/lib/format"
 import { cn } from "@/shared/lib/cn"
@@ -11,6 +12,9 @@ import { CoinIcon } from "@/shared/ui/coin-icon"
 import { SumRow } from "./SumRow"
 
 type CartTotalsProps = {
+  totals: CartTotalsData
+  bonusSettings?: PublicBonusSettings
+  guest?: boolean
   /** Доп. скидка баллами (checkout). */
   bonusDiscount?: number
   /** Превью начисления; при списании — 0. */
@@ -25,6 +29,9 @@ type CartTotalsProps = {
 }
 
 export function CartTotals({
+  totals,
+  bonusSettings: bonusSettingsProp,
+  guest: guestProp,
   bonusDiscount = 0,
   bonusEarned,
   showBonusEarn = true,
@@ -33,15 +40,16 @@ export function CartTotals({
   className,
 }: CartTotalsProps) {
   const { lines, goods, deliveryFee, discount, freeDeliveryLeft, minOrder, acceptingOrders, stopMessage } =
-    useCartTotals()
+    totals
   const mode = useCartStore((s) => s.mode)
-  const user = useAccount()
-  const { data: bonusSettings = publicBonusSettingsFallback() } = usePublicBonusSettings()
+  const account = useAccount()
+  const { data: hookBonus = publicBonusSettingsFallback() } = usePublicBonusSettings()
+  const bonusSettings = bonusSettingsProp ?? hookBonus
+  const isGuest = guestProp ?? !account
   const empty = lines.length === 0
   const belowMinOrder = minOrder > 0 && goods < minOrder
   const totalDiscount = discount + bonusDiscount
   const showDiscount = totalDiscount > 0
-  const isGuest = !user
 
   const earnedPreview =
     bonusEarned !== undefined

@@ -1,5 +1,9 @@
 import { ShoppingBag, Zap } from "lucide-react"
 
+import { useAccount } from "@/entities/account/api"
+import { usePublicBonusSettings } from "@/entities/bonus/api"
+import { publicBonusSettingsFallback } from "@/entities/bonus/model"
+import { useStoppedArticles } from "@/entities/product/lib/stock"
 import { useCartTotals } from "@/features/cart/model/selectors"
 import { useCheckoutDialogStore } from "@/features/checkout/model/dialog"
 import { useCartStore } from "@/features/cart/model/store"
@@ -18,11 +22,15 @@ const MODE_OPTIONS = [
 ] as const
 
 export function CartPanel({ className }: { className?: string }) {
-  const { lines, total, discount, minOrder, goods, acceptingOrders } = useCartTotals()
+  const totals = useCartTotals()
+  const { lines, total, discount, minOrder, goods, acceptingOrders } = totals
   const mode = useCartStore((s) => s.mode)
   const setMode = useCartStore((s) => s.setMode)
   const checkoutOpen = useCheckoutDialogStore((s) => s.open)
   const setCheckoutOpen = useCheckoutDialogStore((s) => s.setOpen)
+  const user = useAccount()
+  const { data: bonusSettings = publicBonusSettingsFallback() } = usePublicBonusSettings()
+  const { data: stopped = new Set<string>() } = useStoppedArticles()
 
   const empty = lines.length === 0
   const belowMinOrder = minOrder > 0 && goods < minOrder
@@ -64,15 +72,21 @@ export function CartPanel({ className }: { className?: string }) {
         ) : (
           <ul className="divide-y divide-line">
             {lines.map((line) => (
-              <CartLineRow key={line.line.id} line={line} />
+              <CartLineRow
+                key={line.line.id}
+                line={line}
+                stopped={stopped}
+                bonusSettings={bonusSettings}
+                guest={!user}
+              />
             ))}
           </ul>
         )}
       </div>
 
       <div className="flex flex-col gap-3 border-t border-line p-4">
-        <CartPromo />
-        <CartTotals />
+        <CartPromo lines={lines} goods={goods} />
+        <CartTotals totals={totals} bonusSettings={bonusSettings} guest={!user} />
 
         <div className="flex items-end justify-between gap-3">
           <span className="flex min-w-0 flex-col">

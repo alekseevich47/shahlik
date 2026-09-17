@@ -52,7 +52,8 @@ const scrollMid =
   "px-5 py-3 md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-contain md:scrollbar-slim"
 
 export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
-  const { lines } = useCartTotals()
+  const totals = useCartTotals()
+  const { lines } = totals
   const { data: settings = settingsFallback() } = useSettings()
   const checkout = useCheckout({ open, onOpenChange })
 
@@ -119,6 +120,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 
             <div className={cn(stickyBottom, "gap-3")}>
               <CartTotals
+                totals={totals}
                 title="Чек"
                 compact
                 bonusDiscount={checkout.bonusDiscount}

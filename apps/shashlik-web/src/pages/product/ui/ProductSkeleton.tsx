@@ -6,14 +6,14 @@ export function ProductSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex min-h-[calc(94vh-1.5rem)] flex-col bg-canvas sm:min-h-[calc(94vh-2rem)] lg:min-h-[calc(94vh-2.5rem)]",
+        "flex min-h-[calc(94vh-1.5rem)] flex-col bg-canvas max-lg:bg-surface sm:min-h-[calc(94vh-2rem)] lg:min-h-[calc(94vh-2.5rem)]",
         className,
       )}
       aria-busy
       aria-label="Загрузка карточки"
     >
-      <div className="mx-auto grid w-full max-w-[1680px] flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px]">
-        <section className="relative min-h-0 overflow-hidden bg-surface lg:rounded-[var(--r-2xl)] dark:bg-surface-3">
+      <div className="mx-auto grid w-full max-w-[1680px] flex-1 gap-4 max-lg:gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,413px)] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_467px]">
+        <section className="relative min-h-0 overflow-hidden bg-surface max-lg:rounded-t-[var(--r-2xl)] lg:rounded-[var(--r-2xl)] dark:bg-surface-3">
           <div
             className={cn(
               "relative w-full animate-pulse bg-surface-3",
@@ -24,7 +24,7 @@ export function ProductSkeleton({ className }: { className?: string }) {
           />
         </section>
 
-        <section className="relative flex min-h-0 min-w-0 flex-col border border-line bg-surface p-4 shadow-[var(--shadow-card)] sm:p-6 lg:overflow-hidden lg:rounded-[var(--r-2xl)]">
+        <section className="relative flex min-h-0 min-w-0 flex-col border border-line bg-surface p-4 shadow-[var(--shadow-card)] max-lg:rounded-b-[var(--r-2xl)] max-lg:border-0 max-lg:shadow-none sm:p-6 lg:overflow-hidden lg:rounded-[var(--r-2xl)]">
           <div className="flex min-h-0 flex-1 flex-col gap-5">
             <div className="flex items-start gap-4">
               <div className="min-w-0 flex-1 space-y-3">
