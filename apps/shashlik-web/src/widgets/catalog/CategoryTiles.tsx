@@ -7,17 +7,26 @@ type Props = {
   value: string
   onChange: (id: string) => void
   className?: string
+  /**
+   * `true` (дефолт) — вылет `-mx-4` под родителя с `px-4` (inline на витрине).
+   * `false` — без отрицательного margin; inset первой/последней плитки от краёв экрана (sticky).
+   */
+  edgeBleed?: boolean
 }
 
 /** Мобильная лента категорий: квадратные плитки с иконкой и подписью. */
-export function CategoryTiles({ value, onChange, className }: Props) {
+export function CategoryTiles({ value, onChange, className, edgeBleed = true }: Props) {
   const { data: categories = [] } = useCategories()
   const scrollRef = useAxisLockedHorizontalScroll<HTMLDivElement>()
 
   return (
     <div
       ref={scrollRef}
-      className={cn("scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4", className)}
+      className={cn(
+        "scrollbar-none flex gap-2 overflow-x-auto",
+        edgeBleed ? "-mx-4 px-4" : "px-3",
+        className,
+      )}
     >
       {categories.map((category) => {
         const active = category.id === value

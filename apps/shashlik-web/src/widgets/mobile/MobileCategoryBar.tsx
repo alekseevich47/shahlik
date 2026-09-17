@@ -4,13 +4,15 @@ import * as m from "motion/react-m"
 import { CategoryTiles } from "@/widgets/catalog/CategoryTiles"
 import { cn } from "@/shared/lib/cn"
 
-/** Высота плавающей шапки категорий (mobile). */
+/** Высота плавающей шапки категорий (mobile), без safe-area. */
 export const MOBILE_CATEGORY_STICKY_H = 76
+
+/** scroll-margin секций каталога: sticky + gap + safe-area (заголовок под шапкой). */
+export const MOBILE_CATEGORY_SCROLL_MARGIN = `calc(${MOBILE_CATEGORY_STICKY_H + 8}px + env(safe-area-inset-top, 0px))`
 
 type Props = {
   value: string
   onChange: (id: string) => void
-  firstCategoryId?: string
   className?: string
 }
 
@@ -51,8 +53,8 @@ export function MobileCategoryBar({ value, onChange, className }: Props) {
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         className="fixed inset-x-0 top-0 z-40 border-b border-line bg-surface/95 pt-[env(safe-area-inset-top)] shadow-[var(--shadow-card)] backdrop-blur-xl lg:hidden"
       >
-        <div className="px-0 py-2">
-          <CategoryTiles value={value} onChange={onChange} />
+        <div className="py-2">
+          <CategoryTiles value={value} onChange={onChange} edgeBleed={false} />
         </div>
       </m.div>
     </>

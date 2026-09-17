@@ -7,8 +7,8 @@ type Props = {
   title: string
   headingClassName?: string
   className?: string
-  /** Переопределение scroll-margin-top (mobile sticky). */
-  scrollMarginTop?: number
+  /** Переопределение scroll-margin-top (mobile sticky); число → px, строка — как есть (calc/env). */
+  scrollMarginTop?: number | string
   children: ReactNode
 }
 

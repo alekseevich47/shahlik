@@ -7,6 +7,7 @@ import { CartPanel } from "@/features/cart/ui/CartPanel"
 import { useCheckoutDialogStore } from "@/features/checkout/model/dialog"
 import { CheckoutDialog } from "@/features/checkout/ui/CheckoutDialog"
 import { SearchDialog } from "@/features/search/SearchDialog"
+import { ThemePeekButton } from "@/features/theme-toggle/ThemePeekButton"
 import { backgroundOf } from "@/shared/lib/background-location"
 import { useIsDesktop } from "@/shared/hooks/useMediaQuery"
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet"
@@ -80,11 +81,14 @@ export default function HomePage() {
         )}
 
         {!isDesktop ? (
-          <HomeMobileTabBar
-            value={tab}
-            onTab={setTab}
-            onOpenCart={() => setCartOpen(true)}
-          />
+          <>
+            <HomeMobileTabBar
+              value={tab}
+              onTab={setTab}
+              onOpenCart={() => setCartOpen(true)}
+            />
+            <ThemePeekButton />
+          </>
         ) : null}
       </VitrineScrollProvider>
 

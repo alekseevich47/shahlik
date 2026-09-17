@@ -18,7 +18,7 @@ const MODE_OPTIONS = [
 ] as const
 
 export function CartPanel({ className }: { className?: string }) {
-  const { lines, total, minOrder, goods, acceptingOrders } = useCartTotals()
+  const { lines, total, discount, minOrder, goods, acceptingOrders } = useCartTotals()
   const mode = useCartStore((s) => s.mode)
   const setMode = useCartStore((s) => s.setMode)
   const checkoutOpen = useCheckoutDialogStore((s) => s.open)
@@ -27,6 +27,8 @@ export function CartPanel({ className }: { className?: string }) {
   const empty = lines.length === 0
   const belowMinOrder = minOrder > 0 && goods < minOrder
   const checkoutBlocked = !acceptingOrders || belowMinOrder
+  /** Сумма до скидки по промо (бонус-купоны discount=0 — без зачёркивания). */
+  const totalBeforePromo = discount > 0 ? total + discount : null
 
   return (
     <div
@@ -73,8 +75,18 @@ export function CartPanel({ className }: { className?: string }) {
         <CartTotals />
 
         <div className="flex items-end justify-between gap-3">
-          <span className="flex flex-col">
-            <span className="text-[12px] font-semibold text-fg-muted">Итого</span>
+          <span className="flex min-w-0 flex-col">
+            <span className="flex flex-wrap items-baseline gap-1.5">
+              <span className="text-[12px] font-semibold text-fg-muted">Итого</span>
+              {totalBeforePromo != null ? (
+                <span
+                  className="shrink-0 text-[11px] font-medium whitespace-nowrap text-fg-muted line-through tabular-nums"
+                  aria-label={`Без скидки ${formatPrice(totalBeforePromo)}`}
+                >
+                  {formatPrice(totalBeforePromo)}
+                </span>
+              ) : null}
+            </span>
             <span className="text-[26px] leading-none font-extrabold text-fg tabular-nums">
               {formatPrice(total)}
             </span>

@@ -6,6 +6,7 @@ import { useCategories } from "@/entities/category/api"
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon"
 import { useSettings } from "@/entities/settings/api"
 import { settingsFallback } from "@/entities/settings/model"
+import { useHasPlacedOrder } from "@/features/order-tracking/model/useHasPlacedOrder"
 import { SITE } from "@/shared/config/site"
 import { cn } from "@/shared/lib/cn"
 import { NAV_RAIL_GAP, NAV_RAIL_WIDTH } from "@/widgets/sidebar/rail"
@@ -73,6 +74,7 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
   const { data: categories = [] } = useCategories()
   const { data: settings = settingsFallback() } = useSettings()
   const account = useAccount()
+  const hasPlacedOrder = useHasPlacedOrder()
   const { data: bonus } = useProfileBonus(Boolean(account))
   const displayName =
     [account?.firstName, account?.lastName].filter(Boolean).join(" ") || account?.phone || "Профиль"
@@ -124,11 +126,13 @@ export function Sidebar({ activeCategory, onSelectCategory, collapsed, className
         </nav>
 
         <div className="mt-auto flex flex-col gap-2.5">
-          <SidebarPromoCard
-            title={settings.promoTitle}
-            subtitle={settings.promoSubtitle}
-            code={settings.promoCode}
-          />
+          {!hasPlacedOrder ? (
+            <SidebarPromoCard
+              title={settings.promoTitle}
+              subtitle={settings.promoSubtitle}
+              code={settings.promoCode}
+            />
+          ) : null}
           {!account ? (
             <SidebarPromoCard
               title={settings.promo2Title}

@@ -7,7 +7,7 @@ import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
 import { useFavoriteIds } from "@/features/favorites/model/store"
 import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
 import { cn } from "@/shared/lib/cn"
-import { MOBILE_CATEGORY_STICKY_H } from "@/widgets/mobile/MobileCategoryBar"
+import { MOBILE_CATEGORY_SCROLL_MARGIN } from "@/widgets/mobile/MobileCategoryBar"
 
 import { groupProductsByCategory } from "../lib/groupByCategory"
 import { CatalogCategorySection } from "./CatalogCategorySection"
@@ -69,7 +69,7 @@ export function MobileFavorites() {
                 categoryId={section.id}
                 title={section.name}
                 headingClassName="mb-2.5 text-[18px] leading-none font-extrabold text-fg"
-                scrollMarginTop={MOBILE_CATEGORY_STICKY_H + 8}
+                scrollMarginTop={MOBILE_CATEGORY_SCROLL_MARGIN}
               >
                 <div className="grid grid-cols-2 gap-3">
                   {sectionItems.map((product) => (

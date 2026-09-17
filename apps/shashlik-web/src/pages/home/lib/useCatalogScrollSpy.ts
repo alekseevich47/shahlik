@@ -12,8 +12,6 @@ type Options = {
   enabled?: boolean
   /** Mobile sticky высота для spy rootMargin. */
   scrollMargin?: number
-  /** Первая категория: скролл до появления sticky-шапки. */
-  firstCategoryId?: string
 }
 
 /**
@@ -27,7 +25,6 @@ export function useCatalogScrollSpy({
   onCategoryChange,
   enabled = true,
   scrollMargin,
-  firstCategoryId,
 }: Options) {
   const vitrineScroll = useVitrineScroll()
   const activeRef = useRef(activeCategory)
@@ -54,29 +51,13 @@ export function useCatalogScrollSpy({
         unlock()
       }
 
-      // Первая категория: доскролл до появления sticky (inline-лента уходит из вида).
-      if (firstCategoryId && id === firstCategoryId) {
-        const inline = document.querySelector<HTMLElement>("[data-mobile-category-inline]")
-        if (inline && vitrineScroll) {
-          const top = inline.getBoundingClientRect().bottom + window.scrollY + 4
-          vitrineScroll.scrollTo(top, { duration: 1, onComplete: finish })
-          return
-        }
-        if (inline) {
-          const top = inline.getBoundingClientRect().bottom + window.scrollY + 4
-          window.scrollTo({ top, behavior: "smooth" })
-          finish()
-          return
-        }
-      }
-
       const node = document.getElementById(catalogSectionId(id))
       if (!node) {
         finish()
         return
       }
 
-      // Отступ только из CSS scroll-margin-top секции.
+      // Заголовок секции — под sticky (CSS scroll-margin-top на секции).
       if (vitrineScroll) {
         vitrineScroll.scrollTo(node, {
           duration: 1,
@@ -88,7 +69,7 @@ export function useCatalogScrollSpy({
       node.scrollIntoView({ behavior: "smooth", block: "start" })
       finish()
     },
-    [vitrineScroll, firstCategoryId],
+    [vitrineScroll],
   )
 
   useEffect(() => {

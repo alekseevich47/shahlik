@@ -1,16 +1,16 @@
-# Graph Report - shahlik  (2026-09-17)
+# Graph Report - shahlik  (2026-09-10)
 
 ## Corpus Check
-- 277 files · ~1,511,446 words
+- 260 files · ~1,510,166 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1994 nodes · 5123 edges · 110 communities (107 shown, 3 thin omitted)
-- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 235 edges (avg confidence: 0.54)
+- 1984 nodes · 5081 edges · 123 communities (111 shown, 12 thin omitted)
+- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 233 edges (avg confidence: 0.54)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `315043b0`
+- Built from commit: `ca270909`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -105,10 +105,15 @@
 - NutritionHint.tsx
 - lenis
 - react
+- sonner
 - banner-image-field.tsx
 - inspect-vk-sdk.mjs
 - deploy.sh
+- zustand
+- getAccount
 - Order
+- settings/model.ts
+- addon/model.ts
 - vk-sdk-cdn.ts
 - formatPrice
 - localOrders.ts
@@ -116,18 +121,26 @@
 - Toolbar.tsx
 - ProductsSection
 - AddonRow.tsx
+- mapFrontpadSettings
+- select.tsx
+- acceptAuthToken
+- clsx
+- lenis
+- @radix-ui/react-popover
+- @radix-ui/react-dialog
+- react-easy-crop
 
 ## God Nodes (most connected - your core abstractions)
-1. `cn()` - 161 edges
+1. `cn()` - 157 edges
 2. `formatPrice()` - 53 edges
 3. `Button()` - 48 edges
 4. `ProductEditor()` - 29 edges
 5. `useCartTotals()` - 26 edges
 6. `Input()` - 25 edges
-7. `useAccount()` - 24 edges
-8. `useCategories()` - 24 edges
-9. `ProductView()` - 23 edges
-10. `pb` - 23 edges
+7. `useCategories()` - 24 edges
+8. `ProductView()` - 23 edges
+9. `pb` - 23 edges
+10. `n()` - 22 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Logo CMYK` --conceptually_related_to--> `figma-make-app`  [AMBIGUOUS]
@@ -144,15 +157,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (110 total, 3 thin omitted)
+## Communities (123 total, 12 thin omitted)
 
 ### Community 0 - "addon/api.ts"
-Cohesion: 0.19
-Nodes (16): fetchSizeTemplates(), mapSizeTemplate(), seedFallback(), SizeTemplateInput, sizeTemplateKeys, sizeTemplateMutations, SizeTemplateRecord, useCreateSizeTemplate() (+8 more)
+Cohesion: 0.18
+Nodes (17): fetchSizeTemplates(), mapSizeTemplate(), seedFallback(), SizeTemplateInput, sizeTemplateKeys, sizeTemplateMutations, SizeTemplateRecord, useCreateSizeTemplate() (+9 more)
 
 ### Community 1 - "UI Layout Components"
-Cohesion: 0.11
-Nodes (29): adminReviewKeys, buildOrdersFilter(), createOrder(), CreateReviewInput, fetchAdminReviews(), fetchMyOrders(), fetchOrderById(), fetchOrders() (+21 more)
+Cohesion: 0.08
+Nodes (40): adminReviewKeys, buildOrdersFilter(), createOrder(), CreateOrderInput, CreateReviewInput, fetchActiveResendJobs(), fetchAdminReviews(), fetchMyOrders() (+32 more)
 
 ### Community 2 - "NPM Dependencies"
 Cohesion: 0.10
@@ -167,20 +180,20 @@ Cohesion: 0.14
 Nodes (16): src/App.tsx, Default component exports, Figma Make, figma-make-app, src/index.css, index.html, src/main.tsx, oxfmt (+8 more)
 
 ### Community 5 - "Sushi Catalog UI"
-Cohesion: 0.23
-Nodes (16): claimPwaInstallBonus(), detectInstallPlatform(), dismissPwaForever(), isPwaDismissedForever(), isPwaSoftCooldownActive(), isStandaloneDisplay(), markPwaInstalledOnDevice(), markPwaSoftDismissed() (+8 more)
+Cohesion: 0.25
+Nodes (6): CartTotalsProps, SumRow(), RegistrationBonusModalProps, CoinIcon(), Modal(), ModalProps
 
 ### Community 6 - "Meal Add-ons UI"
-Cohesion: 0.10
-Nodes (31): useDuplicateProduct(), useFrontpadStockArticles(), articleConflictMessage(), ArticleExclude, ArticleRef, cellLabel(), collectArticleConflicts(), isExcludedCell() (+23 more)
+Cohesion: 0.22
+Nodes (14): useFrontpadStockArticles(), articleConflictMessage(), ArticleExclude, ArticleRef, cellLabel(), collectArticleConflicts(), isExcludedCell(), priceOf() (+6 more)
 
 ### Community 7 - "Checkout Flow UI"
 Cohesion: 0.11
 Nodes (18): API-правила (PB Rules), Env / инфра, `pb_hooks` (JSVM), TASK_DB — подключение PocketBase (сайт + админка) с прицелом на Frontpad, Архитектура, Зона БД — делаю сам (PocketBase Admin UI, `pb_hooks`, env), Зона кода — делает агент (после того как коллекции выше созданы), Коллекции (имена полей = 1:1 с `entities/*/model.ts`, где возможно) (+10 more)
 
 ### Community 8 - "package.json"
-Cohesion: 0.06
-Nodes (33): dependencies, class-variance-authority, clsx, lucide-react, motion, @radix-ui/react-dialog, @radix-ui/react-popover, @radix-ui/react-slot (+25 more)
+Cohesion: 0.11
+Nodes (19): dependencies, class-variance-authority, lucide-react, motion, @radix-ui/react-slot, @radix-ui/react-tooltip, react-dom, react-router-dom (+11 more)
 
 ### Community 10 - "Frontpad API"
 Cohesion: 0.33
@@ -215,52 +228,52 @@ Cohesion: 0.47
 Nodes (6): черный, Orange #EF7F1A, Brand color palette, Red #C30D0E, белый, RGB/HEX/CMYK dual specs
 
 ### Community 20 - "FloatingActions.tsx"
-Cohesion: 0.06
-Nodes (64): applyPricesJobKeys, asNumberList(), asStatusMap(), asStringList(), enqueueApplyPricesJob(), enqueueSyncJob(), fetchActiveSyncJobs(), fetchApplyPricesJobs() (+56 more)
+Cohesion: 0.13
+Nodes (24): enqueueApplyPricesJob(), enqueueSyncJob(), fetchActiveSyncJobs(), fetchApplyPricesJobs(), fetchFrontpadStock(), fetchStoppedStock(), FrontpadJobRecord, FrontpadSettingsRecord (+16 more)
 
 ### Community 21 - "product/api.ts"
 Cohesion: 0.07
 Nodes (26): 1. env процесса `pocketbase` (systemd unit, `Environment=`), 2. Правки коллекций в `/_/` (и синхронно в `Tasks/schema.json`), 3. Rate limits PocketBase (`/_/` → Settings → Rate limits), 4. Настройки Frontpad (оператор), 5. Деплой `pb_hooks`, TASK_inter — интеграция с кассой Frontpad (боевая), Зона БД / инфры — делает владелец, агент не трогает, Зона кода — агент (+18 more)
 
 ### Community 22 - "ProductEditor.tsx"
-Cohesion: 0.17
-Nodes (18): buildSeries(), buildTopProducts(), countByFilter(), DashboardData, dashboardKeys, DashboardSection(), dayKey(), fetchDashboard() (+10 more)
+Cohesion: 0.16
+Nodes (18): OrderLineSnapshot, buildSeries(), buildTopProducts(), countByFilter(), DashboardData, dashboardKeys, DashboardSection(), dayKey() (+10 more)
 
 ### Community 23 - "gen-glass-noise.mjs"
 Cohesion: 0.17
 Nodes (14): channelX, channelY, chunk(), crc32(), encodePng(), filterScanlines(), fractal(), makeRandom() (+6 more)
 
 ### Community 24 - "cn"
-Cohesion: 0.35
-Nodes (7): useAccount(), useMyOrders(), getLocalOrderCount(), subscribeLocalOrders(), useHasPlacedOrder(), Sidebar(), SidebarProps
+Cohesion: 0.18
+Nodes (13): fetchBonus(), useProfileBonus(), CategoryIcon(), Props, fetchSettings(), mapSettings(), useSettings(), settingsFallback() (+5 more)
 
 ### Community 25 - "HomePage.tsx"
 Cohesion: 0.20
 Nodes (20): applyClientData(), backfillOrders(), bindPhoneToUser(), bonusFromCustomer(), createCustomer(), ensureCustomer(), fetchClientFromCash(), findAppUserByPhone() (+12 more)
 
 ### Community 26 - "category/api.ts"
-Cohesion: 0.12
-Nodes (15): buildCatalogMap(), buildSizes(), catalogByFlavor, __dir, dryRun, FLAVOR_ALIASES, flavorKey(), html (+7 more)
+Cohesion: 0.06
+Nodes (29): pocketbase, auth(), buildCompositionByVariant(), compositionBySlug, formatComposition(), nutritionBySlug, pb, repoRoot (+21 more)
 
 ### Community 27 - "cn.ts"
-Cohesion: 0.15
-Nodes (15): CategoryIcon(), Props, clampScroll(), Edges, EdgeSide, prefersReducedMotion(), readEdges(), stepScrollLeft() (+7 more)
+Cohesion: 0.39
+Nodes (7): clampScroll(), Edges, EdgeSide, prefersReducedMotion(), readEdges(), stepScrollLeft(), useScrollEdgeCues()
 
 ### Community 28 - "StickyBar.tsx"
-Cohesion: 0.22
-Nodes (10): lenis, isProductModalOpen(), LENIS_OPTIONS, Props, ScrollOptions, VitrineScrollApi, VitrineScrollContext, VitrineScrollProvider() (+2 more)
+Cohesion: 0.28
+Nodes (8): isProductModalOpen(), LENIS_OPTIONS, Props, ScrollOptions, VitrineScrollApi, VitrineScrollContext, VitrineScrollProvider(), VitrineScrollTarget
 
 ### Community 30 - "FloatingActions.tsx"
-Cohesion: 0.11
-Nodes (22): addonKeys, addonMutations, AddonRecord, CreateAddonInput, createBody(), fetchAddonById(), fetchAddons(), fetchAddonsByKind() (+14 more)
+Cohesion: 0.15
+Nodes (24): addonMutations, AddonRecord, CreateAddonInput, fetchAddonById(), fetchAddons(), fetchAddonsByKind(), fetchExtras(), fetchSauces() (+16 more)
 
 ### Community 31 - "useCategories"
-Cohesion: 0.13
-Nodes (36): AccountProvider(), accountCacheKey(), accountKeys, addAddress(), asId(), asString(), avatarFromYandexMeta(), BonusResponse (+28 more)
+Cohesion: 0.11
+Nodes (40): accountCacheKey(), accountKeys, addAddress(), asId(), asString(), avatarFromYandexMeta(), BonusResponse, getAccount() (+32 more)
 
 ### Community 32 - "order/api.ts"
-Cohesion: 0.17
-Nodes (17): adjustBonus(), bonusKeys, BonusSettingsRecord, bulkSetBonusPercent(), fetchBonusSettings(), fetchCustomerLedger(), LedgerRecord, mapLedger() (+9 more)
+Cohesion: 0.08
+Nodes (40): adjustBonus(), bonusKeys, BonusSettingsRecord, bulkSetBonusPercent(), claimPwaInstallBonus(), fetchBonusSettings(), fetchCustomerLedger(), LedgerRecord (+32 more)
 
 ### Community 33 - "customer/api.ts"
 Cohesion: 0.16
@@ -268,15 +281,15 @@ Nodes (29): articleFor(), assertArticleAvailable(), buildDescr(), buildNewOrderP
 
 ### Community 34 - "banner/api.ts"
 Cohesion: 0.11
-Nodes (27): adminProductKeys, createBody(), createProduct(), CreateProductInput, defaultRating(), duplicateProduct(), EMPTY_STATS, fetchAdminProducts() (+19 more)
+Nodes (28): adminProductKeys, createBody(), createProduct(), CreateProductInput, defaultRating(), duplicateProduct(), EMPTY_STATS, fetchAdminProducts() (+20 more)
 
 ### Community 35 - "addon/api.ts"
 Cohesion: 0.14
 Nodes (37): addEmailsToRecord(), applyNames(), applyOAuthNames(), applyOAuthProfileBeforeSave(), asObject(), avatarFromVkUser(), avatarFromYandexData(), emailsFromYandexOAuth() (+29 more)
 
 ### Community 36 - "order/model.ts"
-Cohesion: 0.23
-Nodes (10): BadgeInput, badgeKeys, badgeMutations, BadgeRecord, fetchBadges(), mapBadge(), seedFallback(), DEFAULT_BADGES (+2 more)
+Cohesion: 0.18
+Nodes (16): BadgeInput, badgeKeys, badgeMutations, BadgeRecord, fetchBadges(), mapBadge(), seedFallback(), useBadges() (+8 more)
 
 ### Community 37 - "articles.ts"
 Cohesion: 0.08
@@ -287,24 +300,24 @@ Cohesion: 0.16
 Nodes (27): bytesToBase64Url(), callbackUrl(), cryptoKey(), exchangeAuthCode(), findExternalUser(), findOrCreateUser(), formEncode(), fromBase64Url() (+19 more)
 
 ### Community 39 - "HomePage.tsx"
-Cohesion: 0.17
-Nodes (19): CreateStaffInput, fetchStaff(), mapStaff(), mapStaffRequired(), staffKeys, StaffMember, staffMutations, StaffRecord (+11 more)
+Cohesion: 0.15
+Nodes (21): CreateStaffInput, fetchStaff(), mapStaff(), mapStaffRequired(), staffKeys, StaffMember, staffMutations, StaffRecord (+13 more)
 
 ### Community 40 - "MobileHome.tsx"
-Cohesion: 0.07
-Nodes (36): App(), readInitialTheme(), Theme, ThemeContext, ThemeContextValue, ThemeProvider(), useTheme(), AdminGate() (+28 more)
+Cohesion: 0.13
+Nodes (14): App(), AdminGate(), AdminLogin, AdminPage, AppRoutes(), AuthCallbackPage, EASE, EXIT_ABS (+6 more)
 
 ### Community 41 - "TagFilters.tsx"
-Cohesion: 0.18
-Nodes (10): addonFromCache(), CartTotals, productFromCache(), ResolvedAddon, resolveLine(), AddPayload, CartAddon, CartItem (+2 more)
+Cohesion: 0.16
+Nodes (22): articleFor(), ApplyPricesJobResult, asRowList(), buildCells(), CashPriceCell, CashPricePlan, CashPriceStatus, cellDelta() (+14 more)
 
 ### Community 42 - "webhook.js"
 Cohesion: 0.27
 Nodes (14): applyStatusChange(), constantTimeEqual(), fieldOf(), fillFromObject(), findOrderByFrontpadId(), handleStatusWebhook(), hasHookFields(), jsonResult() (+6 more)
 
 ### Community 43 - "pb.ts"
-Cohesion: 0.29
-Nodes (10): useCustomerLedger(), useCustomer(), useUpdateCustomer(), CustomerDrawer(), digitsOnly(), FormState, OrderHistoryRow(), parseNonNeg() (+2 more)
+Cohesion: 0.23
+Nodes (14): readInitialTheme(), Theme, ThemeContext, ThemeContextValue, ThemeProvider(), useTheme(), oppositeThemeSrc(), resolveThemeSrc() (+6 more)
 
 ### Community 44 - "package.json"
 Cohesion: 0.18
@@ -315,36 +328,36 @@ Cohesion: 0.18
 Nodes (25): applyLedgerDelta(), applyLedgerDeltaTx(), calcOrderEarnAmount(), creditOrderEarn(), creditRegistrationBonus(), debitOrderSpend(), ensureReferralCode(), findLedgerByCustomerReason() (+17 more)
 
 ### Community 46 - "CustomerDrawer.tsx"
-Cohesion: 0.11
-Nodes (16): useCreateBadge(), useDeleteBadge(), useUpdateBadge(), useCreateProduct(), MEAT_OPTIONS, PreviewToggle(), Props, BadgeManagerDialog() (+8 more)
+Cohesion: 0.17
+Nodes (16): cellNutrition(), defaultNutritionFromSizes(), setCellNutrition(), MeatIcon, ProductSize, ProductVariant, imagesDarkFromProduct(), imagesFromProduct() (+8 more)
 
 ### Community 47 - "order/model.ts"
 Cohesion: 0.15
-Nodes (18): bannerFormData(), bannerKeys, bannerMutations, BannerNote, BannerRecord, CreateBannerInput, fetchBannerById(), fetchBanners() (+10 more)
+Nodes (21): bannerFormData(), bannerKeys, bannerMutations, BannerNote, BannerRecord, CreateBannerInput, fetchBannerById(), fetchBanners() (+13 more)
 
 ### Community 48 - "@radix-ui/react-slot"
-Cohesion: 0.20
-Nodes (8): pocketbase, auth(), auth(), nutritionBySlug, pb, repoRoot, auth(), pocketbase
+Cohesion: 0.18
+Nodes (16): syncJobKeys, updateFrontpadSettings(), useUpdateFrontpadSettings(), formatRemaining(), FRONTPAD_STATUS_CODES, FRONTPAD_STATUS_LABEL, frontpadCodeLabel(), FrontpadPanel() (+8 more)
 
 ### Community 49 - "HomePage.tsx"
 Cohesion: 0.07
 Nodes (28): 1.1. Включить API, 1.2. Артикулы товаров, 1.3. Разрешить менять цену в заказе извне (обязательно для совпадения сумм), 1.4. Справочники кодов (выпишите цифры на бумажку), 1.5. Бонусы самой кассы (Frontpad), 2.1. Главные тумблеры, 2.2. URL вебхука, 2.3. Коды оплаты и точка (+20 more)
 
 ### Community 50 - "router.tsx"
-Cohesion: 0.24
-Nodes (11): activityLogKeys, ActivityLogsPage, ActivityRecord, fetchActivityLogsPage(), mapLog(), useActivityLogsPage(), ActivityActorType, ActivityLog (+3 more)
+Cohesion: 0.19
+Nodes (13): activityLogKeys, ActivityLogsPage, ActivityRecord, fetchActivityLogsPage(), mapLog(), useActivityLogsPage(), ActivityActorType, ActivityLog (+5 more)
 
 ### Community 51 - "ProductCard.tsx"
 Cohesion: 0.27
 Nodes (9): categoryKeys, categoryMutations, CategoryRecord, CreateCategoryInput, fetchCategories(), fetchCategoryById(), mapCategory(), UpdateCategoryInput (+1 more)
 
 ### Community 52 - "@radix-ui/react-slot"
-Cohesion: 0.20
-Nodes (16): productKeys, DEFAULT_CRITERIA, CriteriaScores, fetchRatedProductIds(), ratingKeys, ratingSubmitError(), submitProductRating(), SubmitRatingInput (+8 more)
+Cohesion: 0.21
+Nodes (17): useAccount(), productKeys, DEFAULT_CRITERIA, CriteriaScores, fetchRatedProductIds(), ratingKeys, ratingSubmitError(), submitProductRating() (+9 more)
 
 ### Community 53 - "sonner"
-Cohesion: 0.23
-Nodes (10): loadDomMax(), SectionStub(), ADMIN_NAV, AdminNavItem, AdminRole, AdminSectionId, CustomersSection(), AdminSidebar() (+2 more)
+Cohesion: 0.18
+Nodes (12): loadDomMax(), ProductEditorRoute(), SectionStub(), ADMIN_NAV, AdminNavItem, AdminRole, AdminSectionId, AdminSidebar() (+4 more)
 
 ### Community 54 - "@tanstack/react-query"
 Cohesion: 0.14
@@ -359,8 +372,8 @@ Cohesion: 0.15
 Nodes (21): completeVkOneTap(), createVkOneTapSession(), resolveVkAppId(), attachVkOneTap(), detachVkOneTap(), isBenignVkError(), mountWidget(), remountWidget() (+13 more)
 
 ### Community 57 - "SettingsSection.tsx"
-Cohesion: 0.14
-Nodes (26): fetchPublicBonusSettings(), usePublicBonusSettings(), calcBonusSpendCap(), calcCartEarn(), calcLineEarn(), clampPercent(), EarnLineInput, resolveEarnPercent() (+18 more)
+Cohesion: 0.32
+Nodes (5): ResolvedLine, BonusEarnHint(), BonusEarnHintProps, CartLineTitle(), CartLineTitleProps
 
 ### Community 58 - "invalidateProductRatings"
 Cohesion: 0.18
@@ -371,8 +384,8 @@ Cohesion: 0.40
 Nodes (9): claimOrderSend(), createDryRunJob(), nowPb(), patchFrontpadSettings(), patchOrder(), patchSendFailure(), recordToOrder(), sendOrder() (+1 more)
 
 ### Community 60 - "banner-image-field.tsx"
-Cohesion: 0.31
-Nodes (9): useCoupons(), useDeleteCoupon(), useUpdateCoupon(), CouponsSection(), STATUS_FILTERS, formatDate(), formatScore10(), formatScore5() (+1 more)
+Cohesion: 0.11
+Nodes (24): couponKeys, couponMutations, CouponRecord, CreateCouponInput, fetchCoupons(), mapCoupon(), PromoCheckFail, PromoCheckOk (+16 more)
 
 ### Community 61 - "jobs.js"
 Cohesion: 0.24
@@ -383,24 +396,24 @@ Cohesion: 0.36
 Nodes (4): call(), extractWarnings(), formEncode(), maskSecret()
 
 ### Community 63 - "AddonForm.tsx"
-Cohesion: 0.23
-Nodes (14): useCategories(), Category, useProducts(), groupProductsByCategory(), FavoritesCategoryChips(), MobileFavorites(), MobileHome(), Props (+6 more)
+Cohesion: 0.19
+Nodes (18): useCategories(), Category, useProducts(), HomePage(), groupProductsByCategory(), DesktopHome(), FavoritesCategoryChips(), MobileFavorites() (+10 more)
 
 ### Community 64 - "loginWithOAuth"
-Cohesion: 0.10
-Nodes (28): useCreateCategory(), useCreateCoupon(), Props, CategoryForm(), Props, CouponForm(), KIND_OPTIONS, Props (+20 more)
+Cohesion: 0.18
+Nodes (14): useCreateCategory(), useUpdateCategory(), AdminLogin(), CategoryForm(), Props, PhoneOnboarding(), PhoneOnboardingProps, CATEGORY_ICONS (+6 more)
 
 ### Community 65 - "MobileHome.tsx"
-Cohesion: 0.11
-Nodes (28): useDeleteBanner(), useDeleteCategory(), useUpdateCategory(), useAdminProducts(), useDeleteProduct(), useToggleProductActive(), useUpdateProduct(), hasMissingArticle() (+20 more)
+Cohesion: 0.14
+Nodes (21): useDeleteCategory(), useAdminProducts(), useDeleteProduct(), useToggleProductActive(), useUpdateProduct(), hasMissingArticle(), CategoriesSection(), applyFilteredReorder() (+13 more)
 
 ### Community 66 - "useCatalogScrollSpy.ts"
-Cohesion: 0.33
-Nodes (8): needsChooser(), nutritionForPortion(), nutritionOf(), parseWeightGrams(), scaleNutrition(), SkuCell, Product, useAddProduct()
+Cohesion: 0.19
+Nodes (14): minPrice(), needsChooser(), nutritionForPortion(), nutritionOf(), parseWeightGrams(), scaleNutrition(), SkuCell, useAddProduct() (+6 more)
 
 ### Community 67 - "DesktopHome.tsx"
-Cohesion: 0.19
-Nodes (9): CartPanelState, useCartPanelStore, CartDock(), CatalogSection, DesktopHome(), Props, Options, useInView() (+1 more)
+Cohesion: 0.18
+Nodes (8): CartPanelState, useCartPanelStore, CartDock(), CatalogSection, Props, Options, useInView(), useSettling()
 
 ### Community 68 - "StickyBar.tsx"
 Cohesion: 0.17
@@ -411,28 +424,28 @@ Cohesion: 0.32
 Nodes (13): formatPbDateTime(), isNoStopsResponse(), isProductsSyncAllowed(), listAllStock(), normalizeArticle(), parsePrice(), parseSaleFlag(), parseSyncDate() (+5 more)
 
 ### Community 70 - "CartLineRow.tsx"
-Cohesion: 0.15
-Nodes (22): useExtras(), useSauces(), PRODUCT_ASPECT_RATIO, articleFor(), cartLineTitle(), compositionOf(), findSize(), findVariant() (+14 more)
+Cohesion: 0.30
+Nodes (10): compositionOf(), isAddonStopped(), isSizeStopped(), isSkuStopped(), isVariantStopped(), stoppedArticlesKey, useFrontpadStockRealtime(), Product (+2 more)
 
 ### Community 73 - "category/api.ts"
-Cohesion: 0.10
-Nodes (24): useAccount(), acceptAuthToken(), fetchBonus(), logout(), resetAccountCache(), submitReferral(), subscribeAccount(), useProfileBonus() (+16 more)
+Cohesion: 0.13
+Nodes (21): useAccount(), submitReferral(), isActiveOrderStatus(), formatAddressLine(), AuthButtons(), repeatOrderIntoCart(), useLiveOrder(), OrderTrackPage() (+13 more)
 
 ### Community 74 - "account.tsx"
 Cohesion: 0.70
 Nodes (4): actorFromAuth(), hookCollectionWrite(), readRequestMeta(), write()
 
 ### Community 75 - "files.ts"
-Cohesion: 0.17
-Nodes (15): buildCustomersFilter(), buildCustomersSort(), customerKeys, customerMutations, CustomerRecord, CustomersPageParams, CustomersPageResult, fetchCustomerById() (+7 more)
+Cohesion: 0.11
+Nodes (29): useCustomerLedger(), buildCustomersFilter(), buildCustomersSort(), customerKeys, customerMutations, CustomerRecord, CustomersPageParams, CustomersPageResult (+21 more)
 
 ### Community 76 - "getAccount"
-Cohesion: 0.22
-Nodes (7): BonusHistoryReason(), BonusHistoryRow, BONUS_REASON_LABEL, BonusLedgerEntry, BonusLedgerReason, BonusSettings, PublicBonusSettings
+Cohesion: 0.15
+Nodes (23): fetchPublicBonusSettings(), usePublicBonusSettings(), calcBonusSpendCap(), calcCartEarn(), calcLineEarn(), clampPercent(), EarnLineInput, resolveEarnPercent() (+15 more)
 
 ### Community 77 - "NutritionHint.tsx"
-Cohesion: 0.33
-Nodes (7): subscribeOrderStatus(), usePublicOrder(), Order, repeatOrderIntoCart(), useLiveOrder(), OrderTrackPage(), RepeatButton()
+Cohesion: 0.24
+Nodes (9): frontpadSettingsKeys, settingsKeys, parseNonNeg(), SettingsSection(), TabId, TABS, useCollectionRealtime(), Segmented() (+1 more)
 
 ### Community 78 - "router.tsx"
 Cohesion: 0.22
@@ -443,100 +456,116 @@ Cohesion: 0.44
 Nodes (9): applyPrices(), cloneSize(), cloneVariant(), listAll(), loadStockMap(), planProduct(), roundPrice(), sizeLabel() (+1 more)
 
 ### Community 81 - "localOrders.ts"
-Cohesion: 0.29
-Nodes (11): invalidateProductRatings(), useAdminReviews(), useCreateReview(), useDeleteReview(), useToggleReviewPublished(), useUpdateReview(), ProductOption, ReviewForm() (+3 more)
+Cohesion: 0.27
+Nodes (11): invalidateProductRatings(), useCreateReview(), useDeleteReview(), useToggleReviewPublished(), useUpdateReview(), ProductOption, ReviewForm(), ReviewFormProps (+3 more)
 
 ### Community 82 - "a"
 Cohesion: 0.25
 Nodes (8): a(), r(), tf(), tg(), to(), tr(), tW(), tz()
 
 ### Community 83 - "CategoryForm.tsx"
-Cohesion: 0.10
-Nodes (25): BANNER_ASPECT_RATIO, Props, canvasToBlob(), CropArea, cropImageToFile(), loadImage(), readImageSize(), ALLOWED (+17 more)
+Cohesion: 0.12
+Nodes (20): BANNER_ASPECT_RATIO, canvasToBlob(), CropArea, cropImageToFile(), loadImage(), readImageSize(), ALLOWED, BannerImageField() (+12 more)
 
 ### Community 84 - "mapFrontpadSettings"
-Cohesion: 0.08
-Nodes (29): ALL_CATEGORY, CategoryId, KNOWN_CATEGORY_IDS, KnownCategoryId, mapRating(), cellNutrition(), defaultNutritionFromSizes(), setCellNutrition() (+21 more)
+Cohesion: 0.10
+Nodes (15): ALL_CATEGORY, CategoryId, KNOWN_CATEGORY_IDS, KnownCategoryId, useDuplicateProduct(), ProductBadge, categories, MEAT_VARIANTS (+7 more)
 
 ### Community 86 - "cn.ts"
-Cohesion: 0.13
-Nodes (11): VkOneTap(), VkOneTapProps, AuthButtons(), AuthButtonsProps, LoginPanel(), BADGE_LABEL, ORDER_RULES, resolveBadgeLabel() (+3 more)
+Cohesion: 0.38
+Nodes (3): VkOneTap(), VkOneTapProps, AuthButtonsProps
 
 ### Community 87 - "settings/model.ts"
-Cohesion: 0.21
-Nodes (11): AccountAuth, AccountContext, isAbortError(), refreshAuth(), getClientAuthEpoch(), AppUser, NewSavedAddress, OAuthProvider (+3 more)
+Cohesion: 0.27
+Nodes (10): AccountAuth, AccountContext, AccountProvider(), isAbortError(), refreshAuth(), getClientAuthEpoch(), logout(), resetAccountCache() (+2 more)
 
 ### Community 88 - "copy-vkid-sdk.mjs"
 Cohesion: 0.33
 Nodes (4): dest, destDir, root, src
 
 ### Community 91 - "CartLineRow.tsx"
-Cohesion: 0.13
-Nodes (17): AdminPage(), adminCountKeys, AdminCounts, fetchAdminCounts(), useAdminCounts(), CollectionMutationsConfig, FIELD_CODE_RU, invalidate() (+9 more)
+Cohesion: 0.11
+Nodes (20): AdminPage(), AdminTopbar(), AdminTopbarProps, fetchNewOrdersCount(), newOrdersKey, adminCountKeys, AdminCounts, fetchAdminCounts() (+12 more)
 
 ### Community 92 - "lib/format.ts"
-Cohesion: 0.26
-Nodes (10): filenamesOf(), FileRecord, imageFilenames(), imageUrl(), imageUrls(), ToFormDataOptions, canvasToBlob(), compressImage() (+2 more)
+Cohesion: 0.21
+Nodes (12): createBody(), updateBody(), filenamesOf(), FileRecord, imageFilenames(), imageUrls(), ToFormDataOptions, toUploadFormData() (+4 more)
 
 ### Community 93 - "VitrineScroll.tsx"
-Cohesion: 0.29
-Nodes (6): buildCompositionByVariant(), compositionBySlug, formatComposition(), nutritionBySlug, pb, repoRoot
+Cohesion: 0.11
+Nodes (14): DeliveryMode, CheckoutDialogProps, PAYMENT_OPTIONS, CheckoutModeToggle(), CheckoutModeToggleProps, OPTIONS, BADGES, CheckoutTrustBadges() (+6 more)
 
 ### Community 94 - "crud.ts"
-Cohesion: 0.19
-Nodes (20): useBadges(), badgeLabel(), minPrice(), fetchStoppedArticles(), isProductStopped(), useStoppedArticles(), ProductCard(), ProductCardProps (+12 more)
+Cohesion: 0.25
+Nodes (11): badgeLabel(), PRODUCT_ASPECT_RATIO, fetchStoppedArticles(), isProductStopped(), useStoppedArticles(), ProductCard(), ProductCardProps, ProductCardCompact() (+3 more)
 
 ### Community 95 - "NutritionHint.tsx"
-Cohesion: 0.21
-Nodes (11): CheckoutDialogState, useCheckoutDialogStore, HomePage(), CriterionHint(), useIsDesktop(), useIsWide(), useMediaQuery(), MobileTab (+3 more)
+Cohesion: 0.15
+Nodes (18): mapRating(), criterionScore(), criterionStars(), normalizeDistribution(), ProductNutrition, RatingCriterion, FavoritesState, useFavoriteIds() (+10 more)
 
 ### Community 96 - "lenis"
-Cohesion: 0.32
-Nodes (6): CartToggle(), formatOrderSum(), Props, FloatingActions(), Props, TONE
-
-### Community 97 - "react"
-Cohesion: 0.38
-Nodes (5): ThemeToggle(), AdminTopbar(), AdminTopbarProps, fetchNewOrdersCount(), newOrdersKey
+Cohesion: 0.20
+Nodes (9): Glass(), GlassDefs(), GlassProps, FADE, Props, ScrollEdgeButton(), Side, Props (+1 more)
 
 ### Community 99 - "banner-image-field.tsx"
-Cohesion: 0.13
-Nodes (24): checkPromo(), couponKeys, couponMutations, CouponRecord, CreateCouponInput, fetchCoupons(), mapCoupon(), PromoCheckFail (+16 more)
+Cohesion: 0.11
+Nodes (30): addonKeys, checkPromo(), AppliedCoupon, calcCouponDiscount(), Coupon, CouponKind, formatCouponValue(), cartLineTitle() (+22 more)
 
 ### Community 100 - "inspect-vk-sdk.mjs"
 Cohesion: 0.50
 Nodes (3): idx, renderIdx, s
 
+### Community 103 - "getAccount"
+Cohesion: 0.20
+Nodes (10): useCreateProduct(), DEFAULT_NUTRITION, ProductCreateForm(), Props, CYR_MAP, slugFromName(), MultiImageItem, PhotoTheme (+2 more)
+
 ### Community 104 - "Order"
-Cohesion: 0.15
-Nodes (21): fetchActiveResendJobs(), mapJob(), orderJobKeys, orderKeys, resendOrder(), useOrderJobs(), useResendOrder(), isFrontpadWarning() (+13 more)
+Cohesion: 0.13
+Nodes (26): useOrderJobs(), FrontpadJob, FrontpadJobKind, FrontpadJobStatus, isFrontpadWarning(), Order, ORDER_STATUS_FLOW, ORDER_STATUS_LABEL (+18 more)
+
+### Community 105 - "settings/model.ts"
+Cohesion: 0.29
+Nodes (6): DEFAULT_STATUS_MAP, FrontpadSettings, FrontpadStockItem, PriceSource, Settings, ORDER_RULES
+
+### Community 106 - "addon/model.ts"
+Cohesion: 0.33
+Nodes (4): addons, extras, IMG, sauces
 
 ### Community 107 - "vk-sdk-cdn.ts"
 Cohesion: 0.35
 Nodes (11): asString(), clampStar(), emptyDist(), listOrderRatings(), orderHasProduct(), readBody(), recalculateProductRating(), requireAppUser() (+3 more)
 
 ### Community 108 - "formatPrice"
-Cohesion: 0.13
-Nodes (17): DeliveryMode, FrontpadJob, FrontpadJobKind, FrontpadJobStatus, ORDER_STATUS_LABEL, OrderAddressParts, OrderLineAddon, OrderLineSnapshot (+9 more)
+Cohesion: 0.29
+Nodes (9): BonusSpendBlock(), formatAddress(), LineRow(), OrderDetails(), Props, formatPrice(), formatScore10(), formatScore5() (+1 more)
 
 ### Community 109 - "localOrders.ts"
-Cohesion: 0.38
+Cohesion: 0.36
 Nodes (10): canUseStorage(), getLatestLocalOrderId(), isStoredOrder(), listLocalOrderIds(), load(), prune(), rememberLocalOrder(), save() (+2 more)
 
 ### Community 110 - "useCatalogScrollSpy.ts"
-Cohesion: 0.27
-Nodes (8): HomeMobileTabBar(), catalogSectionId(), Options, useCatalogScrollSpy(), useVitrineScroll(), CatalogCategorySection(), Props, STICKY_BAR
+Cohesion: 0.31
+Nodes (7): HomeMobileTabBar(), catalogSectionId(), Options, useCatalogScrollSpy(), useVitrineScroll(), CatalogCategorySection(), Props
 
 ### Community 111 - "Toolbar.tsx"
-Cohesion: 0.14
-Nodes (23): useAddons(), useDeleteAddon(), AddonForm(), AddonsSection(), KIND_FILTERS, PriceRow, ROW_FILTERS, STATUS_LABEL (+15 more)
+Cohesion: 0.25
+Nodes (7): Props, Toolbar(), ToolbarFilter, Chip(), ChipProps, OptionCard(), OptionCardProps
 
 ### Community 112 - "ProductsSection"
-Cohesion: 0.06
-Nodes (49): RatingCriterion, BonusEarnHint(), BonusEarnHintProps, CartTotalsProps, SumRow(), AddressSection(), AddressSectionProps, CheckoutDialogProps (+41 more)
+Cohesion: 0.07
+Nodes (36): CartToggle(), formatOrderSum(), Props, ThemeToggle(), AdminCard(), Props, Props, StatCard() (+28 more)
 
 ### Community 113 - "AddonRow.tsx"
 Cohesion: 0.28
 Nodes (7): AddonRow(), formatWeight(), Props, SIZES, StepBtn(), Stepper(), StepperProps
+
+### Community 114 - "mapFrontpadSettings"
+Cohesion: 0.32
+Nodes (8): asNumberList(), asStatusMap(), asStringList(), fetchFrontpadSettings(), mapFrontpadSettings(), ORDER_STATUS_SET, useFrontpadSettings(), frontpadSettingsFallback()
+
+### Community 115 - "select.tsx"
+Cohesion: 0.38
+Nodes (5): PopoverContent(), OptionData, parseOptions(), Select(), SelectProps
 
 ## Ambiguous Edges - Review These
 - `figma-make-app` → `Logo CMYK`  [AMBIGUOUS]
@@ -547,7 +576,7 @@ Nodes (7): AddonRow(), formatWeight(), Props, SIZES, StepBtn(), Stepper(), Stepp
 ## Knowledge Gaps
 - **497 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+492 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -556,12 +585,12 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `figma-make-app` and `Logo RGB`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `cn()` connect `ProductsSection` to `addon/api.ts`, `Meal Add-ons UI`, `FloatingActions.tsx`, `cn`, `cn.ts`, `banner/api.ts`, `MobileHome.tsx`, `CustomerDrawer.tsx`, `sonner`, `SettingsSection.tsx`, `AddonForm.tsx`, `loginWithOAuth`, `MobileHome.tsx`, `CartLineRow.tsx`, `category/api.ts`, `CategoryForm.tsx`, `mapFrontpadSettings`, `crud.ts`, `NutritionHint.tsx`, `lenis`, `react`, `banner-image-field.tsx`, `formatPrice`, `Toolbar.tsx`, `AddonRow.tsx`?**
-  _High betweenness centrality (0.086) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `package.json` to `@radix-ui/react-slot`, `package.json`, `StickyBar.tsx`?**
-  _High betweenness centrality (0.078) - this node is a cross-community bridge._
-- **Why does `VitrineScrollProvider()` connect `StickyBar.tsx` to `NutritionHint.tsx`?**
+- **Why does `dependencies` connect `package.json` to `react`, `sonner`, `zustand`, `package.json`, `clsx`, `lenis`, `@radix-ui/react-popover`, `@radix-ui/react-dialog`, `react-easy-crop`, `category/api.ts`?**
+  _High betweenness centrality (0.077) - this node is a cross-community bridge._
+- **Why does `VitrineScrollProvider()` connect `StickyBar.tsx` to `lenis`, `AddonForm.tsx`?**
   _High betweenness centrality (0.075) - this node is a cross-community bridge._
+- **Why does `lenis` connect `lenis` to `package.json`, `StickyBar.tsx`?**
+  _High betweenness centrality (0.074) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `ProductEditor()` (e.g. with `e()` and `n()`) actually correct?**
   _`ProductEditor()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `name`, `private`, `version` to the rest of the system?**

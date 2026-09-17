@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { ArrowLeft, Drumstick, Ham, Heart, Leaf, Star, X } from "lucide-react"
+import { ArrowLeft, Drumstick, Ham, Heart, Leaf, ShoppingCart, Star, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -36,6 +36,7 @@ import { AddonRow } from "./ui/AddonRow"
 import { CriterionHint } from "./ui/CriterionHint"
 import { FreshStamp } from "./ui/FreshStamp"
 import { NutritionHint } from "./ui/NutritionHint"
+import { ProductSkeleton } from "./ui/ProductSkeleton"
 
 type ProductViewProps = {
   onClose: () => void
@@ -94,7 +95,7 @@ export function ProductView({ onClose, className }: ProductViewProps) {
   }, [product, resolvedSizeId, resolvedVariantId, picked, quantity, sauces, extras])
 
   if (!slug || (!isPending && !product)) return null
-  if (!product) return <div className={cn("bg-canvas", className)} />
+  if (!product) return <ProductSkeleton className={className} />
 
   const size = findSize(product, resolvedSizeId)
   const variant = findVariant(product, resolvedVariantId)
@@ -183,10 +184,10 @@ export function ProductView({ onClose, className }: ProductViewProps) {
           </div>
         </section>
 
-        <section className="relative flex flex-col overflow-hidden border border-line bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6 lg:rounded-[var(--r-2xl)]">
+        <section className="relative flex min-w-0 flex-col overflow-x-clip border border-line bg-surface p-4 shadow-[var(--shadow-card)] sm:p-6 lg:overflow-hidden lg:rounded-[var(--r-2xl)]">
           <FreshStamp className="pointer-events-none absolute top-3 right-3 z-0 hidden opacity-30 sm:block" size={96} />
 
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-5">
+          <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col gap-5">
           <header className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -301,20 +302,30 @@ export function ProductView({ onClose, className }: ProductViewProps) {
             </div>
           </div>
 
-          <div className="mt-auto flex items-center gap-3 pt-1">
+          <div className="mt-auto flex min-w-0 items-center gap-3 pt-1">
             <Stepper size="lg" value={quantity} min={1} onChange={setQuantity} />
             <Button
               variant="product"
               size="xl"
-              className="flex-1"
+              className="min-w-0 flex-1"
               disabled={skuStopped}
               onClick={submit}
             >
-              {skuStopped
-                ? "Нет в наличии"
-                : isEditing
-                  ? `Сохранить • ${formatPrice(total)}`
-                  : `В корзину • ${formatPrice(total)}`}
+              {skuStopped ? (
+                "Нет в наличии"
+              ) : (
+                <>
+                  <span className="hidden items-center gap-2 lg:inline-flex">
+                    {isEditing
+                      ? `Сохранить • ${formatPrice(total)}`
+                      : `В корзину • ${formatPrice(total)}`}
+                  </span>
+                  <span className="inline-flex items-center gap-2 lg:hidden">
+                    <ShoppingCart size={18} strokeWidth={2.4} />
+                    {isEditing ? `Сохранить ${formatPrice(total)}` : formatPrice(total)}
+                  </span>
+                </>
+              )}
             </Button>
           </div>
           </div>
@@ -381,7 +392,7 @@ export function ProductModal() {
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:duration-300",
             "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-300",
-            "p-0 sm:p-4 lg:p-5",
+            "p-3 sm:p-4 lg:p-5",
           )}
         >
           <DialogPrimitive.Title className="sr-only">

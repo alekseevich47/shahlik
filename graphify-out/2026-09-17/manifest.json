@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/MobileHome.tsx": {
-    "mtime": 1789631770.0233226,
-    "ast_hash": "8c7f518f7313d44a4906c52f325c2a77",
+    "mtime": 1789630075.3465087,
+    "ast_hash": "1928eed24a012f796b28793384bb2db7",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ProductPage.tsx": {
@@ -1040,13 +1040,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/lib/useCatalogScrollSpy.ts": {
-    "mtime": 1789631746.9068043,
-    "ast_hash": "91cc06fa5fd420c4225e2e8727ce0c1a",
+    "mtime": 1789056038.841356,
+    "ast_hash": "bdec8864f068c57d24caacca37fe2ca0",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/CatalogCategorySection.tsx": {
-    "mtime": 1789631716.395837,
-    "ast_hash": "26774fda7498fb39533d6fa74a6def96",
+    "mtime": 1789056038.6969824,
+    "ast_hash": "cde8e340f4c49526f0696ba318f9085f",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/product/format.ts": {
@@ -1595,8 +1595,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/MobileFavorites.tsx": {
-    "mtime": 1789631780.9437675,
-    "ast_hash": "7e5a5836e3e86f05d3c70f023889a4f1",
+    "mtime": 1789056083.0306232,
+    "ast_hash": "d686ba3b94e717949a451e3acb44a03a",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/CriterionHint.tsx": {
@@ -1605,8 +1605,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/widgets/mobile/MobileCategoryBar.tsx": {
-    "mtime": 1789631770.8272202,
-    "ast_hash": "5b5c8edae16facfa24c462784e7aee18",
+    "mtime": 1789629893.3564007,
+    "ast_hash": "6dc9a4cce456c9ad40724dbd87714547",
     "semantic_hash": ""
   },
   "pb_hooks/lib/ratings.js": {
@@ -1695,13 +1695,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/theme-toggle/ThemePeekButton.tsx": {
-    "mtime": 1789631729.8853903,
-    "ast_hash": "51fbd6100945a9e6de8b33d313789e96",
+    "mtime": 1789630233.240865,
+    "ast_hash": "b9020df9d5317480aa9edc5e4a908110",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/ProductSkeleton.tsx": {
-    "mtime": 1789631747.1374424,
-    "ast_hash": "10e609b0479f2f30d004469c41dd8c57",
+    "mtime": 1789629965.0042124,
+    "ast_hash": "29508f4a56f731c31dfe859d9c10915b",
     "semantic_hash": ""
   }
 }

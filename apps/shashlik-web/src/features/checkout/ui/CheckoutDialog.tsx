@@ -42,12 +42,14 @@ const PAYMENT_OPTIONS = [
   { value: "online", label: "Онлайн-оплата" },
 ] as const
 
+/** Шапка колонки: на md+ sticky внутри колонки; на mobile — обычный поток. */
 const stickyTop =
-  "relative z-10 flex h-14 shrink-0 items-center bg-surface px-5 shadow-[0_6px_14px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_6px_14px_-8px_rgba(0,0,0,0.45)]"
+  "relative z-10 flex h-14 shrink-0 items-center bg-surface px-5 md:shadow-[0_6px_14px_-8px_rgba(0,0,0,0.12)] dark:md:shadow-[0_6px_14px_-8px_rgba(0,0,0,0.45)]"
 const stickyBottom =
-  "relative z-10 flex shrink-0 flex-col bg-surface px-5 pt-3 pb-4 shadow-[0_-6px_14px_-8px_rgba(0,0,0,0.12)] dark:shadow-[0_-6px_14px_-8px_rgba(0,0,0,0.45)]"
+  "relative z-10 flex shrink-0 flex-col bg-surface px-5 pt-3 pb-4 md:shadow-[0_-6px_14px_-8px_rgba(0,0,0,0.12)] dark:md:shadow-[0_-6px_14px_-8px_rgba(0,0,0,0.45)]"
+/** Mid: mobile — поток в общем scroll; md+ — собственный overflow. */
 const scrollMid =
-  "min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-3 scrollbar-slim"
+  "px-5 py-3 md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-contain md:scrollbar-slim"
 
 export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
   const { lines } = useCartTotals()
@@ -74,8 +76,11 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
           </ModalDescription>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto md:grid md:grid-cols-2 md:grid-rows-1 md:overflow-hidden">
-          <section className="flex h-full min-h-0 flex-col overflow-hidden md:border-r md:border-line">
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-slim md:grid md:grid-cols-2 md:grid-rows-1 md:overflow-hidden md:scrollbar-none"
+          data-lenis-prevent
+        >
+          <section className="flex flex-col md:h-full md:min-h-0 md:overflow-hidden md:border-r md:border-line">
             <div className={cn(stickyTop, "justify-between gap-3")}>
               <h3 className="text-[15px] font-extrabold text-fg">Ваш заказ</h3>
               <button
@@ -125,7 +130,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
             </div>
           </section>
 
-          <section className="flex h-full min-h-0 flex-col overflow-hidden">
+          <section className="flex flex-col border-t border-line md:h-full md:min-h-0 md:overflow-hidden md:border-t-0">
             <div className={stickyTop}>
               <CheckoutModeToggle
                 value={checkout.mode}

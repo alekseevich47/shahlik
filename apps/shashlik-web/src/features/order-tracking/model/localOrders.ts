@@ -2,6 +2,9 @@ const STORAGE_KEY = "shashlik:orders:v1"
 const MAX_ORDERS = 10
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
 
+/** Событие после rememberLocalOrder — для UI (скрытие промо «первый заказ»). */
+export const LOCAL_ORDERS_EVENT = "shashlik:orders"
+
 type StoredOrder = {
   id: string
   at: number
@@ -60,6 +63,9 @@ export function rememberLocalOrder(id: string): void {
   if (!orderId) return
   const rest = load().filter((item) => item.id !== orderId)
   save([{ id: orderId, at: Date.now() }, ...rest])
+  if (canUseStorage()) {
+    window.dispatchEvent(new Event(LOCAL_ORDERS_EVENT))
+  }
 }
 
 export function listLocalOrderIds(): string[] {

@@ -8,8 +8,13 @@ import type { Product } from "@/entities/product/model"
 import { ProductCardCompact } from "@/entities/product/ui/ProductCardCompact"
 import { useSettings } from "@/entities/settings/api"
 import { settingsFallback } from "@/entities/settings/model"
+import { useHasPlacedOrder } from "@/features/order-tracking/model/useHasPlacedOrder"
 import { useAxisLockedHorizontalScroll } from "@/shared/hooks/useAxisLockedHorizontalScroll"
-import { MobileCategoryBar, MOBILE_CATEGORY_STICKY_H } from "@/widgets/mobile/MobileCategoryBar"
+import {
+  MobileCategoryBar,
+  MOBILE_CATEGORY_SCROLL_MARGIN,
+  MOBILE_CATEGORY_STICKY_H,
+} from "@/widgets/mobile/MobileCategoryBar"
 import { HeroBanner } from "@/widgets/hero/HeroBanner"
 import { PromoBanner } from "@/widgets/promo/PromoBanner"
 
@@ -26,6 +31,7 @@ type Props = {
 export function MobileHome({ category, onCategoryChange, items }: Props) {
   const navigate = useNavigate()
   const account = useAccount()
+  const hasPlacedOrder = useHasPlacedOrder()
   const { data: settings = settingsFallback() } = useSettings()
   const { data: categories = [] } = useCategories()
   const { data: products = [] } = useProducts()
@@ -35,14 +41,12 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
   const combo = catalog.filter((p) => p.categoryId === "combo")
   const sections = useMemo(() => groupProductsByCategory(items, categories), [items, categories])
   const sectionIds = useMemo(() => sections.map(({ category: section }) => section.id), [sections])
-  const firstCategoryId = sectionIds[0]
 
   const { scrollToCategory } = useCatalogScrollSpy({
     sectionIds,
     activeCategory: category,
     onCategoryChange,
     scrollMargin: MOBILE_CATEGORY_STICKY_H + 8,
-    firstCategoryId,
   })
 
   const handleCategorySelect = useCallback(
@@ -56,19 +60,17 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
   return (
     <div className="flex flex-col gap-4 px-4 pt-3 pb-[calc(68px+env(safe-area-inset-bottom))]">
       <HeroBanner />
-      <MobileCategoryBar
-        value={category}
-        onChange={handleCategorySelect}
-        firstCategoryId={firstCategoryId}
-      />
+      <MobileCategoryBar value={category} onChange={handleCategorySelect} />
 
       <ScrollSection title="Популярное" items={popular} hideRating />
 
-      <PromoBanner
-        title={settings.promoTitle}
-        subtitle={settings.promoSubtitle}
-        code={settings.promoCode}
-      />
+      {!hasPlacedOrder ? (
+        <PromoBanner
+          title={settings.promoTitle}
+          subtitle={settings.promoSubtitle}
+          code={settings.promoCode}
+        />
+      ) : null}
       {!account ? (
         <PromoBanner
           title={settings.promo2Title}
@@ -93,7 +95,7 @@ export function MobileHome({ category, onCategoryChange, items }: Props) {
                 categoryId={section.id}
                 title={section.name}
                 headingClassName="mb-2.5 text-[18px] leading-none font-extrabold text-fg"
-                scrollMarginTop={MOBILE_CATEGORY_STICKY_H + 8}
+                scrollMarginTop={MOBILE_CATEGORY_SCROLL_MARGIN}
               >
                 <div className="grid grid-cols-2 gap-3">
                   {sectionItems.map((product) => (
