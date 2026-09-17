@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import type { Product } from "@/entities/product/model"
 import { ProductCard } from "@/entities/product/ui/ProductCard"
@@ -29,6 +29,8 @@ type Props = {
   items: Product[]
   onOpenSearch: () => void
   onOpenCart: () => void
+  /** PDP-модалка: не дёргать visible/expanded плашки из‑за scroll-lock. */
+  pdpLocked?: boolean
 }
 
 export function DesktopHome({
@@ -37,6 +39,7 @@ export function DesktopHome({
   items,
   onOpenSearch,
   onOpenCart,
+  pdpLocked = false,
 }: Props) {
   const addProduct = useAddProduct()
   const { data: categories = [] } = useCategories()
@@ -55,8 +58,14 @@ export function DesktopHome({
   const cartState = !wide ? "sheet" : panelOpen ? "open" : "closed"
   const onCart = wide ? togglePanel : onOpenCart
   const cartPressed = wide ? panelOpen : undefined
-  const barVisible = ready && !actionsInView
-  const barExpanded = ready && !bannerInView
+  const barVisibleLive = ready && !actionsInView
+  const barExpandedLive = ready && !bannerInView
+  const frozenBar = useRef({ visible: barVisibleLive, expanded: barExpandedLive })
+  if (!pdpLocked) {
+    frozenBar.current = { visible: barVisibleLive, expanded: barExpandedLive }
+  }
+  const barVisible = pdpLocked ? frozenBar.current.visible : barVisibleLive
+  const barExpanded = pdpLocked ? frozenBar.current.expanded : barExpandedLive
   // Треки, выезд панелей и геометрия плашки едут одним переходом — метим их
   // одним флагом, чтобы дорогие эффекты выключались ровно на эти кадры.
   const animating = useSettling(`${barVisible}|${barExpanded}|${cartState}`)
@@ -111,24 +120,29 @@ export function DesktopHome({
             cartPressed={cartPressed}
           />
 
-          <FloatingActions
-            className="absolute top-4 right-4 z-20"
-            onSearch={onOpenSearch}
-            onCart={onCart}
-            cartPressed={cartPressed}
-          />
+          <div
+            className="vitrine-underlay"
+            {...(pdpLocked ? { inert: true as const } : {})}
+          >
+            <FloatingActions
+              className="absolute top-4 right-4 z-20"
+              onSearch={onOpenSearch}
+              onCart={onCart}
+              cartPressed={cartPressed}
+            />
 
-          <HeroBanner />
-          {/* Sentinel: низ баннера ушёл → плашка раскрывает категории. */}
-          <div ref={bannerRef} aria-hidden className="h-px w-px" />
+            <HeroBanner />
+            {/* Sentinel: низ баннера ушёл → плашка раскрывает категории. */}
+            <div ref={bannerRef} aria-hidden className="h-px w-px" />
 
-          <section className="mt-4">
-            {items.length === 0 ? (
-              <EmptyCategory />
-            ) : (
-              <CatalogSections sections={sections} onAdd={addProduct} />
-            )}
-          </section>
+            <section className="mt-4">
+              {items.length === 0 ? (
+                <EmptyCategory />
+              ) : (
+                <CatalogSections sections={sections} onAdd={addProduct} />
+              )}
+            </section>
+          </div>
         </main>
 
         {wide ? <CartDock /> : null}

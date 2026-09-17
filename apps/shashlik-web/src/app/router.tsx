@@ -50,7 +50,6 @@ export function AppRoutes() {
         <div
           className="relative min-h-dvh"
           data-modal-open={chromeLocked ? "1" : "0"}
-          {...(chromeLocked ? { inert: true as const } : {})}
         >
           <AnimatePresence initial={false}>
             <m.div

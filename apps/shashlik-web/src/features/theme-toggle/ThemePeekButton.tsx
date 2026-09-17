@@ -13,10 +13,10 @@ const BTN = 44
 const GAP = 8
 /** Half-peek темы из правого края. */
 const PEEK_THEME = 22
-/** Шестерёнка в rest почти за краем. */
-const PEEK_GEAR_REST = BTN + 4
-/** В themeOpen шестерёнка чуть видна. */
-const PEEK_GEAR_SLIGHT = 30
+/** Шестерёнка за правым краем (полностью скрыта). */
+const GEAR_HIDDEN = BTN + 8
+/** Шестерёнка слева от темы при fullOpen. */
+const GEAR_OPEN = -(BTN + GAP)
 
 type Phase = "rest" | "intro" | "themeOpen" | "fullOpen"
 
@@ -47,9 +47,8 @@ const SPRING = {
 }
 
 /**
- * Mobile: рейка справа над TabBar — тема + настройки.
- * Rest: half-peek темы; tap/drag → тема + чуть шестерёнка; тянуть дальше → обе;
- * idle: full → themeOpen → rest (bounce).
+ * Mobile: тема у правого края; шестерёнка выезжает слева от неё только после доп. drag.
+ * Rest → half-peek темы; tap/drag → полная тема; дальше drag → шестерёнка.
  */
 export function ThemePeekButton({ className }: { className?: string }) {
   const { theme, toggle } = useTheme()
@@ -136,10 +135,7 @@ export function ThemePeekButton({ className }: { className?: string }) {
       dragged.current = false
       return
     }
-    if (phase === "rest" || phase === "intro") {
-      openTheme()
-      return
-    }
+    if (phase !== "fullOpen") return
     setSettingsOpen(true)
     scheduleCollapse()
   }
@@ -168,27 +164,48 @@ export function ThemePeekButton({ className }: { className?: string }) {
 
   if (!mounted) return null
 
-  const themeX =
-    phase === "fullOpen" || phase === "themeOpen" || phase === "intro" ? 0 : PEEK_THEME
-  const gearX =
-    phase === "fullOpen"
-      ? 0
-      : phase === "themeOpen" || phase === "intro"
-        ? PEEK_GEAR_SLIGHT
-        : PEEK_GEAR_REST
-
-  const railWidth = BTN * 2 + GAP
+  const themeX = phase === "rest" ? PEEK_THEME : 0
+  const gearX = phase === "fullOpen" ? GEAR_OPEN : GEAR_HIDDEN
+  const gearInteractive = phase === "fullOpen"
 
   return (
     <>
       <div
         className={cn(
-          "pointer-events-none fixed right-0 z-[55] flex flex-row-reverse items-center gap-2",
+          "pointer-events-none fixed right-0 z-[55] size-11",
           "bottom-[calc(68px+env(safe-area-inset-bottom)+12px)] lg:hidden",
           className,
         )}
-        style={{ width: railWidth }}
       >
+        <m.button
+          type="button"
+          onClick={onGearClick}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => {
+            dragStartX.current = null
+          }}
+          aria-label="Настройки отображения"
+          aria-hidden={!gearInteractive}
+          tabIndex={gearInteractive ? 0 : -1}
+          initial={{ x: GEAR_HIDDEN, opacity: 0, visibility: "hidden" as const }}
+          animate={{
+            x: gearX,
+            opacity: gearInteractive ? 1 : 0,
+            visibility: gearInteractive ? ("visible" as const) : ("hidden" as const),
+          }}
+          transition={SPRING}
+          className={cn(
+            "absolute top-0 right-0 grid size-11 place-items-center rounded-[var(--r-md)]",
+            "border border-transparent bg-surface text-fg",
+            BTN_SHADOW,
+            "touch-manipulation select-none",
+            gearInteractive ? "pointer-events-auto cursor-pointer" : "pointer-events-none",
+          )}
+        >
+          <Settings size={18} strokeWidth={2.2} />
+        </m.button>
+
         <m.button
           type="button"
           onClick={onThemeClick}
@@ -202,7 +219,7 @@ export function ThemePeekButton({ className }: { className?: string }) {
           animate={{ x: themeX }}
           transition={SPRING}
           className={cn(
-            "pointer-events-auto grid size-11 place-items-center rounded-[var(--r-md)]",
+            "pointer-events-auto absolute top-0 right-0 z-10 grid size-11 place-items-center rounded-[var(--r-md)]",
             "border border-transparent bg-surface text-fg",
             BTN_SHADOW,
             "cursor-pointer touch-manipulation select-none",
@@ -226,28 +243,6 @@ export function ThemePeekButton({ className }: { className?: string }) {
               )}
             />
           </span>
-        </m.button>
-
-        <m.button
-          type="button"
-          onClick={onGearClick}
-          onPointerDown={onPointerDown}
-          onPointerUp={onPointerUp}
-          onPointerCancel={() => {
-            dragStartX.current = null
-          }}
-          aria-label="Настройки отображения"
-          initial={{ x: PEEK_GEAR_REST }}
-          animate={{ x: gearX }}
-          transition={SPRING}
-          className={cn(
-            "pointer-events-auto grid size-11 place-items-center rounded-[var(--r-md)]",
-            "border border-transparent bg-surface text-fg",
-            BTN_SHADOW,
-            "cursor-pointer touch-manipulation select-none",
-          )}
-        >
-          <Settings size={18} strokeWidth={2.2} />
         </m.button>
       </div>
 

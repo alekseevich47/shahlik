@@ -342,10 +342,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* PDP-модалка: стоп скролла и размытие самой витрины (не backdrop-filter
-     на оверлее — иначе композитор пересобирает подложку каждый кадр).
-     contain + isolation: blur в отдельный слой, меньше пересчётов при
-     invalidation под модалкой (вид blur(10px) тот же). */
+  /* PDP: dim только .vitrine-underlay (каталог/баннер), не StickyBar / TabBar / Peek. */
   body:has([data-modal-open="1"]) {
     overflow: hidden;
   }
@@ -358,7 +355,7 @@
     --removed-body-scroll-bar-size: 0px;
   }
 
-  [data-modal-open="1"] {
+  [data-modal-open="1"] .vitrine-underlay {
     pointer-events: none;
     filter: blur(10px);
     contain: paint;
@@ -366,7 +363,7 @@
   }
 
   /* «Обычное» качество: без blur витрины / стекла / chrome (анимации остаются). */
-  html[data-graphics="normal"] [data-modal-open="1"] {
+  html[data-graphics="normal"] [data-modal-open="1"] .vitrine-underlay {
     filter: none;
   }
 
@@ -386,9 +383,9 @@
     }
   }
 
-  /* Не крутить CSS-анимации на размытой витрине — меньше invalidation под filter. */
-  [data-modal-open="1"] .animate-pulse,
-  [data-modal-open="1"] [class*="animate-"] {
+  /* Не крутить CSS-анимации на подложке под модалкой. */
+  [data-modal-open="1"] .vitrine-underlay .animate-pulse,
+  [data-modal-open="1"] .vitrine-underlay [class*="animate-"] {
     animation-play-state: paused !important;
   }
 

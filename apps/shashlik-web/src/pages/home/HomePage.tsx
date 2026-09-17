@@ -81,15 +81,20 @@ export default function HomePage() {
             items={items}
             onOpenSearch={() => setSearchOpen(true)}
             onOpenCart={() => setCartOpen(true)}
+            pdpLocked={pdpChromeLocked}
           />
-        ) : tab === "favorites" ? (
-          <MobileFavorites />
         ) : (
-          <MobileHome category={category} onCategoryChange={selectCategory} items={items} />
-        )}
-
-        {!isDesktop ? (
           <>
+            <div
+              className="vitrine-underlay"
+              {...(pdpChromeLocked ? { inert: true as const } : {})}
+            >
+              {tab === "favorites" ? (
+                <MobileFavorites />
+              ) : (
+                <MobileHome category={category} onCategoryChange={selectCategory} items={items} />
+              )}
+            </div>
             <HomeMobileTabBar
               value={tab}
               onTab={setTab}
@@ -97,7 +102,7 @@ export default function HomePage() {
             />
             <ThemePeekButton />
           </>
-        ) : null}
+        )}
       </VitrineScrollProvider>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />

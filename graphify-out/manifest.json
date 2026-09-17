@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/package.json": {
-    "mtime": 1787896494.835365,
-    "ast_hash": "f8c67fce402e7a3c4ea3725e5517c5e4",
+    "mtime": 1789637091.2518036,
+    "ast_hash": "d82ed1f66349e3f00cb12494cd4211f4",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/App.tsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/app/router.tsx": {
-    "mtime": 1789634236.8967268,
-    "ast_hash": "087eb473c45102a4806e4dabef8b7e3e",
+    "mtime": 1789636922.7226276,
+    "ast_hash": "3c6ed61db9f8a4e0e4fa9c9719515b74",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/entities/addon/model.ts": {
@@ -315,13 +315,13 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/HomePage.tsx": {
-    "mtime": 1789634265.84111,
-    "ast_hash": "2bf4d5872be193c914178ee53e6ff198",
+    "mtime": 1789636938.3650737,
+    "ast_hash": "e7a25ad70f52b0f70e87eb0ddfa8e462",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/DesktopHome.tsx": {
-    "mtime": 1788839812.7010012,
-    "ast_hash": "350a76f08b85410f84332f549d0391dc",
+    "mtime": 1789636969.2824492,
+    "ast_hash": "1952c86676bcf5d8265b91be8a847d0f",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/home/ui/MobileHome.tsx": {
@@ -475,8 +475,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/index.html": {
-    "mtime": 1789635400.4636736,
-    "ast_hash": "ca6d4a8e670c5de13db840fa5be51ceb",
+    "mtime": 1789637038.2160313,
+    "ast_hash": "747a6af4ced61272b37bf30abe0e48e2",
     "semantic_hash": ""
   },
   "apps/shashlik-web/public/icons/combo.png": {
@@ -1695,8 +1695,8 @@
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/features/theme-toggle/ThemePeekButton.tsx": {
-    "mtime": 1789635454.7251148,
-    "ast_hash": "7c5f75c41dda60b4bbbf16c235534e6e",
+    "mtime": 1789637000.3244803,
+    "ast_hash": "245c6257c003617aa55c386ce4064331",
     "semantic_hash": ""
   },
   "apps/shashlik-web/src/pages/product/ui/ProductSkeleton.tsx": {
@@ -1717,6 +1717,26 @@
   "apps/shashlik-web/src/features/theme-toggle/DisplaySettingsModal.tsx": {
     "mtime": 1789635528.32775,
     "ast_hash": "69b3c3a9d056e8bfe06731a09f43dede",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/scripts/gen-pwa-icons.mjs": {
+    "mtime": 1789637076.3923821,
+    "ast_hash": "6c282f02f4e66a16e99f6b0680abfad7",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/public/logo/pwa-180.png": {
+    "mtime": 1789637092.369,
+    "ast_hash": "a38df5fcf29a4e7e514a329d6e3d8cce",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/public/logo/pwa-192.png": {
+    "mtime": 1789637092.463,
+    "ast_hash": "439b0bd6f8a94e7470c1a6865c10e90d",
+    "semantic_hash": ""
+  },
+  "apps/shashlik-web/public/logo/pwa-512.png": {
+    "mtime": 1789637092.591,
+    "ast_hash": "6646c1228b35b12bd11346de21f31a0f",
     "semantic_hash": ""
   }
 }
