@@ -15,10 +15,40 @@ const GAP = 8
 const PEEK_THEME = 22
 /** Шестерёнка за правым краем (полностью скрыта). */
 const GEAR_HIDDEN = BTN + 8
-/** Шестерёнка слева от темы при fullOpen. */
+/** Половинка шестерёнки слева от темы (themeOpen). */
+const GEAR_PEEK = -(BTN / 2)
+/** Шестерёнка полностью слева от темы (fullOpen). */
 const GEAR_OPEN = -(BTN + GAP)
 
+/** reveal: 0 rest → 0.5 theme+half gear → 1 full strip */
 type Phase = "rest" | "intro" | "themeOpen" | "fullOpen"
+
+function phaseToReveal(phase: Phase): number {
+  if (phase === "fullOpen") return 1
+  if (phase === "themeOpen" || phase === "intro") return 0.5
+  return 0
+}
+
+function revealToPhase(reveal: number): Phase {
+  if (reveal >= 0.75) return "fullOpen"
+  if (reveal >= 0.25) return "themeOpen"
+  return "rest"
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t
+}
+
+function positionsForReveal(reveal: number) {
+  const t = Math.min(Math.max(reveal, 0), 1)
+  const themeX = lerp(PEEK_THEME, 0, Math.min(t / 0.5, 1))
+  const gearX =
+    t <= 0.5
+      ? lerp(GEAR_HIDDEN, GEAR_PEEK, t / 0.5)
+      : lerp(GEAR_PEEK, GEAR_OPEN, (t - 0.5) / 0.5)
+  const gearVisible = t > 0.08
+  return { themeX, gearX, gearVisible }
+}
 
 function sessionAlreadyPlayed(): boolean {
   try {
@@ -47,20 +77,25 @@ const SPRING = {
 }
 
 /**
- * Mobile: тема у правого края; шестерёнка выезжает слева от неё только после доп. drag.
- * Rest → half-peek темы; tap/drag → полная тема; дальше drag → шестерёнка.
+ * Mobile: полоска тема+шестерёнка у правого края.
+ * Rest → half-peek темы; tap/drag → полная тема + half-peek шестерёнки;
+ * дальше drag → полная шестерёнка. Можно тянуть полоску тачем.
  */
 export function ThemePeekButton({ className }: { className?: string }) {
   const { theme, toggle } = useTheme()
   const isDark = theme === "dark"
   const [phase, setPhase] = useState<Phase>("rest")
+  const [dragReveal, setDragReveal] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const holdTimer = useRef<number | null>(null)
   const dragStartX = useRef<number | null>(null)
+  const dragOriginReveal = useRef(0)
+  const dragRevealRef = useRef<number | null>(null)
   const dragged = useRef(false)
   const phaseRef = useRef(phase)
   phaseRef.current = phase
+  dragRevealRef.current = dragReveal
 
   const clearHold = () => {
     if (holdTimer.current != null) {
@@ -81,7 +116,9 @@ export function ThemePeekButton({ className }: { className?: string }) {
         }, HOLD_MS)
         return
       }
-      setPhase("rest")
+      if (current === "themeOpen" || current === "intro") {
+        setPhase("rest")
+      }
       holdTimer.current = null
     }, HOLD_MS)
   }
@@ -135,45 +172,67 @@ export function ThemePeekButton({ className }: { className?: string }) {
       dragged.current = false
       return
     }
-    if (phase !== "fullOpen") return
+    if (phase !== "fullOpen") {
+      // half-peek: дотянуть до full, не открывать настройки
+      if (phase === "themeOpen" || phase === "intro") openFull()
+      return
+    }
     setSettingsOpen(true)
     scheduleCollapse()
   }
 
-  const onPointerDown = (event: ReactPointerEvent) => {
+  const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     dragStartX.current = event.clientX
+    dragOriginReveal.current = phaseToReveal(phaseRef.current)
     dragged.current = false
+    clearHold()
+    event.currentTarget.setPointerCapture?.(event.pointerId)
   }
 
-  const onPointerUp = (event: ReactPointerEvent) => {
+  const onPointerMove = (event: ReactPointerEvent) => {
     const start = dragStartX.current
-    dragStartX.current = null
     if (start == null) return
     const dx = event.clientX - start
-    if (dx >= -12) return
-
+    if (Math.abs(dx) < 6 && !dragged.current) return
     dragged.current = true
-    if (phase === "rest" || phase === "intro") {
-      openTheme()
+    // тянем влево → больше reveal
+    const next = Math.min(Math.max(dragOriginReveal.current + -dx / 72, 0), 1)
+    setDragReveal(next)
+  }
+
+  const onPointerUp = () => {
+    dragStartX.current = null
+    const live = dragRevealRef.current
+    if (live != null) {
+      const nextPhase = revealToPhase(live)
+      setDragReveal(null)
+      dragRevealRef.current = null
+      setPhase(nextPhase)
+      markSessionPlayed()
+      if (nextPhase !== "rest") scheduleCollapse()
       return
     }
-    if (phase === "themeOpen" && dx < -28) {
-      openFull()
-    }
+    scheduleCollapse()
+  }
+
+  const onPointerCancel = () => {
+    dragStartX.current = null
+    setDragReveal(null)
   }
 
   if (!mounted) return null
 
-  const themeX = phase === "rest" ? PEEK_THEME : 0
-  const gearX = phase === "fullOpen" ? GEAR_OPEN : GEAR_HIDDEN
-  const gearInteractive = phase === "fullOpen"
+  const reveal = dragReveal ?? phaseToReveal(phase)
+  const { themeX, gearX, gearVisible } = positionsForReveal(reveal)
+  const stripWide = reveal > 0.2
 
   return (
     <>
       <div
         className={cn(
-          "pointer-events-none fixed right-0 z-[55] size-11",
+          "pointer-events-none fixed right-0 z-[55] h-11 overflow-visible",
           "bottom-[calc(68px+env(safe-area-inset-bottom)+12px)] lg:hidden",
+          stripWide ? "w-[96px]" : "w-11",
           className,
         )}
       >
@@ -181,26 +240,25 @@ export function ThemePeekButton({ className }: { className?: string }) {
           type="button"
           onClick={onGearClick}
           onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={() => {
-            dragStartX.current = null
-          }}
+          onPointerCancel={onPointerCancel}
           aria-label="Настройки отображения"
-          aria-hidden={!gearInteractive}
-          tabIndex={gearInteractive ? 0 : -1}
-          initial={{ x: GEAR_HIDDEN, opacity: 0, visibility: "hidden" as const }}
+          aria-hidden={!gearVisible}
+          tabIndex={gearVisible ? 0 : -1}
+          initial={false}
           animate={{
             x: gearX,
-            opacity: gearInteractive ? 1 : 0,
-            visibility: gearInteractive ? ("visible" as const) : ("hidden" as const),
+            opacity: gearVisible ? 1 : 0,
+            visibility: gearVisible ? ("visible" as const) : ("hidden" as const),
           }}
-          transition={SPRING}
+          transition={dragReveal != null ? { duration: 0 } : SPRING}
           className={cn(
             "absolute top-0 right-0 grid size-11 place-items-center rounded-[var(--r-md)]",
             "border border-transparent bg-surface text-fg",
             BTN_SHADOW,
             "touch-manipulation select-none",
-            gearInteractive ? "pointer-events-auto cursor-pointer" : "pointer-events-none",
+            gearVisible ? "pointer-events-auto cursor-pointer" : "pointer-events-none",
           )}
         >
           <Settings size={18} strokeWidth={2.2} />
@@ -210,14 +268,13 @@ export function ThemePeekButton({ className }: { className?: string }) {
           type="button"
           onClick={onThemeClick}
           onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={() => {
-            dragStartX.current = null
-          }}
+          onPointerCancel={onPointerCancel}
           aria-label={isDark ? "Включить светлую тему" : "Включить тёмную тему"}
-          initial={{ x: PEEK_THEME }}
+          initial={false}
           animate={{ x: themeX }}
-          transition={SPRING}
+          transition={dragReveal != null ? { duration: 0 } : SPRING}
           className={cn(
             "pointer-events-auto absolute top-0 right-0 z-10 grid size-11 place-items-center rounded-[var(--r-md)]",
             "border border-transparent bg-surface text-fg",

@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/pages/product/ProductPage.tsx": {
-    "mtime": 1789635488.4525793,
-    "ast_hash": "18c27d63505516c32f32b1c1e2c53aa2",
+    "mtime": 1789637737.6458948,
+    "ast_hash": "6c8bcf4076629b4682f997090b29510c",
     "semantic_hash": ""
   },
   "src/pages/product/ui/AddonRow.tsx": {
@@ -1330,8 +1330,8 @@
     "semantic_hash": ""
   },
   "src/features/theme-toggle/ThemePeekButton.tsx": {
-    "mtime": 1789637000.3244803,
-    "ast_hash": "245c6257c003617aa55c386ce4064331",
+    "mtime": 1789637749.854928,
+    "ast_hash": "ae5a873de8745480c0b1ebe711f56cf0",
     "semantic_hash": ""
   },
   "src/pages/home/ui/MobileFavorites.tsx": {

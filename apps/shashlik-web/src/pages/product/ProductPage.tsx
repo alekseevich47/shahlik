@@ -22,7 +22,7 @@ import { useCartStore } from "@/features/cart/model/store"
 import { useFavoritesStore, useIsFavorite } from "@/features/favorites/model/store"
 import { productEditOf } from "@/shared/lib/background-location"
 import { cn } from "@/shared/lib/cn"
-import { formatPrice } from "@/shared/lib/format"
+import { pluralize } from "@/shared/lib/format"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { OptionCard } from "@/shared/ui/chip"
@@ -424,24 +424,26 @@ function RatingOverlay({
   return (
     <div
       className={cn(
-        "fx-blur flex w-full max-w-full flex-nowrap items-center gap-1.5 overflow-hidden rounded-[var(--r-md)]",
+        "fx-blur flex w-full max-w-full flex-nowrap items-stretch gap-1.5 overflow-hidden rounded-[var(--r-md)]",
         "border border-line bg-surface/94 px-2 py-1.5 shadow-[var(--shadow-card)] backdrop-blur-md",
         "sm:gap-2 sm:px-3 sm:py-2",
       )}
     >
       <span className="inline-flex shrink-0 items-center gap-1">
-        <Star size={14} className="text-success sm:size-4" strokeWidth={2} fill="currentColor" />
-        <span className="text-[11px] font-extrabold text-fg tabular-nums sm:text-[12px]">
-          {overall}/5
-        </span>
-        <span className="text-[9px] whitespace-nowrap text-fg-muted sm:text-[10px]">
-          ({votes})
+        <Star size={14} className="shrink-0 text-success sm:size-4" strokeWidth={2} fill="currentColor" />
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="text-[11px] font-extrabold text-fg tabular-nums sm:text-[12px]">
+            {overall}/5
+          </span>
+          <span className="text-[9px] whitespace-nowrap text-fg-muted sm:text-[10px]">
+            {votes} {pluralize(votes, ["оценка", "оценки", "оценок"])}
+          </span>
         </span>
       </span>
       {criteria.map((criterion) => (
         <span
           key={criterion.id}
-          className="inline-flex min-w-0 shrink items-center gap-0.5 border-l border-line pl-1.5 sm:gap-1 sm:pl-2"
+          className="inline-flex min-w-0 shrink flex-col justify-center gap-0 border-l border-line pl-1.5 leading-tight sm:pl-2"
         >
           <span className="inline-flex min-w-0 items-center gap-0.5 truncate text-[9px] text-fg-muted sm:text-[10px]">
             <span className="truncate">{criterion.label}</span>
@@ -450,7 +452,7 @@ function RatingOverlay({
           <ScoreValue
             value={criterionScore(criterion.value)}
             max={5}
-            className="shrink-0 text-[10px] sm:text-[11px]"
+            className="text-[10px] sm:text-[11px]"
           />
         </span>
       ))}
